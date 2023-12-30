@@ -1,0 +1,31 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: node:latest
+    steps:
+      - checkout
+      - run: npm install
+      - run: npm run prepublishOnly
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - .
+
+  semantic-release:
+    docker:
+      - image: node:latest
+    steps:
+      - attach_workspace:
+          at: "~/project"
+      - run: npm run semantic-release
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build
+      - semantic-release:
+          requires:
+            - build
