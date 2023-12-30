@@ -9,8 +9,7 @@ import { IMAP_CREDENTIALS_NAME, ImapCredentialsData } from "../../../credentials
 import { createImapClient } from "./ImapUtils";
 
 export async function loadMailboxList(this: ILoadOptionsFunctions): Promise<INodeListSearchResult> {
-  const credentials = this.getCredentials(IMAP_CREDENTIALS_NAME) as unknown as ImapCredentialsData;
-  this.logger?.info(`Credentials: ${JSON.stringify(this.getCredentials(IMAP_CREDENTIALS_NAME))}`);
+  const credentials = await this.getCredentials(IMAP_CREDENTIALS_NAME) as unknown as ImapCredentialsData;
   const client = createImapClient(credentials);
   await client.connect();
 
@@ -34,7 +33,7 @@ export const parameterSelectMailbox: INodeProperties  = {
   name: DEFAULT_MAILBOX_PARAMETER_NAME,
   type: 'resourceLocator',
   default: {
-    mode: 'path',
+    mode: 'list',
     value: 'INBOX',
   },
   description: 'Select the mailbox',
