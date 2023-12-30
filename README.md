@@ -2,10 +2,10 @@
 
 This is an n8n community node that adds support for [IMAP](https://en.wikipedia.org/wiki/Internet_Message_Access_Protocol) email servers.
 
-[Installation](#installation)  
-[Operations](#operations)  
-[Credentials](#credentials)
-[Version history](CHANGELOG.md)
+* [Installation](#installation)  
+* [Operations](#operations)  
+* [Credentials](#credentials)
+* [Version history](CHANGELOG.md)
 
 ## Installation
 
