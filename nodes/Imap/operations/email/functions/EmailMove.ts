@@ -25,6 +25,7 @@ export const moveEmailOperation: IResourceOperationDef = {
       type: 'string',
       default: '',
       description: 'UID of the email to move',
+			hint: 'You can use comma separated list of UIDs to move multiple emails at once',
     },
     {
       ...parameterSelectMailbox,
