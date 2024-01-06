@@ -51,7 +51,15 @@ export class Imap implements INodeType {
 
     // create imap client and connect
     const client = createImapClient(credentials);
-    await client.connect();
+
+		try {
+      await client.connect();
+		} catch (error) {
+			this.logger.error(`Connection failed: ${error.message}`);
+			throw new NodeApiError(this.getNode(), {}, {
+				message: error.responseText || error.message || 'Unknown error',
+			});
+		}
 
     // get node parameters
     const resource = this.getNodeParameter('resource', 0) as string;
