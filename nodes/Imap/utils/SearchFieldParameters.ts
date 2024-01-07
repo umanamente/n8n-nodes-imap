@@ -10,7 +10,7 @@ import { createImapClient } from "./ImapUtils";
 
 export async function loadMailboxList(this: ILoadOptionsFunctions): Promise<INodeListSearchResult> {
   const credentials = await this.getCredentials(IMAP_CREDENTIALS_NAME) as unknown as ImapCredentialsData;
-  const client = createImapClient(credentials);
+  const client = createImapClient(credentials, this.logger);
   await client.connect();
 
   const mailboxes = await client.list();

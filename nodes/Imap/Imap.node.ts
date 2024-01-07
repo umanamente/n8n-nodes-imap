@@ -2,7 +2,7 @@ import { ICredentialTestFunctions, ICredentialsDecrypted, IExecuteFunctions, INo
 import { allResourceDefinitions } from './operations/ResourcesList';
 import { getAllResourceNodeParameters } from './utils/CommonDefinitions';
 import { IMAP_CREDENTIALS_NAME, ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
-import { createImapClient } from './utils/ImapUtils';
+import { ImapFlowErrorCatcher, createImapClient } from './utils/ImapUtils';
 import { NodeApiError } from 'n8n-workflow';
 import { loadMailboxList } from './utils/SearchFieldParameters';
 
@@ -50,7 +50,7 @@ export class Imap implements INodeType {
     const credentials = await this.getCredentials(IMAP_CREDENTIALS_NAME) as unknown as ImapCredentialsData;
 
     // create imap client and connect
-    const client = createImapClient(credentials);
+    const client = createImapClient(credentials, this.logger);
 
 		try {
       await client.connect();
@@ -67,8 +67,11 @@ export class Imap implements INodeType {
 
     // run corresponding operation
     const handler = allResourceDefinitions.find((resourceDef) => resourceDef.resource.value === resource)?.operationDefs.find((operationDef) => operationDef.operation.value === operation);
-    if (handler) {
+		if (handler) {
       try {
+				// some errors are not thrown but logged by ImapFlow internally, so we try to catch them
+				ImapFlowErrorCatcher.getInstance().startErrorCatching();
+
         const result = await handler.executeImapAction(this, client);
         if (result) {
           return result;
@@ -77,11 +80,29 @@ export class Imap implements INodeType {
           return [];
         }
       } catch (error) {
-        this.logger.error(`Operation "${operation}" for resource "${resource}" failed: ${error.message}`);
+				if (error instanceof NodeApiError) {
+					throw error;
+				}
+
+				const internalImapErrors = ImapFlowErrorCatcher.getInstance().stopAndGetErrors();
+				const internalImapErrorsMessage = internalImapErrors.join(", \n");
+				var errorMessage = error.responseText || error.message || undefined;
+				if (!errorMessage) {
+					if (internalImapErrorsMessage) {
+						errorMessage = internalImapErrorsMessage;
+					} else {
+						errorMessage = 'Unknown error';
+					}
+				}
+        this.logger.error(`Operation "${operation}" for resource "${resource}" failed: ${errorMessage}`);
         this.logger.error(JSON.stringify(error));
-        throw new NodeApiError(this.getNode(), {}, {
-          message: error.responseText || error.message || 'Unknown error',
-        });
+				var errorDetails : any = {
+					message: errorMessage,
+				};
+				if (internalImapErrorsMessage) {
+					errorDetails.description = "The following errors were reported by the IMAP server: \n" + internalImapErrorsMessage;
+				}
+        throw new NodeApiError(this.getNode(), {}, errorDetails);
       }
     } else {
       this.logger.error(`Unknown operation "${operation}" for resource "${resource}"`);
@@ -99,7 +120,7 @@ export class Imap implements INodeType {
     },
     credentialTest: {
       async testImapCredentials(this: ICredentialTestFunctions, credential: ICredentialsDecrypted): Promise<INodeCredentialTestResult> {
-          const credentials = credential.data as unknown as ImapCredentialsData;
+        const credentials = credential.data as unknown as ImapCredentialsData;
 
         // create imap client and connect
         try {
