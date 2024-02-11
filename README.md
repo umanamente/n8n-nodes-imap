@@ -30,3 +30,5 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 Currently, this node supports only basic authentication (username and password).  
 OAuth2 authentication is not supported yet.  
 
+>	NOTE: You can reuse core [N8N IMAP Trigger node](https://docs.n8n.io/integrations/builtin/credentials/imap/) credentials for this node.
+
