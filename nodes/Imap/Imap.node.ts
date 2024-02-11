@@ -1,10 +1,11 @@
 import { ICredentialTestFunctions, ICredentialsDecrypted, IExecuteFunctions, INodeCredentialTestResult, INodeExecutionData, INodeType, INodeTypeDescription } from 'n8n-workflow';
 import { allResourceDefinitions } from './operations/ResourcesList';
 import { getAllResourceNodeParameters } from './utils/CommonDefinitions';
-import { IMAP_CREDENTIALS_NAME, ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
+import { ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
 import { ImapFlowErrorCatcher, createImapClient } from './utils/ImapUtils';
 import { NodeApiError } from 'n8n-workflow';
 import { loadMailboxList } from './utils/SearchFieldParameters';
+import { CREDENTIALS_TYPE_CORE_IMAP_ACCOUNT, CREDENTIALS_TYPE_THIS_NODE, credentialNames, getImapCredentials } from './utils/CredentialsSelector';
 
 
 export class Imap implements INodeType {
@@ -22,14 +23,76 @@ export class Imap implements INodeType {
     inputs: ['main'],
     outputs: ['main'],
     credentials: [
+      // using credentials from Core IMAP Trigger node
       {
-        name: IMAP_CREDENTIALS_NAME,
+        // eslint-disable-next-line n8n-nodes-base/node-class-description-credentials-name-unsuffixed
+        name: credentialNames[CREDENTIALS_TYPE_CORE_IMAP_ACCOUNT],
         required: true,
-        // this function doesn't work in current version of n8n
-        // testedBy: 'testImapCredentials',
+        displayOptions: {
+          show: {
+            authentication: [
+              CREDENTIALS_TYPE_CORE_IMAP_ACCOUNT,
+            ],
+          },
+        },
       },
+      // using credentials from this node
+      {
+        // eslint-disable-next-line n8n-nodes-base/node-class-description-credentials-name-unsuffixed
+        name: credentialNames[CREDENTIALS_TYPE_THIS_NODE],
+        required: true,
+        // "testedBy" function doesn't work in current version of n8n
+        // testedBy: 'testImapCredentials',
+        displayOptions: {
+          show: {
+            authentication: [
+              CREDENTIALS_TYPE_THIS_NODE,
+            ],
+          },
+        },
+      },
+      // TODO: using OAuth2
+      /*{
+        name: credentialNames[CREDENTIALS_TYPE_OAUTH2],
+        required: true,
+        displayOptions: {
+          show: {
+            authentication: [
+              CREDENTIALS_TYPE_OAUTH2,
+            ],
+          },
+        },
+      },*/
     ],
     properties: [
+      // credential type
+      {
+        displayName: 'Credential Type',
+        name: 'authentication',
+        type: 'options',
+        // eslint-disable-next-line n8n-nodes-base/node-param-default-wrong-for-options
+        default: CREDENTIALS_TYPE_THIS_NODE,
+        options: [
+          {
+            // eslint-disable-next-line n8n-nodes-base/node-param-display-name-miscased
+            name: 'IMAP',
+            value: CREDENTIALS_TYPE_THIS_NODE,
+            description: 'Use credentials from this node',
+          },
+          {
+            // eslint-disable-next-line n8n-nodes-base/node-param-display-name-miscased
+            name: 'N8N IMAP Trigger Node',
+            value: CREDENTIALS_TYPE_CORE_IMAP_ACCOUNT,
+            description: 'Use existing credentials from N8N IMAP Trigger node',
+          },
+          /*{
+            name: 'OAuth2',
+            value: CREDENTIALS_TYPE_OAUTH2,
+            description: 'Use OAuth2 authentication',
+          },*/
+        ],
+      },
+
       // eslint-disable-next-line n8n-nodes-base/node-param-default-missing
       {
         displayName: 'Resource',
@@ -47,19 +110,19 @@ export class Imap implements INodeType {
   };
 
   async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][] > {
-    const credentials = await this.getCredentials(IMAP_CREDENTIALS_NAME) as unknown as ImapCredentialsData;
+    const credentials = await getImapCredentials(this);
 
     // create imap client and connect
     const client = createImapClient(credentials, this.logger);
 
-		try {
+    try {
       await client.connect();
-		} catch (error) {
-			this.logger.error(`Connection failed: ${error.message}`);
-			throw new NodeApiError(this.getNode(), {}, {
-				message: error.responseText || error.message || 'Unknown error',
-			});
-		}
+    } catch (error) {
+      this.logger.error(`Connection failed: ${error.message}`);
+      throw new NodeApiError(this.getNode(), {}, {
+        message: error.responseText || error.message || 'Unknown error',
+      });
+    }
 
     // get node parameters
     const resource = this.getNodeParameter('resource', 0) as string;
@@ -67,10 +130,10 @@ export class Imap implements INodeType {
 
     // run corresponding operation
     const handler = allResourceDefinitions.find((resourceDef) => resourceDef.resource.value === resource)?.operationDefs.find((operationDef) => operationDef.operation.value === operation);
-		if (handler) {
+    if (handler) {
       try {
-				// some errors are not thrown but logged by ImapFlow internally, so we try to catch them
-				ImapFlowErrorCatcher.getInstance().startErrorCatching();
+        // some errors are not thrown but logged by ImapFlow internally, so we try to catch them
+        ImapFlowErrorCatcher.getInstance().startErrorCatching();
 
         const result = await handler.executeImapAction(this, client);
         if (result) {
@@ -80,28 +143,28 @@ export class Imap implements INodeType {
           return [];
         }
       } catch (error) {
-				if (error instanceof NodeApiError) {
-					throw error;
-				}
+        if (error instanceof NodeApiError) {
+          throw error;
+        }
 
-				const internalImapErrors = ImapFlowErrorCatcher.getInstance().stopAndGetErrors();
-				const internalImapErrorsMessage = internalImapErrors.join(", \n");
-				var errorMessage = error.responseText || error.message || undefined;
-				if (!errorMessage) {
-					if (internalImapErrorsMessage) {
-						errorMessage = internalImapErrorsMessage;
-					} else {
-						errorMessage = 'Unknown error';
-					}
-				}
+        const internalImapErrors = ImapFlowErrorCatcher.getInstance().stopAndGetErrors();
+        const internalImapErrorsMessage = internalImapErrors.join(", \n");
+        var errorMessage = error.responseText || error.message || undefined;
+        if (!errorMessage) {
+          if (internalImapErrorsMessage) {
+            errorMessage = internalImapErrorsMessage;
+          } else {
+            errorMessage = 'Unknown error';
+          }
+        }
         this.logger.error(`Operation "${operation}" for resource "${resource}" failed: ${errorMessage}`);
         this.logger.error(JSON.stringify(error));
-				var errorDetails : any = {
-					message: errorMessage,
-				};
-				if (internalImapErrorsMessage) {
-					errorDetails.description = "The following errors were reported by the IMAP server: \n" + internalImapErrorsMessage;
-				}
+        var errorDetails : any = {
+          message: errorMessage,
+        };
+        if (internalImapErrorsMessage) {
+          errorDetails.description = "The following errors were reported by the IMAP server: \n" + internalImapErrorsMessage;
+        }
         throw new NodeApiError(this.getNode(), {}, errorDetails);
       }
     } else {

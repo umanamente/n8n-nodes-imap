@@ -6,6 +6,20 @@ export class ImapCredentials implements ICredentialType {
   name = IMAP_CREDENTIALS_NAME;
   displayName = "IMAP Credentials";
   properties: INodeProperties[] = [
+      {
+      displayName: "User",
+      name: "user",
+      type: "string",
+      default: "",
+      placeholder: "Username",
+    },
+    {
+      displayName: "Password",
+      name: "password",
+      type: "string",
+      typeOptions: { password: true },
+      default: "",
+    },
     {
       displayName: "Host",
       name: "host",
@@ -21,21 +35,7 @@ export class ImapCredentials implements ICredentialType {
       description: "Usually 993 for SSL and 143 for TLS",
     },
     {
-      displayName: "User",
-      name: "user",
-      type: "string",
-      default: "",
-      placeholder: "Username",
-    },
-    {
-      displayName: "Password",
-      name: "password",
-      type: "string",
-      typeOptions: { password: true },
-      default: "",
-    },
-    {
-      displayName: "TLS",
+      displayName: "SSL/TLS",
       name: "tls",
       type: "boolean",
       default: true,
