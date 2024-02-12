@@ -15,9 +15,26 @@
       "@semantic-release/changelog",
       { "changelogFile": "CHANGELOG.md" }
     ],
+		[
+			"@google/semantic-release-replace-plugin",
+			{
+				"replacements": [
+					{
+						"files": ["package.json"],
+						"from": "\"version\": \".*\"",
+						"to": "\"version\": \"${nextRelease.version}\""
+					}
+				]
+			}
+		],
     [
       "@semantic-release/git",
-      { "assets": "CHANGELOG.md" }
+      {
+				"assets": [
+					"CHANGELOG.md",
+					"package.json"
+				]
+			}
     ],
     [
       "@semantic-release/github",
