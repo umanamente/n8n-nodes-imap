@@ -113,7 +113,7 @@ export class Imap implements INodeType {
     const credentials = await getImapCredentials(this);
 
     // create imap client and connect
-    const ENABLE_DEBUG_LOGGING = true;
+    const ENABLE_DEBUG_LOGGING = false;
     const client = createImapClient(credentials, this.logger, ENABLE_DEBUG_LOGGING);
 
     try {
@@ -150,7 +150,6 @@ export class Imap implements INodeType {
             resultItems.push(...result);
           } else {
             this.logger.warn(`Operation "${operation}" for resource "${resource}" returned no data`);
-            return [];
           }
         } catch (error) {
           const internalImapErrors = ImapFlowErrorCatcher.getInstance().stopAndGetErrors();
