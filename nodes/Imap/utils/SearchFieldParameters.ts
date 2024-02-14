@@ -62,9 +62,9 @@ export const parameterSelectMailbox: INodeProperties  = {
 };
 
 
-export function getMailboxPathFromNodeParameter(context: IExecuteFunctions, paramName:string = DEFAULT_MAILBOX_PARAMETER_NAME): string {
+export function getMailboxPathFromNodeParameter(context: IExecuteFunctions, itemIndex: number,  paramName:string = DEFAULT_MAILBOX_PARAMETER_NAME): string {
   try {
-    const mailboxPathObj = context.getNodeParameter(paramName, 0) as IDataObject;
+    const mailboxPathObj = context.getNodeParameter(paramName, itemIndex) as IDataObject;
     // check if mailboxPathObj exists (could be undefined if mailboxPathObj is not required and not set)
     if (!mailboxPathObj) {
       return '';

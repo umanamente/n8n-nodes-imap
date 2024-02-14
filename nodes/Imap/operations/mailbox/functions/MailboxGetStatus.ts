@@ -15,7 +15,7 @@ export const getMailboxStatusOperation: IResourceOperationDef = {
       description: 'Select the mailbox',
     },
   ],
-  async executeImapAction(context: IExecuteFunctions, client: ImapFlow) {
+  async executeImapAction(context: IExecuteFunctions, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
     var returnData: INodeExecutionData[] = [];
     var statusQuery = {
       messages: true,
@@ -25,13 +25,13 @@ export const getMailboxStatusOperation: IResourceOperationDef = {
       uidValidity: true,
       highestModseq: true,
     };
-    const mailboxPath = getMailboxPathFromNodeParameter(context);
+    const mailboxPath = getMailboxPathFromNodeParameter(context, itemIndex);
 
     const mailbox : StatusObject = await client.status(mailboxPath, statusQuery);
     var item_json = JSON.parse(JSON.stringify(mailbox));
     returnData.push({
       json: item_json,
     });
-    return [returnData];
+    return returnData;
   },
 };

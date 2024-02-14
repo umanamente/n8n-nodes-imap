@@ -4,7 +4,7 @@ import { IExecuteFunctions, INodeExecutionData, INodeProperties, INodePropertyOp
 export interface IResourceOperationDef {
   operation: INodePropertyOptions;
   parameters: INodeProperties[];
-  executeImapAction: (context: IExecuteFunctions, client: ImapFlow) => Promise<INodeExecutionData[][] | NodeExecutionWithMetadata[][] | null>;
+  executeImapAction: (context: IExecuteFunctions, itemIndex: number, client: ImapFlow) => Promise<INodeExecutionData[] | NodeExecutionWithMetadata[] | null>;
 };
 
 export interface IResourceDef {

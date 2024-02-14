@@ -23,9 +23,9 @@ export const deleteMailboxOperation: IResourceOperationDef = {
       default: '',
     },
   ],
-  async executeImapAction(context: IExecuteFunctions, client: ImapFlow) {
+  async executeImapAction(context: IExecuteFunctions, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
     var returnData: INodeExecutionData[] = [];
-    const mailboxPath = getMailboxPathFromNodeParameter(context);
+    const mailboxPath = getMailboxPathFromNodeParameter(context, itemIndex);
     context.logger?.info(`Deleting mailbox "${mailboxPath}"`);
 
     const imapResp : MailboxDeleteResponse = await client.mailboxDelete(mailboxPath);
@@ -33,6 +33,6 @@ export const deleteMailboxOperation: IResourceOperationDef = {
     returnData.push({
       json: item_json,
     });
-    return [returnData];
+    return returnData;
   },
 };

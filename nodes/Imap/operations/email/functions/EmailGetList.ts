@@ -103,18 +103,18 @@ export const getEmailsListOperation: IResourceOperationDef = {
       ],
     }
   ],
-  async executeImapAction(context: IExecuteFunctions, client: ImapFlow) {
+  async executeImapAction(context: IExecuteFunctions, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
     var returnData: INodeExecutionData[] = [];
 
-    const mailboxPath = getMailboxPathFromNodeParameter(context);
+    const mailboxPath = getMailboxPathFromNodeParameter(context, itemIndex);
 
     context.logger?.info(`Getting emails list from ${mailboxPath}`);
 
     await client.mailboxOpen(mailboxPath, { readOnly: true });
 
-    var searchObject = getEmailSearchParametersFromNode(context);
+    var searchObject = getEmailSearchParametersFromNode(context, itemIndex);
 
-    const includeParts = context.getNodeParameter('includeParts', 0) as string[];
+    const includeParts = context.getNodeParameter('includeParts', itemIndex) as string[];
     var fetchQuery : FetchQueryObject = {
       uid: true,
       envelope: true,
@@ -228,7 +228,6 @@ export const getEmailsListOperation: IResourceOperationDef = {
       });
     }
 
-    client.close();
-    return [returnData];
+    return returnData;
   },
 };

@@ -52,7 +52,8 @@ const credentialsProviders: ImapCredentialsProvider[] = [
 ];
 
 export async function getImapCredentials(context: IExecuteFunctions) : Promise<ImapCredentialsData> {
-  const credentialsType = context.getNodeParameter('authentication', 0) as string;
+  const FIRST_NODE_INDEX = 0; // authentification is the same for all nodes
+  const credentialsType = context.getNodeParameter('authentication', FIRST_NODE_INDEX) as string;
   const provider = credentialsProviders.find(provider => provider.credentialsType === credentialsType);
   if (!provider) {
     throw new Error(`Unsupported credentials type: ${credentialsType}`);

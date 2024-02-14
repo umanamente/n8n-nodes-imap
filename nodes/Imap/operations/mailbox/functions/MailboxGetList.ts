@@ -59,10 +59,10 @@ export const getMailboxListOperation: IResourceOperationDef = {
     },
 
   ],
-  async executeImapAction(context: IExecuteFunctions, client: ImapFlow) {
+  async executeImapAction(context: IExecuteFunctions, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
     var returnData: INodeExecutionData[] = [];
-    context.logger?.info("includeStatusFields: " + context.getNodeParameter('includeStatusFields', 0) as string);
-    const includeStatusFields = context.getNodeParameter('includeStatusFields', 0) as string[];
+    context.logger?.info("includeStatusFields: " + context.getNodeParameter('includeStatusFields', itemIndex) as string);
+    const includeStatusFields = context.getNodeParameter('includeStatusFields', itemIndex) as string[];
     var statusQuery = {
       messages: includeStatusFields.includes(MailboxListStatusFields.includeMessageCount),
       recent: includeStatusFields.includes(MailboxListStatusFields.includeRecentCount),
@@ -86,6 +86,6 @@ export const getMailboxListOperation: IResourceOperationDef = {
         json: item_json,
       });
     }
-    return [returnData];
+    return returnData;
   },
 };

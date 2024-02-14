@@ -37,10 +37,10 @@ export const createMailboxOperation: IResourceOperationDef = {
       required: true,
     },
   ],
-  async executeImapAction(context: IExecuteFunctions, client: ImapFlow) {
+  async executeImapAction(context: IExecuteFunctions, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
     var returnData: INodeExecutionData[] = [];
-    const mailboxPath = getMailboxPathFromNodeParameter(context);
-    const mailboxName = context.getNodeParameter('mailboxName', 0) as string;
+    const mailboxPath = getMailboxPathFromNodeParameter(context, itemIndex);
+    const mailboxName = context.getNodeParameter('mailboxName', itemIndex) as string;
     var resultPath;
     // if mailboxPath is empty, then we are creating a top level mailbox
     if (mailboxPath) {
@@ -55,6 +55,6 @@ export const createMailboxOperation: IResourceOperationDef = {
     returnData.push({
       json: item_json,
     });
-    return [returnData];
+    return returnData;
   },
 };

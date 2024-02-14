@@ -23,10 +23,10 @@ export const renameMailboxOperation: IResourceOperationDef = {
       required: true,
     },
   ],
-  async executeImapAction(context: IExecuteFunctions, client: ImapFlow) {
+  async executeImapAction(context: IExecuteFunctions, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
     var returnData: INodeExecutionData[] = [];
-    const mailboxPath = getMailboxPathFromNodeParameter(context);
-    const newMailboxName = context.getNodeParameter('newMailboxName', 0) as string;
+    const mailboxPath = getMailboxPathFromNodeParameter(context, itemIndex);
+    const newMailboxName = context.getNodeParameter('newMailboxName', itemIndex) as string;
 
     context.logger?.info(`Renaming mailbox "${mailboxPath}" to "${newMailboxName}"`);
 
@@ -36,6 +36,6 @@ export const renameMailboxOperation: IResourceOperationDef = {
     returnData.push({
       json: item_json,
     });
-    return [returnData];
+    return returnData;
   },
 };

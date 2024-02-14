@@ -25,7 +25,7 @@ export const moveEmailOperation: IResourceOperationDef = {
       type: 'string',
       default: '',
       description: 'UID of the email to move',
-			hint: 'You can use comma separated list of UIDs to move multiple emails at once',
+      hint: 'You can use comma separated list of UIDs to move multiple emails at once',
     },
     {
       ...parameterSelectMailbox,
@@ -33,13 +33,13 @@ export const moveEmailOperation: IResourceOperationDef = {
       name: PARAM_NAME_DESTINATION_MAILBOX,
     },
   ],
-  async executeImapAction(context: IExecuteFunctions, client: ImapFlow) {
+  async executeImapAction(context: IExecuteFunctions, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
     var returnData: INodeExecutionData[] = [];
 
-    const sourceMailboxPath = getMailboxPathFromNodeParameter(context, PARAM_NAME_SOURCE_MAILBOX);
-    const destinationMailboxPath = getMailboxPathFromNodeParameter(context, PARAM_NAME_DESTINATION_MAILBOX);
+    const sourceMailboxPath = getMailboxPathFromNodeParameter(context, itemIndex, PARAM_NAME_SOURCE_MAILBOX);
+    const destinationMailboxPath = getMailboxPathFromNodeParameter(context, itemIndex, PARAM_NAME_DESTINATION_MAILBOX);
 
-    const emailUid = context.getNodeParameter('emailUid', 0) as string;
+    const emailUid = context.getNodeParameter('emailUid', itemIndex) as string;
 
     context.logger?.info(`Moving email "${emailUid}" from "${sourceMailboxPath}" to "${destinationMailboxPath}"`);
 
@@ -61,7 +61,6 @@ export const moveEmailOperation: IResourceOperationDef = {
       json: item_json,
     });
 
-    client.close();
-    return [returnData];
+    return returnData;
   },
 };

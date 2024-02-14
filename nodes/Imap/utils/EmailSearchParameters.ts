@@ -153,11 +153,11 @@ export const emailSearchParameters : INodeProperties[] = [
   },
 ];
 
-export function getEmailSearchParametersFromNode(context: IExecuteFunctions): SearchObject {
+export function getEmailSearchParametersFromNode(context: IExecuteFunctions, itemIndex: number): SearchObject {
   var searchObject: SearchObject = {};
 
   // date range
-  const emailDateRangeObj = context.getNodeParameter('emailDateRange', 0) as IDataObject;
+  const emailDateRangeObj = context.getNodeParameter('emailDateRange', itemIndex) as IDataObject;
   const since = emailDateRangeObj['since'] as string;
   const before = emailDateRangeObj['before'] as string;
 
@@ -169,7 +169,7 @@ export function getEmailSearchParametersFromNode(context: IExecuteFunctions): Se
   }
 
   // flags
-  const emailFlagsObj = context.getNodeParameter('emailFlags', 0) as IDataObject;
+  const emailFlagsObj = context.getNodeParameter('emailFlags', itemIndex) as IDataObject;
   // check if flag exists (could be undefined)
   if (EmailFlags.Answered in emailFlagsObj) {
     searchObject.answered = emailFlagsObj[EmailFlags.Answered] as boolean;
@@ -196,7 +196,7 @@ export function getEmailSearchParametersFromNode(context: IExecuteFunctions): Se
   }
 
   // search filters
-  const emailSearchFiltersObj = context.getNodeParameter('emailSearchFilters', 0) as IDataObject;
+  const emailSearchFiltersObj = context.getNodeParameter('emailSearchFilters', itemIndex) as IDataObject;
   if (EmailSearchFilters.BCC in emailSearchFiltersObj) {
     searchObject.bcc = emailSearchFiltersObj[EmailSearchFilters.BCC] as string;
   }

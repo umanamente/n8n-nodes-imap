@@ -31,41 +31,41 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
       hint: 'Part ID can be found in the email "attachmentsInfo" property',
     },
   ],
-  async executeImapAction(context: IExecuteFunctions, client: ImapFlow) {
+  async executeImapAction(context: IExecuteFunctions, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
     var returnData: INodeExecutionData[] = [];
 
-    const mailboxPath = getMailboxPathFromNodeParameter(context);
+    const mailboxPath = getMailboxPathFromNodeParameter(context, itemIndex);
 
     await client.mailboxOpen(mailboxPath, { readOnly: true });
 
-    const emailUid = context.getNodeParameter('emailUid', 0) as string;
-    const partId = context.getNodeParameter('partId', 0) as string;
+    const emailUid = context.getNodeParameter('emailUid', itemIndex) as string;
+    const partId = context.getNodeParameter('partId', itemIndex) as string;
 
     context.logger?.info(`Downloading attachment "${partId}" from email "${emailUid}"`);
 
 
-		// start catching errors
-		ImapFlowErrorCatcher.getInstance().startErrorCatching();
+    // start catching errors
+    ImapFlowErrorCatcher.getInstance().startErrorCatching();
 
     const resp : DownloadObject = await client.download(emailUid, partId, {
       uid: true,
     });
-		if (!resp.meta) {
-			// get IMAP errors
-			const internalImapErrors = ImapFlowErrorCatcher.getInstance().stopAndGetErrors();
-			var errorDetails = "";
-			if (internalImapErrors.length > 0) {
-				errorDetails = "IMAP server responded: \n" + internalImapErrors.join(", \n");
-			}
+    if (!resp.meta) {
+      // get IMAP errors
+      const internalImapErrors = ImapFlowErrorCatcher.getInstance().stopAndGetErrors();
+      var errorDetails = "";
+      if (internalImapErrors.length > 0) {
+        errorDetails = "IMAP server responded: \n" + internalImapErrors.join(", \n");
+      }
 
-			context.logger?.error(`IMAP server has not returned attachment info: ${errorDetails}`);
+      context.logger?.error(`IMAP server has not returned attachment info: ${errorDetails}`);
 
-			throw new NodeApiError(context.getNode(), {}, {
-				message: "IMAP server has not returned attachment info",
-				description: errorDetails,
-			});
-		}
-		const binaryData = await context.helpers.prepareBinaryData(resp.content, resp.meta.filename, resp.meta.contentType);
+      throw new NodeApiError(context.getNode(), {}, {
+        message: "IMAP server has not returned attachment info",
+        description: errorDetails,
+      });
+    }
+    const binaryData = await context.helpers.prepareBinaryData(resp.content, resp.meta.filename, resp.meta.contentType);
     context.logger?.info(`Attachment downloaded: ${binaryData.data.length} bytes`);
 
     returnData.push({
@@ -75,7 +75,6 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
       },
     });
 
-    client.close();
-    return [returnData];
+    return returnData;
   },
 };
