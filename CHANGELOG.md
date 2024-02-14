@@ -1,3 +1,10 @@
+## [1.2.3](https://github.com/umanamente/n8n-nodes-imap/compare/v1.2.2...v1.2.3) (2024-02-14)
+
+
+### Bug Fixes
+
+* Don't terminate multiple items processing if a handler returned no data ([b46f86d](https://github.com/umanamente/n8n-nodes-imap/commit/b46f86d7b7fbe95306b389dc4cb0d357ed394f5f))
+
 ## [1.2.2](https://github.com/umanamente/n8n-nodes-imap/compare/v1.2.1...v1.2.2) (2024-02-14)
 
 
