@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/umanamente/n8n-nodes-imap/compare/v1.2.1...v1.2.2) (2024-02-14)
+
+
+### Bug Fixes
+
+* **dependabot:** NPM IP package vulnerable to Server-Side Request Forgery (SSRF) attacks ([3395bf9](https://github.com/umanamente/n8n-nodes-imap/commit/3395bf9f80653da6d2dd99fe0ff91595129fe732))
+
 ## [1.2.1](https://github.com/umanamente/n8n-nodes-imap/compare/v1.2.0...v1.2.1) (2024-02-14)
 
 
