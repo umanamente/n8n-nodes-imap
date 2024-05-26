@@ -1,4 +1,4 @@
-import { FetchQueryObject, ImapFlow } from "imapflow";
+import { FetchQueryObject, ImapFlow, Readable } from "imapflow";
 import { IExecuteFunctions, INodeExecutionData } from "n8n-workflow";
 import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from "../../../utils/SearchFieldParameters";
@@ -22,6 +22,19 @@ interface EmailPartInfo {
   size: number;
   disposition?: string;
   parameters?: [string, string];
+}
+
+function streamToString(stream: Readable): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const chunks: any[] = [];
+    stream.on('data', (chunk) => {
+      chunks.push(chunk);
+    });
+    stream.on('end', () => {
+      resolve(Buffer.concat(chunks).toString('utf8'));
+    });
+    stream.on('error', reject);
+  });
 }
 
 // get the parts info from the body structure
@@ -194,32 +207,20 @@ export const getEmailsListOperation: IResourceOperationDef = {
         item_json.attachmentsInfo = attachmentsInfo;
       }
 
+      // fetch text and html content
       if (includeTextContent || includeHtmlContent) {
-        // need to fetch the body parts for this email
-        var bodyPartsToRequest = [];
         if (includeTextContent && textPartId) {
-          bodyPartsToRequest.push(textPartId);
-        }
-        if (includeHtmlContent && htmlPartId) {
-          bodyPartsToRequest.push(htmlPartId);
-        }
-        if (bodyPartsToRequest.length > 0) {
-          const emailWithParts = await client.fetchOne(email.uid.toString(), {
-            uid: true,
-            bodyParts: bodyPartsToRequest,
-          }, {
+          const textContent = await client.download(email.uid.toString(), textPartId, {
             uid: true,
           });
-          if (emailWithParts.bodyParts) {
-            if (includeTextContent && textPartId) {
-              item_json.textContent = emailWithParts.bodyParts.get(textPartId)?.toString();
-            }
-            if (includeHtmlContent && htmlPartId) {
-              item_json.htmlContent = emailWithParts.bodyParts.get(htmlPartId)?.toString();
-            }
-          } else {
-            context.logger?.error(`Could not get body parts for email ${email.uid}`);
-          }
+          item_json.textContent = await streamToString(textContent.content);
+        }
+        if (includeHtmlContent && htmlPartId) {
+          //bodyPartsToRequest.push(htmlPartId);
+          const htmlContent = await client.download(email.uid.toString(), htmlPartId, {
+            uid: true,
+          });
+          item_json.htmlContent = await streamToString(htmlContent.content);
         }
       }
 
