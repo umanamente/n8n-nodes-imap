@@ -4,6 +4,7 @@ import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from "../../../utils/SearchFieldParameters";
 import { emailSearchParameters, getEmailSearchParametersFromNode } from "../../../utils/EmailSearchParameters";
 import { simpleParser } from 'mailparser';
+import { getEmailPartsInfoRecursive } from "../../../utils/EmailParts";
 
 
 enum EmailParts {
@@ -14,16 +15,6 @@ enum EmailParts {
   TextContent = 'textContent',
   HtmlContent = 'htmlContent',
   Headers = 'headers',
-}
-
-interface EmailPartInfo {
-  partId: string;
-  filename?: string;
-  type: string;
-  encoding: string;
-  size: number;
-  disposition?: string;
-  parameters?: [string, string];
 }
 
 function streamToString(stream: Readable): Promise<string> {
@@ -43,38 +34,6 @@ function streamToString(stream: Readable): Promise<string> {
   });
 }
 
-// get the parts info from the body structure
-function getEmailPartsInfoRecursive(context: IExecuteFunctions, bodyStructure: any): EmailPartInfo[] {
-  var partsInfo: EmailPartInfo[] = [];
-
-  if (bodyStructure.childNodes) {
-    for (const childNode of bodyStructure.childNodes) {
-      // process only if "size" is present
-      if ("size" in childNode) {
-        var partInfo: EmailPartInfo = {
-          partId: childNode.part,
-          type: childNode.type,
-          encoding: childNode.encoding,
-          size: childNode.size,
-        };
-        if ("disposition" in childNode) {
-          partInfo.disposition = childNode.disposition;
-          if (childNode.disposition === 'attachment') {
-            partInfo.filename = childNode.dispositionParameters?.filename;
-          }
-        }
-        partsInfo.push(partInfo);
-      }
-
-      // check if there are child nodes
-      if (childNode.childNodes) {
-        // recurse
-        partsInfo = partsInfo.concat(getEmailPartsInfoRecursive(context, childNode));
-      }
-    }
-  }
-  return partsInfo;
-}
 
 export const getEmailsListOperation: IResourceOperationDef = {
   operation: {
