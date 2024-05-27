@@ -120,6 +120,38 @@ export const getEmailsListOperation: IResourceOperationDef = {
           value: EmailParts.Headers,
         },
       ],
+    },
+    {
+      displayName: 'Include All Headers',
+      name: 'includeAllHeaders',
+      type: 'boolean',
+      default: true,
+      description: 'Whether to include all headers in the output',
+      displayOptions: {
+        show: {
+          includeParts: [
+            EmailParts.Headers,
+          ],
+        },
+      },
+    },
+    {
+      displayName: 'Headers to Include',
+      name: 'headersToInclude',
+      type: 'string',
+      default: '',
+      description: 'Comma-separated list of headers to include',
+      placeholder: 'received,authentication-results,return-path',
+      displayOptions: {
+        show: {
+          includeParts: [
+            EmailParts.Headers,
+          ],
+          includeAllHeaders: [
+            false,
+          ],
+        },
+      },
     }
   ],
   async executeImapAction(context: IExecuteFunctions, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
@@ -150,6 +182,16 @@ export const getEmailsListOperation: IResourceOperationDef = {
     }
     if (includeParts.includes(EmailParts.Headers)) {
       fetchQuery.headers = true;
+      // check if user wants only specific headers
+      const includeAllHeaders = context.getNodeParameter('includeAllHeaders', itemIndex) as boolean;
+      if (!includeAllHeaders) {
+        const headersToInclude = context.getNodeParameter('headersToInclude', itemIndex) as string;
+        context.logger?.info(`Including headers: ${headersToInclude}`);
+        if (headersToInclude) {
+          fetchQuery.headers = headersToInclude.split(',').map((header) => header.trim());
+          context.logger?.info(`Including headers: ${fetchQuery.headers}`);
+        }
+      }
     }
 
     // will parse the bodystructure to get the attachments info
