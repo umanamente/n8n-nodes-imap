@@ -181,23 +181,35 @@ export const getEmailsListOperation: IResourceOperationDef = {
         const bodyStructure = email.bodyStructure as unknown as any;
 
         if (bodyStructure) {
-          var partsInfo = getEmailPartsInfoRecursive(context, bodyStructure);
-          for (const partInfo of partsInfo) {
-            if (partInfo.disposition === 'attachment') {
-              attachmentsInfo.push({
-                partId: partInfo.partId,
-                filename: partInfo.filename,
-                type: partInfo.type,
-                encoding: partInfo.encoding,
-                size: partInfo.size,
-              });
-            } else {
-              if (partInfo.type === 'text/plain') {
-                textPartId = partInfo.partId;
+          // check if multipart
+          if (bodyStructure.childNodes) {
+            // get the parts info (could be recursive)
+            var partsInfo = getEmailPartsInfoRecursive(context, bodyStructure);
+            for (const partInfo of partsInfo) {
+              if (partInfo.disposition === 'attachment') {
+                attachmentsInfo.push({
+                  partId: partInfo.partId,
+                  filename: partInfo.filename,
+                  type: partInfo.type,
+                  encoding: partInfo.encoding,
+                  size: partInfo.size,
+                });
+              } else {
+                if (partInfo.type === 'text/plain') {
+                  textPartId = partInfo.partId;
+                }
+                if (partInfo.type === 'text/html') {
+                  htmlPartId = partInfo.partId;
+                }
               }
-              if (partInfo.type === 'text/html') {
-                htmlPartId = partInfo.partId;
-              }
+            }
+          } else {
+            // single part, use "TEXT" as part ID
+            if (bodyStructure.type === 'text/plain') {
+              textPartId = "TEXT";
+            }
+            if (bodyStructure.type === 'text/html') {
+              htmlPartId = "TEXT";
             }
           }
         }
