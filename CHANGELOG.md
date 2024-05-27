@@ -1,3 +1,18 @@
+## [1.3.0](https://github.com/umanamente/n8n-nodes-imap/compare/v1.2.3...v1.3.0) (2024-05-27)
+
+
+### Features
+
+* option to include email headers ([c3d89bb](https://github.com/umanamente/n8n-nodes-imap/commit/c3d89bb3349f1160c0d73f676bc57137fba2fb0b))
+* option to include specific headers only ([f7c36dc](https://github.com/umanamente/n8n-nodes-imap/commit/f7c36dc3db86c036e86ea532d83d1f8c492cce3c))
+
+
+### Bug Fixes
+
+* close IMAP connection gracefully after use ([b2d4bc3](https://github.com/umanamente/n8n-nodes-imap/commit/b2d4bc3db862f7fb87803e42eecfbdf7edd2e9d6))
+* fix text and HTML email content conversion ([102dea9](https://github.com/umanamente/n8n-nodes-imap/commit/102dea92c9709879b72a4475ed83135fd23d80ea))
+* retrieve HTML or Text content correctly for single-part messages ([87a94f9](https://github.com/umanamente/n8n-nodes-imap/commit/87a94f90ee4756dfe2e6da94fb6232d65a6d339a))
+
 ## [1.2.3](https://github.com/umanamente/n8n-nodes-imap/compare/v1.2.2...v1.2.3) (2024-02-14)
 
 
