@@ -3,6 +3,7 @@ import { IExecuteFunctions, INodeExecutionData } from "n8n-workflow";
 import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from "../../../utils/SearchFieldParameters";
 import { emailSearchParameters, getEmailSearchParametersFromNode } from "../../../utils/EmailSearchParameters";
+import { simpleParser } from 'mailparser';
 
 
 enum EmailParts {
@@ -12,6 +13,7 @@ enum EmailParts {
   AttachmentsInfo = 'attachmentsInfo',
   TextContent = 'textContent',
   HtmlContent = 'htmlContent',
+  Headers = 'headers',
 }
 
 interface EmailPartInfo {
@@ -113,6 +115,10 @@ export const getEmailsListOperation: IResourceOperationDef = {
           name: 'Body Structure',
           value: EmailParts.BodyStructure,
         },
+        {
+          name: 'Headers',
+          value: EmailParts.Headers,
+        },
       ],
     }
   ],
@@ -142,6 +148,10 @@ export const getEmailsListOperation: IResourceOperationDef = {
     if (includeParts.includes(EmailParts.Size)) {
       fetchQuery.size = true;
     }
+    if (includeParts.includes(EmailParts.Headers)) {
+      fetchQuery.headers = true;
+    }
+
     // will parse the bodystructure to get the attachments info
     const includeAttachmentsInfo = includeParts.includes(EmailParts.AttachmentsInfo);
     if (includeAttachmentsInfo) {
@@ -168,6 +178,24 @@ export const getEmailsListOperation: IResourceOperationDef = {
     for (const email of emailsList) {
       context.logger?.info(`  ${email.uid}`);
       var item_json = JSON.parse(JSON.stringify(email));
+
+      // process the headers
+      if (includeParts.includes(EmailParts.Headers)) {
+        if (email.headers) {
+          try {
+            const headersString = email.headers.toString();
+            const parsed = await simpleParser(headersString);
+            item_json.headers = {};
+            parsed.headers.forEach((value, key, map) => {
+              //context.logger?.info(`    HEADER [${key}] = ${value}`);
+              item_json.headers[key] = value;
+            });
+          } catch (error) {
+            context.logger?.error(`    Error parsing headers: ${error}`);
+          }
+        }
+      }
+
 
       const analyzeBodyStructure = includeAttachmentsInfo || includeTextContent || includeHtmlContent;
 
