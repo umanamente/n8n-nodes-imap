@@ -28,14 +28,18 @@ interface EmailPartInfo {
 
 function streamToString(stream: Readable): Promise<string> {
   return new Promise((resolve, reject) => {
-    const chunks: any[] = [];
-    stream.on('data', (chunk) => {
-      chunks.push(chunk);
-    });
-    stream.on('end', () => {
-      resolve(Buffer.concat(chunks).toString('utf8'));
-    });
-    stream.on('error', reject);
+    if (!stream) {
+      resolve('');
+    } else {
+      const chunks: any[] = [];
+      stream.on('data', (chunk) => {
+        chunks.push(chunk);
+      });
+      stream.on('end', () => {
+        resolve(Buffer.concat(chunks).toString('utf8'));
+      });
+      stream.on('error', reject);
+    }
   });
 }
 
@@ -295,14 +299,17 @@ export const getEmailsListOperation: IResourceOperationDef = {
           const textContent = await client.download(email.uid.toString(), textPartId, {
             uid: true,
           });
-          item_json.textContent = await streamToString(textContent.content);
+          if (textContent.content) {
+            item_json.textContent = await streamToString(textContent.content);
+          }
         }
         if (includeHtmlContent && htmlPartId) {
-          //bodyPartsToRequest.push(htmlPartId);
           const htmlContent = await client.download(email.uid.toString(), htmlPartId, {
             uid: true,
           });
-          item_json.htmlContent = await streamToString(htmlContent.content);
+          if (htmlContent.content) {
+            item_json.htmlContent = await streamToString(htmlContent.content);
+          }
         }
       }
 
