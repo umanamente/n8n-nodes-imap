@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/umanamente/n8n-nodes-imap/compare/v1.3.0...v1.3.1) (2024-05-30)
+
+
+### Bug Fixes
+
+* Check if IMAP server returned empty email content ([53a5ed3](https://github.com/umanamente/n8n-nodes-imap/commit/53a5ed3902fcf855b9a889ee9723a56aff26f1ec))
+
 ## [1.3.0](https://github.com/umanamente/n8n-nodes-imap/compare/v1.2.3...v1.3.0) (2024-05-27)
 
 
