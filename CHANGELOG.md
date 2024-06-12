@@ -1,3 +1,15 @@
+## [2.0.0](https://github.com/umanamente/n8n-nodes-imap/compare/v1.3.1...v2.0.0) (2024-06-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* **attachments:** The downloadAttachment node output is changed. Each output item could now contain multiple binary fields named "attachment_0", "attachment_1", etc.
+Previously, there was only one binary field per output item named "attachment".
+
+### Features
+
+* **attachments:** add option to download all attachments or a comma-separated list of attachment IDs ([2c7a353](https://github.com/umanamente/n8n-nodes-imap/commit/2c7a353bbc03b8da311cac6468917924c56d30db))
+
 ## [1.3.1](https://github.com/umanamente/n8n-nodes-imap/compare/v1.3.0...v1.3.1) (2024-05-30)
 
 
