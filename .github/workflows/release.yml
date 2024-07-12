@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - master
+      - beta
 
 permissions:
   contents: read # for checkout
@@ -28,8 +29,6 @@ jobs:
         run: npm audit signatures
       - name: Build and test
         run: npm run prepublishOnly
-
-
   release:
     name: Release
     runs-on: ubuntu-latest
@@ -58,3 +57,35 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
+  release-beta:
+    name: Publish Beta
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/beta'
+    permissions:
+      contents: write # to be able to publish a GitHub release
+      issues: write # to be able to comment on released issues
+      pull-requests: write # to be able to comment on released pull requests
+      id-token: write # to enable use of OIDC for npm provenance
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "lts/*"
+          registry-url: https://registry.npmjs.org/
+      - name: Install dependencies
+        run: npm clean-install
+      - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
+        run: npm audit signatures
+      - name: Set version env
+        run: echo "NEXT_VERSION=$(git describe --tags --always --abbrev=7 | sed 's/$/-beta/')" >> $GITHUB_ENV
+      - name: Set version
+        run: npm version $NEXT_VERSION --no-git-tag-version
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --tag beta
