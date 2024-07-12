@@ -5,11 +5,12 @@ E.g. the list of mailboxes, the list of emails in a mailbox, etc.
 
 import { ListResponse } from "imapflow";
 import { IDataObject, IExecuteFunctions, ILoadOptionsFunctions, INodeListSearchResult, INodeProperties } from "n8n-workflow";
-import { IMAP_CREDENTIALS_NAME, ImapCredentialsData } from "../../../credentials/ImapCredentials.credentials";
+import { ImapCredentialsData } from "../../../credentials/ImapCredentials.credentials";
 import { createImapClient } from "./ImapUtils";
+import { getImapCredentials } from "./CredentialsSelector";
 
 export async function loadMailboxList(this: ILoadOptionsFunctions): Promise<INodeListSearchResult> {
-  const credentials = await this.getCredentials(IMAP_CREDENTIALS_NAME) as unknown as ImapCredentialsData;
+  const credentials = await getImapCredentials(this) as ImapCredentialsData;
   const client = createImapClient(credentials, this.logger);
   await client.connect();
 

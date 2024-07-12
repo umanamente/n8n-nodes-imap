@@ -1,11 +1,11 @@
-import { IExecuteFunctions } from "n8n-workflow";
+import { FunctionsBase, IExecuteFunctions, ILoadOptionsFunctions } from "n8n-workflow";
 import { IMAP_CREDENTIALS_NAME, ImapCredentialsData } from "../../../credentials/ImapCredentials.credentials";
 
 
 interface ImapCredentialsProvider {
   credentialsType: string;
   credentialsName: string;
-  getImapCredentials: (context: IExecuteFunctions) => Promise<ImapCredentialsData>;
+  getImapCredentials: (context: FunctionsBase) => Promise<ImapCredentialsData>;
 }
 
 export const CREDENTIALS_TYPE_THIS_NODE = 'imapThisNode';
@@ -23,7 +23,7 @@ const credentialsProviders: ImapCredentialsProvider[] = [
   {
     credentialsType: CREDENTIALS_TYPE_THIS_NODE,
     credentialsName: credentialNames[CREDENTIALS_TYPE_THIS_NODE],
-    getImapCredentials: async function(context: IExecuteFunctions) {
+    getImapCredentials: async function(context: FunctionsBase) {
       const credentials = await context.getCredentials(this.credentialsName) as unknown as ImapCredentialsData;
       return credentials;
     }
@@ -31,7 +31,7 @@ const credentialsProviders: ImapCredentialsProvider[] = [
   {
     credentialsType: CREDENTIALS_TYPE_CORE_IMAP_ACCOUNT,
     credentialsName: credentialNames[CREDENTIALS_TYPE_CORE_IMAP_ACCOUNT],
-    getImapCredentials: async function(context: IExecuteFunctions) {
+    getImapCredentials: async function(context: FunctionsBase) {
       const credentials = await context.getCredentials(this.credentialsName);
       var returnCredentials : ImapCredentialsData = {
         host: credentials.host as string,
@@ -51,7 +51,7 @@ const credentialsProviders: ImapCredentialsProvider[] = [
   },*/
 ];
 
-export async function getImapCredentials(context: IExecuteFunctions) : Promise<ImapCredentialsData> {
+export async function getImapCredentials(context: ILoadOptionsFunctions | IExecuteFunctions) : Promise<ImapCredentialsData> {
   const FIRST_NODE_INDEX = 0; // authentification is the same for all nodes
   const credentialsType = context.getNodeParameter('authentication', FIRST_NODE_INDEX) as string;
   const provider = credentialsProviders.find(provider => provider.credentialsType === credentialsType);
