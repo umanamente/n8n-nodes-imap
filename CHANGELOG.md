@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/umanamente/n8n-nodes-imap/compare/v2.0.0...v2.0.1) (2024-07-12)
+
+
+### Bug Fixes
+
+* "Credentials not found" error when using mailbox autocompletion with N8N IMAP credentials ([1f9977b](https://github.com/umanamente/n8n-nodes-imap/commit/1f9977ba32bdf345a4663187f4594e5086b79b83))
+
 ## [2.0.0](https://github.com/umanamente/n8n-nodes-imap/compare/v1.3.1...v2.0.0) (2024-06-12)
 
 
