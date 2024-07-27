@@ -89,6 +89,9 @@ export const createDraftOperation: IResourceOperationDef = {
       type: 'string',
       default: '',
       description: 'The text of the email',
+      typeOptions: {
+        rows: 5,
+      },
       displayOptions: {
         show: {
           inputFormat: [
