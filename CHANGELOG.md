@@ -1,3 +1,9 @@
+## [2.1.1](https://github.com/umanamente/n8n-nodes-imap/compare/v2.1.0...v2.1.1) (2024-07-27)
+
+### Bug Fixes
+
+* **create draft:** make field "Text" multiline ([131e777](https://github.com/umanamente/n8n-nodes-imap/commit/131e7775478a111bdf08036300396d54c3242c1f))
+
 ## [2.1.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.0.1...v2.1.0) (2024-07-27)
 
 ### Features
