@@ -24,11 +24,12 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
   * Download attachments from an email
   * Move an email to another mailbox
   * Set/remove flags on an email ("seen", "answered", "flagged", "deleted", "draft")
+  * Create email draft
 
 ## Credentials
 
 Currently, this node supports only basic authentication (username and password).  
 OAuth2 authentication is not supported yet.  
 
->	NOTE: You can reuse core [N8N IMAP Trigger node](https://docs.n8n.io/integrations/builtin/credentials/imap/) credentials for this node.
+> NOTE: You can reuse core [N8N IMAP Trigger node](https://docs.n8n.io/integrations/builtin/credentials/imap/) credentials for this node.
 

@@ -1,5 +1,6 @@
 import { IResourceDef } from "../../utils/CommonDefinitions";
 import { resourceEmail } from "./ResourceName";
+import { createDraftOperation } from "./functions/EmailCreateDraft";
 import { downloadAttachmentOperation } from "./functions/EmailDownloadAttachment";
 import { getEmailsListOperation } from "./functions/EmailGetList";
 import { moveEmailOperation } from "./functions/EmailMove";
@@ -11,7 +12,8 @@ export const emailResourceDefinitions: IResourceDef = {
     getEmailsListOperation,
     downloadAttachmentOperation,
     moveEmailOperation,
-		setEmailFlagsOperation,
+    setEmailFlagsOperation,
+    createDraftOperation,
   ],
 };
 
