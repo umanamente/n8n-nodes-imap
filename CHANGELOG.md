@@ -1,3 +1,9 @@
+## [2.1.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.0.1...v2.1.0) (2024-07-27)
+
+### Features
+
+* "create email draft" operation ([81e673f](https://github.com/umanamente/n8n-nodes-imap/commit/81e673f52306d1766d89ea807e24434ea09e0f4f))
+
 ## [2.0.1](https://github.com/umanamente/n8n-nodes-imap/compare/v2.0.0...v2.0.1) (2024-07-12)
 
 
