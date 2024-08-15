@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-imap",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "description": "This node allows you to connect to an IMAP server and retrieve emails.",
   "keywords": [
     "n8n-community-node-package"

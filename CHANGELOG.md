@@ -1,3 +1,9 @@
+## [2.2.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.1.1...v2.2.0) (2024-08-15)
+
+### Features
+
+* **mailbox:** add "Get Quota" operation ([62abb23](https://github.com/umanamente/n8n-nodes-imap/commit/62abb2377e345ce1c13a9eadedbe6454025894b1))
+
 ## [2.1.1](https://github.com/umanamente/n8n-nodes-imap/compare/v2.1.0...v2.1.1) (2024-07-27)
 
 ### Bug Fixes
