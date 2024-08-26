@@ -23,6 +23,7 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
   * Get list of emails in a mailbox
   * Download attachments from an email
   * Move an email to another mailbox
+  * Copy an email into another mailbox
   * Set/remove flags on an email ("seen", "answered", "flagged", "deleted", "draft")
   * Create email draft
 
