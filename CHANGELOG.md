@@ -1,3 +1,9 @@
+## [2.3.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.2.0...v2.3.0) (2024-09-04)
+
+### Features
+
+* **email:** Add Copy operation ([12653d4](https://github.com/umanamente/n8n-nodes-imap/commit/12653d443cce0875c017430bd8b62822af46d612))
+
 ## [2.2.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.1.1...v2.2.0) (2024-08-15)
 
 ### Features
