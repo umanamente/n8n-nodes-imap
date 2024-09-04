@@ -16,7 +16,8 @@ export const moveEmailOperation: IResourceOperationDef = {
   parameters: [
     {
       ...parameterSelectMailbox,
-      description: 'Select the mailbox',
+      displayName: 'Source Mailbox',
+      description: 'Select the source mailbox',
       name: PARAM_NAME_SOURCE_MAILBOX,
     },
     {
@@ -29,6 +30,7 @@ export const moveEmailOperation: IResourceOperationDef = {
     },
     {
       ...parameterSelectMailbox,
+      displayName: 'Destination Mailbox',
       description: 'Select the destination mailbox',
       name: PARAM_NAME_DESTINATION_MAILBOX,
     },
