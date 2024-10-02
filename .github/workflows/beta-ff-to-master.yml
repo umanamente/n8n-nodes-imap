@@ -1,0 +1,30 @@
+name: Fast-forward beta to master
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  fast-forward:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout master branch
+      uses: actions/checkout@v3
+      with:
+        ref: master
+        fetch-depth: 0  # Fetch all history for correct merge operations
+
+    - name: Fetch beta branch
+      run: git fetch origin beta
+
+    - name: Try fast-forward beta to master
+      run: |
+        git checkout beta
+        if git merge --ff-only master; then
+          echo "Fast-forward successful. Pushing changes to beta."
+          git push origin beta
+        else
+          echo "Fast-forward not possible. No changes pushed."
+        fi
