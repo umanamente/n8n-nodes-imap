@@ -5,6 +5,9 @@ on:
     branches:
       - master
 
+permissions:
+  contents: write  # Даем права на запись в репозиторий
+
 jobs:
   fast-forward:
     runs-on: ubuntu-latest
@@ -28,3 +31,5 @@ jobs:
         else
           echo "Fast-forward not possible. No changes pushed."
         fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
