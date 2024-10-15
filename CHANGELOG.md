@@ -1,3 +1,9 @@
+## [2.4.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.3.0...v2.4.0) (2024-10-15)
+
+### Features
+
+* add "UID" to search filters in "Get Emails" operation ([fa0260e](https://github.com/umanamente/n8n-nodes-imap/commit/fa0260e2fb734cec8ca12887376d9c539f8cbf61))
+
 ## [2.3.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.2.0...v2.3.0) (2024-09-04)
 
 ### Features
