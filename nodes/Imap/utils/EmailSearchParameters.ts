@@ -17,6 +17,7 @@ enum EmailSearchFilters {
   Subject = 'subject',
   Text = 'text',
   To = 'to',
+  UID = 'uid',
 }
 
 export const emailSearchParameters : INodeProperties[] = [
@@ -148,7 +149,14 @@ export const emailSearchParameters : INodeProperties[] = [
         default: "",
         description: "Email address of recipient",
       },
-
+      {
+        displayName: "UID",
+        name: EmailSearchFilters.UID,
+        type: "string",
+        default: "",
+        description: 'Comma-separated list of UIDs',
+        placeholder: '1,2,3',
+      },
     ],
   },
 ];
@@ -214,6 +222,9 @@ export function getEmailSearchParametersFromNode(context: IExecuteFunctions, ite
   }
   if (EmailSearchFilters.To in emailSearchFiltersObj) {
     searchObject.to = emailSearchFiltersObj[EmailSearchFilters.To] as string;
+  }
+  if (EmailSearchFilters.UID in emailSearchFiltersObj) {
+    searchObject.uid = emailSearchFiltersObj[EmailSearchFilters.UID] as string;
   }
 
   return searchObject;
