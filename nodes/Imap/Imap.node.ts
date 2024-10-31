@@ -113,7 +113,8 @@ export class Imap implements INodeType {
     const credentials = await getImapCredentials(this);
 
     // create imap client and connect
-    const ENABLE_DEBUG_LOGGING = false;
+    const N8N_LOG_LEVEL = process.env.N8N_LOG_LEVEL || 'info';
+    const ENABLE_DEBUG_LOGGING = (N8N_LOG_LEVEL === 'debug');
     const client = createImapClient(credentials, this.logger, ENABLE_DEBUG_LOGGING);
 
     try {
