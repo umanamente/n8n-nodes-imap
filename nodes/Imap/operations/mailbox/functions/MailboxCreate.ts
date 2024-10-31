@@ -50,7 +50,7 @@ export const createMailboxOperation: IResourceOperationDef = {
     }
     context.logger?.info(`Creating mailbox "${resultPath}"`);
 
-    const mailboxCreateResp : MailboxCreateResponse = await client.mailboxCreate(mailboxPath);
+    const mailboxCreateResp : MailboxCreateResponse = await client.mailboxCreate(resultPath);
     var item_json = JSON.parse(JSON.stringify(mailboxCreateResp));
     returnData.push({
       json: item_json,
