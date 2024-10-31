@@ -1,3 +1,9 @@
+## [2.4.1](https://github.com/umanamente/n8n-nodes-imap/compare/v2.4.0...v2.4.1) (2024-10-31)
+
+### Bug Fixes
+
+* "Mailbox Create" operation used incorrect input parameters resulting in failure to create mailbox ([d38d029](https://github.com/umanamente/n8n-nodes-imap/commit/d38d02965d74873e547883921647b2280fa08e7b))
+
 ## [2.4.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.3.0...v2.4.0) (2024-10-15)
 
 ### Features
