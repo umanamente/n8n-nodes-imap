@@ -124,7 +124,7 @@ export const getEmailsListOperation: IResourceOperationDef = {
 
     context.logger?.info(`Getting emails list from ${mailboxPath}`);
 
-    await client.mailboxOpen(mailboxPath, { readOnly: true });
+    await client.mailboxOpen(mailboxPath);
 
     var searchObject = getEmailSearchParametersFromNode(context, itemIndex);
 
@@ -169,6 +169,10 @@ export const getEmailsListOperation: IResourceOperationDef = {
       // will parse the bodystructure to get the parts IDs for text and html
       fetchQuery.bodyStructure = true;
     }
+
+    // log searchObject and fetchQuery
+    context.logger?.debug(`Search object: ${JSON.stringify(searchObject)}`);
+    context.logger?.debug(`Fetch query: ${JSON.stringify(fetchQuery)}`);
 
     // wait for all emails to be fetched before processing them
     // because we might need to fetch the body parts for each email,

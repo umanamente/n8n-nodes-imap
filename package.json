@@ -61,7 +61,7 @@
     "n8n-workflow": "*"
   },
   "dependencies": {
-    "imapflow": "^1.0.164",
+    "imapflow": "^1.0.169",
     "mailparser": "^3.7.1"
   }
 }
