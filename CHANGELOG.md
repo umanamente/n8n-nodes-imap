@@ -1,3 +1,9 @@
+## [2.4.2](https://github.com/umanamente/n8n-nodes-imap/compare/v2.4.1...v2.4.2) (2024-12-05)
+
+### Bug Fixes
+
+* fixed issue with reading emails from specific IMAP servers (Xeams) ([5687b2e](https://github.com/umanamente/n8n-nodes-imap/commit/5687b2e41fff5dd2e63d3d3eb7f8c982b5576dc4))
+
 ## [2.4.1](https://github.com/umanamente/n8n-nodes-imap/compare/v2.4.0...v2.4.1) (2024-10-31)
 
 ### Bug Fixes
