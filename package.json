@@ -47,6 +47,7 @@
     "@semantic-release/release-notes-generator": "^14.0.1",
     "@types/imapflow": "^1.0.19",
     "@types/mailparser": "^3.4.4",
+    "@types/nodemailer": "^6.4.17",
     "@typescript-eslint/parser": "~7.17",
     "conventional-changelog-conventionalcommits": "^8.0.0",
     "cross-env": "^7.0.3",
@@ -62,6 +63,7 @@
   },
   "dependencies": {
     "imapflow": "^1.0.169",
-    "mailparser": "^3.7.1"
+    "mailparser": "^3.7.1",
+    "nodemailer": "^6.10.0"
   }
 }

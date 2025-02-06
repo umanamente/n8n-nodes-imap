@@ -1,12 +1,8 @@
 import { AppendResonseObject, ImapFlow } from "imapflow";
+import * as nodemailer from 'nodemailer';
 import { IExecuteFunctions, INodeExecutionData, NodeApiError } from "n8n-workflow";
 import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from '../../../utils/SearchFieldParameters';
-
-
-function unicodeToBase64(str: string) {
-  return Buffer.from(str).toString('base64');
-}
 
 
 const PARAM_NAME_DESTINATION_MAILBOX = 'destinationMailbox';
@@ -130,33 +126,83 @@ export const createDraftOperation: IResourceOperationDef = {
     // compose rfc822 content
     let rfc822Content = '';
     if (inputFormat === 'rfc822') {
+      // rfc822 content is provided by the user
       rfc822Content = context.getNodeParameter('rfc822', itemIndex) as string;
     } else {
+      // fields are provided by the user
+      // compose rfc822 content using nodemailer
+
+      let transporter = nodemailer.createTransport({
+          streamTransport: true,
+          buffer: true,
+          newline: 'unix',
+      });
+
+
       const subject = context.getNodeParameter('subject', itemIndex) as string;
       const from = context.getNodeParameter('from', itemIndex) as string;
       const to = context.getNodeParameter('to', itemIndex) as string;
       const text = context.getNodeParameter('text', itemIndex) as string;
 
-      let headers = [];
+      let json_data = {
+        from: from,
+        to: to,
+        subject: subject,
+        text: text,
+      };
 
-      if (subject) {
-        headers.push(`Subject: =?UTF-8?B?${unicodeToBase64(subject)}?=`)
-      }
-      if (from) {
-        headers.push(`From: =?UTF-8?B?${unicodeToBase64(from)}?=`)
-      }
-      if (to) {
-        headers.push(`To: =?UTF-8?B?${unicodeToBase64(to)}?=`)
-      }
-      if (text) {
-        headers.push(`Content-Type: text/plain; charset=utf-8`)
-        headers.push(`Content-Transfer-Encoding: base64`)
+      type ComposeMailResult = {
+        error: Error | null;
+        info: ComposedEmailInfo | null;
+      };
+
+      type ComposedEmailInfo = {
+        envelope: any;
+        messageId: string;
+        message: Buffer;
+      };
+
+
+
+      const promise_compose_rfc822: Promise<ComposeMailResult> = new Promise((resolve, reject) => {
+        transporter.sendMail(json_data, (err, info) => {
+          if (err) {
+            resolve({
+              error: err,
+              info: null,
+            });
+            return;
+          } else {
+            // try to convert info type to ComposedEmailInfo
+            // check fields
+            if (!info.envelope || !info.messageId || !info.message) {
+              resolve({
+                error: new Error('Invalid info object returned by nodemailer. Expected fields: envelope, messageId, message. Found: ' + JSON.stringify(info)),
+                info: null,
+              });
+              return;
+            }
+
+            let result: ComposeMailResult = {
+              error: null,
+              info: info as ComposedEmailInfo,
+            };
+            resolve(result);
+          }
+        });
+      });
+
+      const result: ComposeMailResult = await promise_compose_rfc822;
+
+      // check errors
+      if (result.error) {
+        throw new NodeApiError(context.getNode(), {}, {
+          message: `Error composing the email: ${result.error}`,
+        });
       }
 
-      rfc822Content = headers.join('\r\n') + '\r\n\r\n';
-      if (text) {
-        rfc822Content += unicodeToBase64(text);
-      }
+      // convert the email to rfc822 format
+      rfc822Content = result.info!.message.toString('utf8');
     }
 
     await client.mailboxOpen(destinationMailboxPath, { readOnly: false });
