@@ -11,6 +11,13 @@ This is an n8n community node that adds support for [IMAP](https://en.wikipedia.
 
 Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) in the n8n community nodes documentation.
 
+Use `n8n-nodes-imap` in N8N settings to install the stable version.
+
+To install beta version, use `n8n-nodes-imap@beta`.
+
+NPMJS: [n8n-nodes-imap](https://www.npmjs.com/package/n8n-nodes-imap)
+
+
 ## Operations
 
 * Mailbox
