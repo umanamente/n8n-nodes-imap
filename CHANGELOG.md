@@ -1,3 +1,9 @@
+## [2.4.3](https://github.com/umanamente/n8n-nodes-imap/compare/v2.4.2...v2.4.3) (2025-02-25)
+
+### Bug Fixes
+
+* issues with RFC822 content composition, ([bb54fc1](https://github.com/umanamente/n8n-nodes-imap/commit/bb54fc16b9571e0b179bdfaaa28d81b8735854cb))
+
 ## [2.4.2](https://github.com/umanamente/n8n-nodes-imap/compare/v2.4.1...v2.4.2) (2024-12-05)
 
 ### Bug Fixes
