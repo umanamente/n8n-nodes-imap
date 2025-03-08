@@ -1,3 +1,9 @@
+## [2.5.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.4.3...v2.5.0) (2025-03-08)
+
+### Features
+
+* added 'mailboxPath' to Email items output ([dbda35f](https://github.com/umanamente/n8n-nodes-imap/commit/dbda35f4f9cc9b770318343e5181a63a6d57dcad))
+
 ## [2.4.3](https://github.com/umanamente/n8n-nodes-imap/compare/v2.4.2...v2.4.3) (2025-02-25)
 
 ### Bug Fixes
