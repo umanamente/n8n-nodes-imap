@@ -188,6 +188,9 @@ export const getEmailsListOperation: IResourceOperationDef = {
       context.logger?.info(`  ${email.uid}`);
       var item_json = JSON.parse(JSON.stringify(email));
 
+      // add mailbox path to the item
+      item_json.mailboxPath = mailboxPath;
+
       // process the headers
       if (includeParts.includes(EmailParts.Headers)) {
         if (email.headers) {
