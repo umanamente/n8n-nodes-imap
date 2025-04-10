@@ -66,7 +66,7 @@ export const copyEmailOperation: IResourceOperationDef = {
       uid: true,
     });
 
-    if (!resp || !resp.uidMap) {
+    if (!resp) {
       throw new NodeApiError(
         context.getNode(),
         {},
