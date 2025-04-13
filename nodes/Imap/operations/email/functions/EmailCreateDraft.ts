@@ -38,6 +38,21 @@ export const createDraftOperation: IResourceOperationDef = {
     },
     // required parameters for fields input format
     {
+      displayName: 'Use <a href="https://github.com/umanamente/n8n-nodes-eml" target="_blank"><pre>n8n-nodes-eml</pre></a> to compose complex emails. ' + 
+        'It supports attachments and other features. ' +
+        'Then use RFC822 input format provided by that node.',
+      name: 'noticeSlowResponse',
+      type: 'notice',
+      default: '',
+      displayOptions: {
+        show: {
+          inputFormat: [
+            'fields',
+          ],
+        },
+      },
+    },
+    {
       displayName: 'Subject',
       name: 'subject',
       type: 'string',

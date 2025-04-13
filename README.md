@@ -32,7 +32,8 @@ NPMJS: [n8n-nodes-imap](https://www.npmjs.com/package/n8n-nodes-imap)
   * Move an email to another mailbox
   * Copy an email into another mailbox
   * Set/remove flags on an email ("seen", "answered", "flagged", "deleted", "draft")
-  * Create email draft
+  * Create email draft in a mailbox
+    * Use `n8n-nodes-eml` node to create complex emails. It supports attachments and other features.
 
 ## Credentials
 
