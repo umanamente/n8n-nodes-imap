@@ -1,12 +1,12 @@
 import { FetchQueryObject, ImapFlow } from "imapflow";
-import { IExecuteFunctions, INodeExecutionData } from "n8n-workflow";
+import { IBinaryKeyData, IDataObject, IExecuteFunctions, INodeExecutionData } from "n8n-workflow";
 import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from "../../../utils/SearchFieldParameters";
 
 export const downloadOperation: IResourceOperationDef = {
   operation: {
-    name: 'Download',
-    value: 'download',
+    name: 'Download as EML',
+    value: 'downloadEml',
   },
   parameters: [
     {
@@ -21,6 +21,14 @@ export const downloadOperation: IResourceOperationDef = {
       description: 'UID of the email to download',
     },
     {
+      displayName: 'Output to Binary Data',
+      name: 'outputToBinary',
+      type: 'boolean',
+      default: true,
+      description: 'Whether to output the email as binary data or JSON as text',
+      hint: 'If true, the email will be output as binary data. If false, the email will be output as JSON as text.',
+    },
+    {
       displayName: 'Put Output File in Field',
       name: 'binaryPropertyName',
       type: 'string',
@@ -28,7 +36,13 @@ export const downloadOperation: IResourceOperationDef = {
       required: true,
       placeholder: 'e.g data',
       hint: 'The name of the output binary field to put the file in',
+      displayOptions: {
+        show: {
+          outputToBinary: [true],
+        },
+      },
     },
+
   ],
   async executeImapAction(context: IExecuteFunctions, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
     const mailboxPath = getMailboxPathFromNodeParameter(context, itemIndex);
@@ -36,6 +50,7 @@ export const downloadOperation: IResourceOperationDef = {
     await client.mailboxOpen(mailboxPath, { readOnly: true });
 
     const emailUid = context.getNodeParameter('emailUid', itemIndex) as string;
+    const outputToBinary = context.getNodeParameter('outputToBinary', itemIndex, true) as boolean;
     const binaryPropertyName = context.getNodeParameter('binaryPropertyName', itemIndex, 'data',) as string;
 
     // get source from the email
@@ -45,13 +60,27 @@ export const downloadOperation: IResourceOperationDef = {
     };
     const emailInfo = await client.fetchOne(emailUid, query, { uid: true });
 
-    const binaryData = await context.helpers.prepareBinaryData(emailInfo.source, mailboxPath + '_' + emailUid + '.eml', 'message/rfc822');
+
+    let binaryFields: IBinaryKeyData | undefined = undefined;
+    let jsonData: IDataObject = {};
+
+    if (outputToBinary) {
+      // output to binary data
+      const binaryData = await context.helpers.prepareBinaryData(emailInfo.source, mailboxPath + '_' + emailUid + '.eml', 'message/rfc822');
+      binaryFields = {
+        [binaryPropertyName]: binaryData,
+      };
+    } else {
+      // output to JSON as text
+      jsonData = {
+        ...jsonData,
+        emlContent: emailInfo.source.toString(),
+      };
+    }
 
     const newItem: INodeExecutionData = {
-      json: {},
-      binary: {
-        [binaryPropertyName]: binaryData,
-      },
+      json: jsonData,
+      binary: binaryFields,
       pairedItem: {
         item: itemIndex,
       },
