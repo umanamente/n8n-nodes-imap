@@ -1,3 +1,9 @@
+## [2.6.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.5.0...v2.6.0) (2025-04-14)
+
+### Features
+
+* added "Download as EML" operation ([aab6e46](https://github.com/umanamente/n8n-nodes-imap/commit/aab6e46de50666c5be68ee2217b201f888e77742))
+
 ## [2.5.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.4.3...v2.5.0) (2025-03-08)
 
 ### Features
