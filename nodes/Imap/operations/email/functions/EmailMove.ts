@@ -51,7 +51,7 @@ export const moveEmailOperation: IResourceOperationDef = {
       uid: true,
     });
 
-    if (!resp || !resp.uidMap) {
+    if (!resp) {
       throw new NodeApiError(context.getNode(), {}, {
         message: "Unable to move email, unknown error",
       });
