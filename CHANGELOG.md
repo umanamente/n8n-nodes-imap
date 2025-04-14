@@ -1,3 +1,9 @@
+## [2.6.1](https://github.com/umanamente/n8n-nodes-imap/compare/v2.6.0...v2.6.1) (2025-04-14)
+
+### Bug Fixes
+
+* uidMap is optional ([a24b81e](https://github.com/umanamente/n8n-nodes-imap/commit/a24b81ef048f81f5ad7b1765e39a29a28ddaf9ff))
+
 ## [2.6.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.5.0...v2.6.0) (2025-04-14)
 
 ### Features
