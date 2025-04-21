@@ -1,3 +1,9 @@
+## [2.7.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.6.1...v2.7.0) (2025-04-21)
+
+### Features
+
+* add option to include inline attachments in "download attachments" operation ([5d97f9f](https://github.com/umanamente/n8n-nodes-imap/commit/5d97f9f3beddc0332623de9b028472df9239d54e))
+
 ## [2.6.1](https://github.com/umanamente/n8n-nodes-imap/compare/v2.6.0...v2.6.1) (2025-04-14)
 
 ### Bug Fixes
