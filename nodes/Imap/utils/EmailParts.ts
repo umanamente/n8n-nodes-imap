@@ -26,7 +26,7 @@ export function getEmailPartsInfoRecursive(context: IExecuteFunctions, bodyStruc
         };
         if ("disposition" in childNode) {
           partInfo.disposition = childNode.disposition;
-          if (childNode.disposition === 'attachment') {
+            if (childNode.disposition === 'attachment' || childNode.disposition === 'inline') {
             partInfo.filename = childNode.dispositionParameters?.filename;
           }
         }

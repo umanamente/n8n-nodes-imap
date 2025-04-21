@@ -45,6 +45,20 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
         },
       },
     },
+    {
+      displayName: 'Include Inline Attachments',
+      name: 'includeInlineAttachments',
+      type: 'boolean',
+      default: false,
+      description: 'Whether to include inline attachments (e.g. images embedded in HTML)',
+      displayOptions: {
+        show: {
+          allAttachments: [
+            true,
+          ],
+        },
+      },
+    }
   ],
   async executeImapAction(context: IExecuteFunctions, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
 
@@ -61,6 +75,7 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
 
     const emailUid = context.getNodeParameter('emailUid', itemIndex) as string;
     const allAttachments = context.getNodeParameter('allAttachments', itemIndex) as boolean;
+    const includeInlineAttachments = context.getNodeParameter('includeInlineAttachments', itemIndex) as boolean;
 
     let partsToDownload: string[] = [];
 
@@ -76,6 +91,10 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
         for (const partInfo of partsInfo) {
           context.logger?.debug(`Attachment part info: ${JSON.stringify(partInfo)}`);
           if (partInfo.disposition === 'attachment') {
+            // regular attachment
+            partsToDownload.push(partInfo.partId);
+          } else if (partInfo.disposition === 'inline' && includeInlineAttachments) {
+            // inline attachment
             partsToDownload.push(partInfo.partId);
           }
         }
