@@ -114,7 +114,7 @@ export const createReplyOperation: IResourceOperationDef = {
 					});
 					return;
 				} else {
-					if (!info.envelope || !info.messageId || info.message) {
+					if (!info.envelope || !info.messageId || !info.message) {
 						resolve({
 							error: new Error('Invalid info object returned by Nodemailer. Expected fields: envelope, messageId, message. Found: ' + JSON.stringify(info)),
 							info: null,
