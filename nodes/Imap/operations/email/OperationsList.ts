@@ -7,6 +7,7 @@ import { downloadAttachmentOperation } from './functions/EmailDownloadAttachment
 import { getEmailsListOperation } from './functions/EmailGetList';
 import { moveEmailOperation } from './functions/EmailMove';
 import { setEmailFlagsOperation } from './functions/EmailSetFlags';
+import { createReplyOperation } from './functions/EmailReply';
 
 export const emailResourceDefinitions: IResourceDef = {
 	resource: resourceEmail,
@@ -18,5 +19,6 @@ export const emailResourceDefinitions: IResourceDef = {
 		copyEmailOperation,
 		setEmailFlagsOperation,
 		createDraftOperation,
+		createReplyOperation,
 	],
 };
