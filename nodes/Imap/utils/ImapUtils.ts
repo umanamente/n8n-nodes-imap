@@ -74,7 +74,8 @@ export function createImapClient(credentials: ImapCredentialsData, logger?: Logg
   const client = new ImapFlow({
     host: credentials!.host as string,
     port: credentials!.port as number,
-    secure: credentials!.tls as boolean,
+    secure: false, // credentials!.tls as boolean,
+		doSTARTTLS: true,
     tls: {
       rejectUnauthorized: !credentials!.allowUnauthorizedCerts as boolean,
     },
