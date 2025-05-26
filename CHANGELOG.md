@@ -1,3 +1,9 @@
+## [2.7.1](https://github.com/umanamente/n8n-nodes-imap/compare/v2.7.0...v2.7.1) (2025-05-26)
+
+### Bug Fixes
+
+* Could not get parameter "includeInlineAttachments" error when "All Attachments" is false ([b74fbe3](https://github.com/umanamente/n8n-nodes-imap/commit/b74fbe31567afe27c77485e45450b017b6bdbb1d))
+
 ## [2.7.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.6.1...v2.7.0) (2025-04-21)
 
 ### Features
