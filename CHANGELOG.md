@@ -1,3 +1,9 @@
+## [2.8.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.7.1...v2.8.0) (2025-05-26)
+
+### Features
+
+* if "Text Content" or "HTML Content" requested, but not present in the email, output NULL in the corresponding fields ([cdd1bcd](https://github.com/umanamente/n8n-nodes-imap/commit/cdd1bcd4ea5eef913e38f3fe1d6a3b4d2d3977f3))
+
 ## [2.7.1](https://github.com/umanamente/n8n-nodes-imap/compare/v2.7.0...v2.7.1) (2025-05-26)
 
 ### Bug Fixes
