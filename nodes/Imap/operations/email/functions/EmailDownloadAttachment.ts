@@ -75,11 +75,12 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
 
     const emailUid = context.getNodeParameter('emailUid', itemIndex) as string;
     const allAttachments = context.getNodeParameter('allAttachments', itemIndex) as boolean;
-    const includeInlineAttachments = context.getNodeParameter('includeInlineAttachments', itemIndex) as boolean;
 
     let partsToDownload: string[] = [];
 
     if (allAttachments) {
+      const includeInlineAttachments = context.getNodeParameter('includeInlineAttachments', itemIndex) as boolean;
+
       // get attachments info from the email
       const query: FetchQueryObject = {
         uid: true,
