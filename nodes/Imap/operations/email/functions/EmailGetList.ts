@@ -261,20 +261,28 @@ export const getEmailsListOperation: IResourceOperationDef = {
 
       // fetch text and html content
       if (includeTextContent || includeHtmlContent) {
-        if (includeTextContent && textPartId) {
-          const textContent = await client.download(email.uid.toString(), textPartId, {
-            uid: true,
-          });
-          if (textContent.content) {
-            item_json.textContent = await streamToString(textContent.content);
+        if (includeTextContent) {
+          // always set textContent to null, in case there is no text part
+          item_json.textContent = null;
+          if (textPartId) {
+            const textContent = await client.download(email.uid.toString(), textPartId, {
+              uid: true,
+            });
+            if (textContent.content) {
+              item_json.textContent = await streamToString(textContent.content);
+            }
           }
         }
-        if (includeHtmlContent && htmlPartId) {
-          const htmlContent = await client.download(email.uid.toString(), htmlPartId, {
-            uid: true,
-          });
-          if (htmlContent.content) {
-            item_json.htmlContent = await streamToString(htmlContent.content);
+        if (includeHtmlContent) {
+          // always set htmlContent to null, in case there is no html part
+          item_json.htmlContent = null;
+          if (htmlPartId) {
+            const htmlContent = await client.download(email.uid.toString(), htmlPartId, {
+              uid: true,
+            });
+            if (htmlContent.content) {
+              item_json.htmlContent = await streamToString(htmlContent.content);
+            }
           }
         }
       }
