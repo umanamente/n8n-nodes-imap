@@ -159,10 +159,10 @@ export class Imap implements INodeType {
               this.logger.warn(`Operation "${operation}" for resource "${resource}" returned no data`);
             }
           } catch (error) {
-            const internalImapErrors = ImapFlowErrorCatcher.getInstance().stopAndGetErrors();
-            const internalImapErrorsMessage = internalImapErrors.join(", \n");
+            const imapErrorsList = ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
+            const internalImapErrorsMessage = imapErrorsList.combineFullEntriesToString();
 
-            if (internalImapErrors.length > 0) {
+            if (imapErrorsList.caughtEntries.length > 0) {
               this.logger.error(`IMAP server reported errors: ${internalImapErrorsMessage}`);
             }
 
@@ -173,21 +173,19 @@ export class Imap implements INodeType {
 
             // seems to be unknown error, check IMAP internal errors and include them in the error message
 
-            var errorMessage = error.responseText || error.message || undefined;
-            if (!errorMessage) {
-              if (internalImapErrorsMessage) {
-                errorMessage = internalImapErrorsMessage;
-              } else {
-                errorMessage = 'Unknown error';
-              }
-            }
-            this.logger.error(`Operation "${operation}" for resource "${resource}" failed: ${errorMessage}`);
-            this.logger.error(JSON.stringify(error));
+            this.logger.error(`Caught error: ${JSON.stringify(error)}`);
+
+            var errorMessage = error.responseText || error.message || 'Unknown error';
+
+            this.logger.error(`Operation "${operation}" for resource "${resource}" failed`);
+            
             var errorDetails : any = {
               message: errorMessage,
             };
             if (internalImapErrorsMessage) {
               errorDetails.description = "The following errors were reported by the IMAP server: \n" + internalImapErrorsMessage;
+            } else {
+              errorDetails.description = "No additional details were provided by the IMAP server.";
             }
             throw new NodeApiError(this.getNode(), {}, errorDetails);
           }

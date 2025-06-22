@@ -128,16 +128,16 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
       });
       if (!resp.meta) {
         // get IMAP errors
-        const internalImapErrors = ImapFlowErrorCatcher.getInstance().stopAndGetErrors();
+        const internalImapErrorsString = ImapFlowErrorCatcher.getInstance().stopAndGetCombinedErrorsString();
         var errorDetails = "";
-        if (internalImapErrors.length > 0) {
-          errorDetails = "IMAP server responded: \n" + internalImapErrors.join(", \n");
+        if (internalImapErrorsString) {
+          errorDetails = "IMAP server responded: \n" + internalImapErrorsString;
         }
 
         context.logger?.error(`IMAP server has not returned attachment info: ${errorDetails}`);
 
         throw new NodeApiError(context.getNode(), {}, {
-          message: "IMAP server has not returned attachment info",
+          message: `IMAP server has not returned attachment info for attachment partId "${partId}" of email "${emailUid}"`,
           description: errorDetails,
         });
       }
