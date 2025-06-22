@@ -3,6 +3,7 @@ import * as nodemailer from 'nodemailer';
 import { IExecuteFunctions, INodeExecutionData, NodeApiError } from "n8n-workflow";
 import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from '../../../utils/SearchFieldParameters';
+import { ImapFlowErrorCatcher, NodeImapError } from '../../../utils/ImapUtils';
 
 
 const PARAM_NAME_DESTINATION_MAILBOX = 'destinationMailbox';
@@ -222,6 +223,8 @@ export const createDraftOperation: IResourceOperationDef = {
 
     await client.mailboxOpen(destinationMailboxPath, { readOnly: false });
 
+    ImapFlowErrorCatcher.getInstance().startErrorCatching();
+
     const resp : AppendResponseObject = await client.append(
       destinationMailboxPath,
       rfc822Content,
@@ -230,9 +233,12 @@ export const createDraftOperation: IResourceOperationDef = {
 
 
     if (!resp) {
-      throw new NodeApiError(context.getNode(), {}, {
-        message: "Unable to create draft, unknown error",
-      });
+      const errorsList = ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
+      throw new NodeImapError(
+        context.getNode(),
+        "Unable to create draft",
+        errorsList
+      );
     }
 
     var item_json = JSON.parse(JSON.stringify(resp));

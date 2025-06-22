@@ -1,7 +1,8 @@
 import { ImapFlow } from "imapflow";
-import { IDataObject, IExecuteFunctions, INodeExecutionData, NodeApiError } from "n8n-workflow";
+import { IDataObject, IExecuteFunctions, INodeExecutionData } from "n8n-workflow";
 import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from '../../../utils/SearchFieldParameters';
+import { ImapFlowErrorCatcher, NodeImapError } from "../../../utils/ImapUtils";
 
 
 enum ImapFlags {
@@ -103,13 +104,17 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
     await client.mailboxOpen(mailboxPath, { readOnly: false });
 
     if (flagsToSet.length > 0) {
+      ImapFlowErrorCatcher.getInstance().startErrorCatching();
       const isSuccess : boolean = await client.messageFlagsAdd(emailUid, flagsToSet, {
         uid: true,
       });
       if (!isSuccess) {
-        throw new NodeApiError(context.getNode(), {}, {
-          message: "Unable to set flags, unknown error",
-        });
+        const errorsList = ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
+        throw new NodeImapError(
+          context.getNode(),
+          "Unable to set flags",
+          errorsList
+        );
       }
     }
     if (flagsToRemove.length > 0) {
@@ -117,9 +122,12 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
         uid: true,
       });
       if (!isSuccess) {
-        throw new NodeApiError(context.getNode(), {}, {
-          message: "Unable to remove flags, unknown error",
-        });
+        const errorsList = ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
+        throw new NodeImapError(
+          context.getNode(),
+          "Unable to remove flags", 
+          errorsList
+        );
       }
     }
     

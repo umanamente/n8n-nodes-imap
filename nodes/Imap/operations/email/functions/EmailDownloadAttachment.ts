@@ -1,8 +1,8 @@
 import { DownloadObject, FetchQueryObject, ImapFlow } from "imapflow";
-import { IExecuteFunctions, INodeExecutionData, NodeApiError } from "n8n-workflow";
+import { IExecuteFunctions, INodeExecutionData } from "n8n-workflow";
 import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from "../../../utils/SearchFieldParameters";
-import { ImapFlowErrorCatcher } from "../../../utils/ImapUtils";
+import { ImapFlowErrorCatcher, NodeImapError } from "../../../utils/ImapUtils";
 import { getEmailPartsInfoRecursive } from "../../../utils/EmailParts";
 
 export const downloadAttachmentOperation: IResourceOperationDef = {
@@ -126,21 +126,18 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
       const resp : DownloadObject = await client.download(emailUid, partId, {
         uid: true,
       });
+
       if (!resp.meta) {
         // get IMAP errors
-        const internalImapErrorsString = ImapFlowErrorCatcher.getInstance().stopAndGetCombinedErrorsString();
-        var errorDetails = "";
-        if (internalImapErrorsString) {
-          errorDetails = "IMAP server responded: \n" + internalImapErrorsString;
-        }
+        const errorsList = ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
 
-        context.logger?.error(`IMAP server has not returned attachment info: ${errorDetails}`);
-
-        throw new NodeApiError(context.getNode(), {}, {
-          message: `IMAP server has not returned attachment info for attachment partId "${partId}" of email "${emailUid}"`,
-          description: errorDetails,
-        });
+        throw new NodeImapError(
+          context.getNode(),
+          `Unable to download attachment partId "${partId}" of email "${emailUid}"`,
+          errorsList,
+        );
       }
+
       const binaryData = await context.helpers.prepareBinaryData(resp.content, resp.meta.filename, resp.meta.contentType);
       context.logger?.info(`Attachment downloaded: ${binaryData.data.length} bytes`);
 

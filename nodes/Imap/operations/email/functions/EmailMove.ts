@@ -1,7 +1,8 @@
 import { CopyResponseObject, ImapFlow } from "imapflow";
-import { IExecuteFunctions, INodeExecutionData, NodeApiError } from "n8n-workflow";
+import { IExecuteFunctions, INodeExecutionData } from "n8n-workflow";
 import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from '../../../utils/SearchFieldParameters';
+import { ImapFlowErrorCatcher, NodeImapError } from "../../../utils/ImapUtils";
 
 
 
@@ -47,14 +48,19 @@ export const moveEmailOperation: IResourceOperationDef = {
 
     await client.mailboxOpen(sourceMailboxPath, { readOnly: false });
 
+    ImapFlowErrorCatcher.getInstance().startErrorCatching();
+
     const resp : CopyResponseObject = await client.messageMove(emailUid, destinationMailboxPath, {
       uid: true,
     });
 
     if (!resp) {
-      throw new NodeApiError(context.getNode(), {}, {
-        message: "Unable to move email, unknown error",
-      });
+      const errorsList = ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
+      throw new NodeImapError(
+        context.getNode(),
+        "Unable to move email",
+        errorsList
+      );
     }
 
     var item_json = JSON.parse(JSON.stringify(resp));

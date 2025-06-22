@@ -1,6 +1,6 @@
 import { ImapFlow } from "imapflow";
 import { ImapCredentialsData } from "../../../credentials/ImapCredentials.credentials";
-import { JsonValue, Logger as N8nLogger } from "n8n-workflow";
+import { INode, JsonValue, Logger as N8nLogger, NodeApiError } from "n8n-workflow";
 
 
 // interfaces for debug/info entries that ImapFlow logger provides
@@ -35,6 +35,28 @@ export class ImapErrorsList {
     return JSON.stringify(this.caughtEntries, null, 2);
   }
 
+  public toString(): string {
+    if (this.caughtEntries.length === 0) {
+      return "No additional details were provided by the IMAP server.";
+    } else {
+      return "The following errors were reported by the IMAP server: \n" + this.combineFullEntriesToString();
+    }
+  }
+
+}
+
+
+/* An error class that represents an error from the IMAP server
+* It extends NodeApiError and adds a description with the list of IMAP errors
+* that were caught while executing the command that caused the error.
+*/
+export class NodeImapError extends NodeApiError {
+  constructor(node: INode, message: string, imapErrorsList: ImapErrorsList) {
+    super(node, {}, {
+      message: message,
+      description: imapErrorsList.toString(),
+    });
+  }
 }
 
 /**
@@ -47,8 +69,7 @@ export class ImapErrorsList {
  * 
  */
 export class ImapFlowErrorCatcher {
-  private static instance: ImapFlowErrorCatcher;
-  private messages: string[] = [];
+  private static instance: ImapFlowErrorCatcher;  
   private errorsList: ImapErrorsList = new ImapErrorsList();
 
   private isCatching = false;
@@ -66,22 +87,13 @@ export class ImapFlowErrorCatcher {
     return ImapFlowErrorCatcher.instance;
   }
 
-  private getMessageFromImapError(error: any): string {
-    if (!error) {
-      return 'Unknown IMAP error';
-    }
-    if (error.err) {
-      return error.err.responseText || error.err.message || JSON.stringify(error);
-    }
-    if (error.message) {
-      return error.message;
-    }
-    return JSON.stringify(error);
+  private clear() {    
+    this.errorsList = new ImapErrorsList();
   }
 
   public startErrorCatching(catchWarnings: boolean = true) {
     // clear previous errors (assume that if we are catching errors, we don't need previous ones)
-    this.messages = [];
+    this.clear();
     this.catchWarnings = catchWarnings;
     this.isCatching = true;
   }
@@ -94,7 +106,7 @@ export class ImapFlowErrorCatcher {
   public stopAndGetErrorsList(): ImapErrorsList {
     this.isCatching = false;
     const ret_list = this.errorsList;
-    this.errorsList = new ImapErrorsList();
+    this.clear();
     return ret_list;
   }
 
@@ -102,7 +114,6 @@ export class ImapFlowErrorCatcher {
     if (!this.isCatching) {
       return;
     }
-    this.messages.push(this.getMessageFromImapError(error));
     this.errorsList.addEntry(error as ImapLoggerEntryError);
   }
 
@@ -113,7 +124,6 @@ export class ImapFlowErrorCatcher {
     if (!this.catchWarnings) {
       return;
     }
-    this.messages.push(this.getMessageFromImapError(warning));
     this.errorsList.addEntry(warning as ImapLoggerEntryError);
   }
 
