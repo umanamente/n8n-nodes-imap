@@ -1,5 +1,5 @@
 import { ImapFlow } from "imapflow";
-import { IExecuteFunctions, INodeExecutionData, NodeApiError } from "n8n-workflow";
+import { IDataObject, IExecuteFunctions, INodeExecutionData, NodeApiError } from "n8n-workflow";
 import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from '../../../utils/SearchFieldParameters';
 
@@ -94,6 +94,10 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
         }
     }
 
+    let jsonData: IDataObject = {
+      uid: emailUid,
+    };
+
     context.logger?.info(`Setting flags "${flagsToSet.join(',')}" and removing flags "${flagsToRemove.join(',')}" on email "${emailUid}"`);
 
     await client.mailboxOpen(mailboxPath, { readOnly: false });
@@ -118,6 +122,10 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
         });
       }
     }
+    
+    returnData.push({
+      json: jsonData,
+    });
 
     return returnData;
   },
