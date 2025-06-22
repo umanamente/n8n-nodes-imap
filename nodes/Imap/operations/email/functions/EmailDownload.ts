@@ -62,7 +62,9 @@ export const downloadOperation: IResourceOperationDef = {
 
 
     let binaryFields: IBinaryKeyData | undefined = undefined;
-    let jsonData: IDataObject = {};
+    let jsonData: IDataObject = {
+      uid: emailInfo.uid,
+    };
 
     if (outputToBinary) {
       // output to binary data
