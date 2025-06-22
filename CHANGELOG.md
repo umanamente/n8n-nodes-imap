@@ -1,3 +1,15 @@
+## [2.9.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.8.0...v2.9.0) (2025-06-22)
+
+### Features
+
+* **Download as EML:** added uid to json output ([63226a8](https://github.com/umanamente/n8n-nodes-imap/commit/63226a8f088dc5d7dfafa35ae5dc61d45f4a1626)), closes [#73](https://github.com/umanamente/n8n-nodes-imap/issues/73)
+* **Set Flags:** added uid to json output ([1a6a822](https://github.com/umanamente/n8n-nodes-imap/commit/1a6a8227df5d87d73b9ebeaa9a234586d9710b71)), closes [#68](https://github.com/umanamente/n8n-nodes-imap/issues/68)
+
+### Bug Fixes
+
+* **Download Attachment:** correctly display and download attachments from emails with single part without partID ([dd62b49](https://github.com/umanamente/n8n-nodes-imap/commit/dd62b499efb1a51c4673cd1712f7f87c24d123a2)), closes [#71](https://github.com/umanamente/n8n-nodes-imap/issues/71)
+* **Get Emails:** displaying attachment info correctly if there is only 1 item in Body Structure ([e50a27c](https://github.com/umanamente/n8n-nodes-imap/commit/e50a27c74e6035a96ce51586d60748c6cc6b3e72))
+
 ## [2.8.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.7.1...v2.8.0) (2025-05-26)
 
 ### Features
