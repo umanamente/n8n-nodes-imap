@@ -5,8 +5,8 @@ export interface EmailPartInfo {
   partId: string;
   filename?: string;
   type: string;
-  encoding: string;
-  size: number;
+  encoding?: string;
+  size?: number;
   disposition?: string;
   parameters?: [string, string];
 }
@@ -15,10 +15,11 @@ export interface EmailPartInfo {
 // get the part info from a body structure object (don't recurse)
 function getEmailPartInfoFromBodystructureNode(context: IExecuteFunctions, bodyStructure: MessageStructureObject): EmailPartInfo {
   let partInfo: EmailPartInfo = {
-    partId: bodyStructure.part || '',
+    // if there is no partId, it is the only part, so use "TEXT" as partId
+    partId: bodyStructure.part || 'TEXT',
     type: bodyStructure.type,
-    encoding: bodyStructure.encoding || '7bit',
-    size: bodyStructure.size || 0,
+    encoding: bodyStructure.encoding,
+    size: bodyStructure.size,
     disposition: bodyStructure.disposition,
     filename: bodyStructure.dispositionParameters?.filename,
   };
