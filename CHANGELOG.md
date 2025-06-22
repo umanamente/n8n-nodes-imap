@@ -1,3 +1,9 @@
+## [2.10.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.9.0...v2.10.0) (2025-06-22)
+
+### Features
+
+* improved IMAP error catching. IMAP errors are displayed in N8N output, if available. ([2696424](https://github.com/umanamente/n8n-nodes-imap/commit/26964244a9782d55afb55e9983576c509fe4ff70))
+
 ## [2.9.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.8.0...v2.9.0) (2025-06-22)
 
 ### Features
