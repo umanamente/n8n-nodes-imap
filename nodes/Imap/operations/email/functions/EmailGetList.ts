@@ -1,4 +1,5 @@
-import { FetchQueryObject, ImapFlow, Readable } from "imapflow";
+import { FetchMessageObject, FetchQueryObject, ImapFlow } from "imapflow";
+import { Readable } from "stream";
 import { IExecuteFunctions, INodeExecutionData } from "n8n-workflow";
 import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from "../../../utils/SearchFieldParameters";
@@ -177,7 +178,7 @@ export const getEmailsListOperation: IResourceOperationDef = {
     // wait for all emails to be fetched before processing them
     // because we might need to fetch the body parts for each email,
     // and this will freeze the client if we do it in parallel
-    const emailsList = [];
+    const emailsList: FetchMessageObject[] = [];
     for  await (let email of client.fetch(searchObject, fetchQuery)) {
       emailsList.push(email);
     }
@@ -221,35 +222,29 @@ export const getEmailsListOperation: IResourceOperationDef = {
         const bodyStructure = email.bodyStructure as unknown as any;
 
         if (bodyStructure) {
-          // check if multipart
-          if (bodyStructure.childNodes) {
-            // get the parts info (could be recursive)
-            var partsInfo = getEmailPartsInfoRecursive(context, bodyStructure);
-            for (const partInfo of partsInfo) {
-              if (partInfo.disposition === 'attachment') {
-                attachmentsInfo.push({
-                  partId: partInfo.partId,
-                  filename: partInfo.filename,
-                  type: partInfo.type,
-                  encoding: partInfo.encoding,
-                  size: partInfo.size,
-                });
-              } else {
-                if (partInfo.type === 'text/plain') {
-                  textPartId = partInfo.partId;
-                }
-                if (partInfo.type === 'text/html') {
-                  htmlPartId = partInfo.partId;
-                }
+
+          const partsInfo = getEmailPartsInfoRecursive(context, bodyStructure);
+
+          // filter attachments and text/html parts
+          for (const partInfo of partsInfo) {
+            if (partInfo.disposition === 'attachment') {
+              // this is an attachment
+              attachmentsInfo.push({
+                partId: partInfo.partId,
+                filename: partInfo.filename,
+                type: partInfo.type,
+                encoding: partInfo.encoding,
+                size: partInfo.size,
+              });
+            } else {
+              // if there is only one part, to sometimes it has no partId
+              // in that case, ImapFlow uses "TEXT" as partId to download the only part
+              if (partInfo.type === 'text/plain') {                
+                textPartId = partInfo.partId || "TEXT";
               }
-            }
-          } else {
-            // single part, use "TEXT" as part ID
-            if (bodyStructure.type === 'text/plain') {
-              textPartId = "TEXT";
-            }
-            if (bodyStructure.type === 'text/html') {
-              htmlPartId = "TEXT";
+              if (partInfo.type === 'text/html') {
+                htmlPartId = partInfo.partId || "TEXT";
+              }
             }
           }
         }

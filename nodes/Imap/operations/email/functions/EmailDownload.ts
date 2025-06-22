@@ -68,7 +68,7 @@ export const downloadOperation: IResourceOperationDef = {
 
     if (outputToBinary) {
       // output to binary data
-      const binaryData = await context.helpers.prepareBinaryData(emailInfo.source, mailboxPath + '_' + emailUid + '.eml', 'message/rfc822');
+      const binaryData = await context.helpers.prepareBinaryData(emailInfo.source!, mailboxPath + '_' + emailUid + '.eml', 'message/rfc822');
       binaryFields = {
         [binaryPropertyName]: binaryData,
       };
@@ -76,7 +76,7 @@ export const downloadOperation: IResourceOperationDef = {
       // output to JSON as text
       jsonData = {
         ...jsonData,
-        emlContent: emailInfo.source.toString(),
+        emlContent: emailInfo.source!.toString(),
       };
     }
 
