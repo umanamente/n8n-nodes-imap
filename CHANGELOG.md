@@ -1,8 +1,8 @@
-## [2.11.0](https://github.com/davidruzicka/n8n-nodes-imap-fix/compare/v2.10.0...v2.11.0) (2025-07-30)
+## 2.11.1 (2025-07-30)
 
 ### Features
 
-* enhance error handling in IMAP node to support continue on fail option ([5b08626](https://github.com/davidruzicka/n8n-nodes-imap-fix/commit/5b08626fef26b2b6ef18ed787a82d2e00cc8fba7))
+* enhance error handling in IMAP node to support continue on fail option ([61be85b](https://github.com/davidruzicka/n8n-nodes-imap-fix/commit/61be85b123ce811cb6c2f65f83808eec6d3dae1d))
 
 ## [2.10.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.9.0...v2.10.0) (2025-06-22)
 
