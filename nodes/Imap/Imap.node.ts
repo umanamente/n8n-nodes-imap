@@ -163,21 +163,40 @@ export class Imap implements INodeType {
               this.logger.error(internalImapErrorsMessage);
             }
 
-            if (error instanceof NodeApiError) {
-              // don't include internal IMAP errors, because the error message is already composed by the handler
-              throw error;
+            // Handle errors according to node settings
+            if (this.continueOnFail()) {
+              // Continue on fail - add error to results but don't stop execution
+              const errorMessage = error.responseText || error.message || `Unknown error: ${error}`;
+              this.logger.warn(`Operation "${operation}" for resource "${resource}" failed for item ${itemIndex}: ${errorMessage}`);
+
+              // Add the original input item to results with error information
+              resultItems.push({
+                json: {
+                  ...this.getInputData(itemIndex)[0].json,
+                  error: {
+                    message: errorMessage,
+                    itemIndex,
+                    operation,
+                    resource
+                  }
+                },
+                pairedItem: itemIndex
+              });
+            } else {
+              // Stop on error
+              this.logger.error(`Operation "${operation}" for resource "${resource}" failed`);
+
+              if (error instanceof NodeApiError) {
+                // don't include internal IMAP errors, because the error message is already composed by the handler
+                throw error;
+              }
+
+              // For other errors, create a proper NodeImapError with context
+              const errorMessage = error.responseText || error.message || `Unknown error: ${error}`;
+              this.logger.error(`Caught error: ${JSON.stringify(error)}`);
+
+              throw new NodeImapError(this.getNode(), errorMessage, imapErrorsList);
             }
-
-            // seems to be unknown error, check IMAP internal errors and include them in the error message
-
-            this.logger.error(`Caught error: ${JSON.stringify(error)}`);
-
-            var errorMessage = error.responseText || error.message || 'Unknown error';
-
-            this.logger.error(`Operation "${operation}" for resource "${resource}" failed`);
-            
-
-            throw new NodeImapError(this.getNode(), errorMessage, imapErrorsList);
           }
         }
 
