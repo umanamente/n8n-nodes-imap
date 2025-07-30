@@ -172,13 +172,7 @@ export class Imap implements INodeType {
               // Add the original input item to results with error information
               resultItems.push({
                 json: {
-                  ...this.getInputData(itemIndex)[0].json,
-                  error: {
-                    message: errorMessage,
-                    itemIndex,
-                    operation,
-                    resource
-                  }
+                  error: errorMessage
                 },
                 pairedItem: itemIndex
               });
