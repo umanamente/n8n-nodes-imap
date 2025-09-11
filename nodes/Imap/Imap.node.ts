@@ -10,15 +10,15 @@ import { CREDENTIALS_TYPE_CORE_IMAP_ACCOUNT, CREDENTIALS_TYPE_THIS_NODE, credent
 
 export class Imap implements INodeType {
   description: INodeTypeDescription = {
-    displayName: 'IMAP',
-    name: 'imap',
+    displayName: 'IMAP-Extended',
+    name: 'imap-extended',
     icon: 'file:node-imap-icon.svg',
     group: ['transform'],
     version: 1,
     subtitle: '={{ $parameter["operation"] + ": " + $parameter["resource"] }}',
     description: 'Retrieve emails via IMAP',
     defaults: {
-      name: 'IMAP',
+      name: 'IMAP-Extended',
     },
     inputs: [NodeConnectionType.Main],
     // eslint-disable-next-line n8n-nodes-base/node-class-description-outputs-wrong
