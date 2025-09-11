@@ -1,6 +1,6 @@
 {
   "name": "@nicolaeser/n8n-nodes-imap",
-  "version": "2.10.0",
+  "version": "2.10.1",
   "description": "This node allows you to connect to an IMAP server and retrieve emails. I only added Mail Deletion support for myself",
   "keywords": [
     "n8n-community-node-package"
