@@ -1,5 +1,5 @@
 {
-  "name": "n8n-nodes-imap",
+  "name": "@nicolaeser/n8n-nodes-imap",
   "version": "2.10.0",
   "description": "This node allows you to connect to an IMAP server and retrieve emails. I only added Mail Deletion support for myself",
   "keywords": [
@@ -8,12 +8,12 @@
   "license": "MIT",
   "homepage": "",
   "author": {
-    "name": "Vasily Maslyukov",
-    "email": "auro.coding@gmail.com"
+    "name": "Nico Laeser",
+    "email": "contact@laeser.software"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/umanamente/n8n-nodes-imap.git"
+    "url": "https://github.com/nicolaeser/n8n-nodes-imap.git"
   },
   "main": "index.js",
   "scripts": {
