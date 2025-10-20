@@ -25,7 +25,8 @@
     "credentials/**/*",
     "nodes/**/*",
     "nodes/**/*.json",
-    "package.json",
+    "package.json", 
+    "test/**/*"
   ],
   "exclude": [
     "test/**/*",
