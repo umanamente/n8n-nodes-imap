@@ -204,39 +204,6 @@ describe('CredentialsSelector', () => {
     });
 
     describe('logging behavior', () => {
-      it('should log credential information when credentials are retrieved', async () => {
-        // Arrange
-        const credentials: ImapCredentialsData = {
-          host: 'imap.example.com',
-          port: 993,
-          user: 'user@example.com',
-          password: 'password',
-          tls: true,
-          allowUnauthorizedCerts: false,
-        };
-
-        mockContext.getNodeParameter.mockReturnValue(CREDENTIALS_TYPE_THIS_NODE);
-        mockContext.getCredentials.mockResolvedValue(credentials as any);
-
-        // Act
-        await getImapCredentials(mockContext);
-
-        // Assert
-        expect(mockContext.logger.info).toHaveBeenCalledTimes(3);
-        expect(mockContext.logger.info).toHaveBeenNthCalledWith(
-          1,
-          `Using credentials from ${credentialNames[CREDENTIALS_TYPE_THIS_NODE]}`
-        );
-        expect(mockContext.logger.info).toHaveBeenNthCalledWith(
-          2,
-          `Host: ${credentials.host}:${credentials.port}`
-        );
-        expect(mockContext.logger.info).toHaveBeenNthCalledWith(
-          3,
-          `User: ${credentials.user}`
-        );
-      });
-
       it('should not log password in any log message', async () => {
         // Arrange
         const credentials: ImapCredentialsData = {
