@@ -27,4 +27,33 @@ module.exports = {
   coverageReporters: ['text', 'lcov', 'html'],
   verbose: true,
   setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
+  projects: [
+    {
+      displayName: 'WithGreenmail',
+      preset: 'ts-jest',
+      testEnvironment: 'node',
+      testMatch: ['<rootDir>/test/WithGreenmail/**/*.test.ts'],
+      setupFilesAfterEnv: ['<rootDir>/test/WithGreenmail/setup.ts'],
+      transform: {
+        '^.+\\.ts$': ['ts-jest', {
+          tsconfig: 'tsconfig.test.json',
+        }],
+      },
+      moduleFileExtensions: ['ts', 'js', 'json'],
+    },
+    {
+      displayName: 'Other',
+      preset: 'ts-jest',
+      testEnvironment: 'node',
+      testMatch: ['<rootDir>/test/**/*.test.ts', '<rootDir>/credentials/**/*.test.ts', '<rootDir>/nodes/**/*.test.ts'],
+      testPathIgnorePatterns: ['/node_modules/', '/test/WithGreenmail/'],
+      setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
+      transform: {
+        '^.+\\.ts$': ['ts-jest', {
+          tsconfig: 'tsconfig.test.json',
+        }],
+      },
+      moduleFileExtensions: ['ts', 'js', 'json'],
+    },
+  ],
 };
