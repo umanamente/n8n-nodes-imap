@@ -215,6 +215,72 @@ describe('Imap Node - mocked ImapFlow', () => {
       }
     });
 
+    it('should handle operation failure with a NodeApiError gracefully', async () => {
+      // Create a mock parameters checker for testing
+      const paramValues = {
+        authentication: 'imapThisNode',
+        resource: 'mailbox',
+        operation: 'loadMailboxList',
+        includeStatusFields: [],
+      };
+      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);      
+      context.getCredentials = jest.fn().mockResolvedValue(defaultCredentials);
+      context.getInputData = jest.fn().mockReturnValue([1]);
+      context.getNode = jest.fn().mockReturnValue({ name: 'Imap Test Node' });
+
+      // mock operation failure with NodeApiError
+      mockImapClient.list.mockImplementation(() => {
+        throw new NodeApiError(
+          { 
+            id: 'test-node-id',
+            name: 'Imap Test Node',
+            typeVersion: 1,
+            type: 'imap',
+            position: [0, 0],
+            disabled: false,
+            parameters: paramValues
+          }, 
+          {
+            jsonParam: "test",
+          }, 
+          { message: 'Node API error occurred' }
+        );
+      });
+
+      // Act & Assert
+      try {
+        await imap.execute.call(context as IExecuteFunctions);
+        fail('Expected error was not thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(NodeApiError);
+        expect(error).toHaveProperty('message', 'Node API error occurred');
+        expect(error).toHaveProperty('errorResponse', { jsonParam: "test" });
+      }
+    });
+
+    it('should handle operation returned no data gracefully', async () => {
+      // Create a mock parameters checker for testing
+      const paramValues = {
+        authentication: 'imapThisNode',
+        resource: 'mailbox',
+        operation: 'loadMailboxList',
+        includeStatusFields: [],
+      };
+      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);
+      context.getCredentials = jest.fn().mockResolvedValue(defaultCredentials);
+      context.getInputData = jest.fn().mockReturnValue([1]);
+      context.getNode = jest.fn().mockReturnValue({ name: 'Imap Test Node' });
+
+      // mock operation returning no data
+      mockImapClient.list.mockResolvedValue([]);
+
+      // Act 
+      const resultData = await imap.execute.call(context as IExecuteFunctions);
+
+      // Assert
+      expect(resultData).toHaveLength(1);
+      expect(resultData[0]).toHaveLength(0);
+    });
   });
 
   describe('credential testing', () => {
