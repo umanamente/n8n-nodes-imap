@@ -47,8 +47,6 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
     context.getInputData = jest.fn().mockReturnValue([1]);
     
     const resultData = await imap.execute.call(context as IExecuteFunctions);
-
-    console.log('IMAP mailbox list raw result:', JSON.stringify(resultData, null, 2));
     
     // Extract the mailbox list from the result data structure
     return resultData?.[0]?.map((item: any) => item.json) || [];
