@@ -15,6 +15,7 @@ import { execSync, spawn, ChildProcess } from 'child_process';
 import * as net from 'net';
 import { ImapCredentialsData } from '../../../credentials/ImapCredentials.credentials';
 import { GreenmailApi } from './GreenmailApi';
+import { createImapClient } from '../../../nodes/Imap/utils/ImapUtils';
 
 export interface GreenMailConfig {
   /** Host to bind GreenMail server to (default: localhost) */
@@ -168,7 +169,7 @@ export class GreenMailServer {
     });
 
     // Wait for GreenMail to be ready
-    await this.waitForReady();
+    await this.waitForContainerReady();
     this.containerRunning = true;
   }
 
@@ -201,12 +202,70 @@ export class GreenMailServer {
     });
   }
 
+
+
+  /**
+   * Wait for GreenMail server to be fully ready
+   * This checks:
+   * 1. Port connection is accessible
+   * 2. API reports readiness
+   * 3. IMAP authentication works
+   */
+  private async waitForGreenmailServerReady(): Promise<void> {
+    const startTime = Date.now();
+    const checkInterval = 500; // Check every 500ms
+
+    while (Date.now() - startTime < this.config.startupTimeout) {
+      try {
+        // Step 1: Check if port is accessible
+        const portReady = await this.checkPortConnection(this.config.apiPort);
+        
+        if (portReady) {
+          console.log(`API port ${this.config.apiPort} is accessible.`);
+          
+          // Step 2: Wait for API readiness
+          const apiReady = await this.apiClient.waitForReadiness(5000, 500);
+          
+          if (apiReady) {
+            console.log('GreenMail API reports readiness.');
+            
+            // Step 3: Try IMAP authentication
+            const authReady = await this.tryImapAuth();
+            
+            if (authReady) {
+              console.log('IMAP authentication successful. GreenMail server is fully ready.');
+              return;
+            } else {
+              console.log('IMAP authentication failed, retrying...');
+            }
+          } else {
+            console.log('API not ready yet, retrying...');
+          }
+        } else {
+          console.log(`API port ${this.config.apiPort} not accessible yet, retrying...`);
+        }
+      } catch (error) {
+        // Continue waiting
+        console.log(`Error during readiness check: ${error}, retrying...`);
+      }
+
+      await this.sleep(checkInterval);
+    }
+
+    throw new Error(
+      `GreenMail server failed to start within ${this.config.startupTimeout}ms. ` +
+      'Try increasing startupTimeout in config, set GREENMAIL_STARTUP_TIMEOUT environment variable (in milliseconds), or check Docker logs.'
+    );
+  }
+
   /**
    * Wait for GreenMail server to be ready by checking if the port is accessible
    */
-  private async waitForReady(): Promise<void> {
+  private async waitForContainerReady(): Promise<void> {
     const startTime = Date.now();
     const checkInterval = 500; // Check every 500ms
+
+    let containerIsReady = false;
 
     while (Date.now() - startTime < this.config.startupTimeout) {
       try {
@@ -219,21 +278,8 @@ export class GreenMailServer {
         console.log(`GreenMail container status: ${output}`);
 
         if (output.startsWith('Up')) {
-          // Check if API port is accessible
-          const apiReady = await this.checkPortConnection(this.config.apiPort);
-
-          console.log(`Checking API port ${this.config.apiPort}: ${apiReady ? 'open' : 'not open'}`);
-
-          if (apiReady) {
-            const waitTimeSeconds = 10;
-
-            console.log(`GreenMail API port is accessible. Waiting additional ${waitTimeSeconds} seconds for full initialization...`);
-            const apiReadiness = await this.apiClient.waitForReadiness(waitTimeSeconds * 1000, 1000);
-            if (apiReadiness) {
-              console.log('GreenMail API reports readiness.');
-              return;
-            }
-          }
+          containerIsReady = true;
+          break;
         }
       } catch (error) {
         // Continue waiting
@@ -242,11 +288,18 @@ export class GreenMailServer {
       await this.sleep(checkInterval);
     }
 
-    throw new Error(
-      `GreenMail server failed to start within ${this.config.startupTimeout}ms. ` +
-      'Try increasing startupTimeout in config, set GREENMAIL_STARTUP_TIMEOUT environment variable (in milliseconds), or check Docker logs.'
-    );
+    if (!containerIsReady) {
+      throw new Error(
+        `GreenMail server failed to start within ${this.config.startupTimeout}ms. ` +
+        'Try increasing startupTimeout in config, set GREENMAIL_STARTUP_TIMEOUT environment variable (in milliseconds), or check Docker logs.'
+      );
+    }
+
+    // container is running, now check full readiness
+    await this.waitForGreenmailServerReady();
   }
+
+
 
   /**
    * Stop the GreenMail server
@@ -288,9 +341,7 @@ export class GreenMailServer {
     console.log('Resetting GreenMail server...');
     try {
       await this.apiClient.reset();
-      //console.log('GreenMail server reset complete.');
-      // wait a bit to allow reset to complete
-      await this.apiClient.waitForReadiness(5000, 500);
+      await this.waitForGreenmailServerReady();
     } catch (error) {
       console.error('Failed to reset GreenMail server:', error);
       throw new Error(`Failed to reset GreenMail server: ${error}`);
@@ -376,6 +427,25 @@ export class GreenMailServer {
    */
   private sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Try to authenticate with IMAP using the provided credentials
+   * 
+   * @param credentials - The IMAP credentials to test
+   * @returns Promise<boolean> - true if authentication succeeds, false otherwise
+   */
+  async tryImapAuth(): Promise<boolean> {
+    const credentials = this.getCredentials("wait-for-auth-test@imap.com");
+    const client = createImapClient(credentials);
+    
+    try {
+      await client.connect();
+      await client.logout();
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 }
 
