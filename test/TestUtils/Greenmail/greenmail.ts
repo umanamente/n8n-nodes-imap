@@ -66,7 +66,7 @@ export class GreenMailServer {
       pop3sPort: config.pop3sPort || 3995,
       apiPort: config.apiPort || 8080,
       containerName: config.containerName || 'greenmail-test',
-      dockerImage: config.dockerImage || 'greenmail/standalone:2.0.1',
+      dockerImage: config.dockerImage || 'greenmail/standalone:2.1.7',
       startupTimeout: config.startupTimeout || (process.env.GREENMAIL_STARTUP_TIMEOUT ? parseInt(process.env.GREENMAIL_STARTUP_TIMEOUT, 10) : 60000),
       enableDebugLogs: config.enableDebugLogs || !!process.env.DEBUG_GREENMAIL,
     };
