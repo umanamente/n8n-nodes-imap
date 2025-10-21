@@ -28,10 +28,10 @@ export const renameMailboxOperation: IResourceOperationDef = {
     const mailboxPath = getMailboxPathFromNodeParameter(context, itemIndex);
     const newMailboxName = context.getNodeParameter('newMailboxName', itemIndex) as string;
 
-    context.logger?.info(`Renaming mailbox "${mailboxPath}" to "${newMailboxName}"`);
+    context.logger.info(`Renaming mailbox "${mailboxPath}" to "${newMailboxName}"`);
 
     const imapResp : MailboxRenameResponse = await client.mailboxRename(mailboxPath, newMailboxName);
-    context.logger?.info(JSON.stringify(imapResp));
+    context.logger.info(JSON.stringify(imapResp));
     var item_json = JSON.parse(JSON.stringify(imapResp));
     returnData.push({
       json: item_json,

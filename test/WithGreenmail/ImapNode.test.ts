@@ -7,17 +7,21 @@
 
 import { IExecuteFunctions } from 'n8n-workflow';
 import { Imap } from '../../nodes/Imap/Imap.node';
-import { describeWithGreenMail } from '../TestUtils/Greenmail/greenmail';
+import { describeWithGreenMail, GreenMailServer } from '../TestUtils/Greenmail/greenmail';
 import { createNodeParametersCheckerMock } from '../TestUtils/N8nMocks';
 import { getGlobalGreenmail } from './setup';
+import { ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
 
 describeWithGreenMail('Imap Node - with GreenMail', () => {
   let imap: Imap;
+  let greenmail: GreenMailServer;
+  let credentials: ImapCredentialsData;
 
   beforeAll(async () => {
     // Reset Greenmail before all tests to ensure clean state
-    const greenmail = getGlobalGreenmail();
+    greenmail = getGlobalGreenmail();
     await greenmail.reset();
+    credentials = greenmail.getCredentials('test@example.com');
   });
 
   beforeEach(() => {
@@ -25,7 +29,7 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
     imap = new Imap();
   });
 
-  describe('mailbox operations', () => {
+  describe('mailbox operations (read only)', () => {
     it('should successfully execute loadMailboxList operation', async () => {
       // Create a mock parameters checker for testing
       const paramValues = {
@@ -34,28 +38,17 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
         operation: 'loadMailboxList',
         includeStatusFields: [],
       };
-      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);
-      const greenmail = getGlobalGreenmail();
+      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);      
 
       // Mock getCredentials to return ImapCredentialsData
-      const credentials = greenmail.getCredentials('test@example.com');
       context.getCredentials = jest.fn().mockResolvedValue(credentials);
 
-      context.getInputData = jest.fn().mockReturnValue([
-        1
-      ]);
-
-      context.getNode = jest.fn().mockReturnValue({
-        name: 'Imap Test Node',
-      });
+      context.getInputData = jest.fn().mockReturnValue([1]);
       
       // Act
       const resultData = await imap.execute.call(context as IExecuteFunctions);
 
       // Assert
-      expect(imap).toBeDefined();
-      expect(imap).toBeInstanceOf(Imap);
-
       expect(resultData).toHaveLength(1);
       expect(resultData[0]).toHaveLength(1);
       expect(resultData?.[0]?.[0]?.json).toEqual(
@@ -70,5 +63,62 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
 
   });
 
+
+  describe('sequence test (read and write operations)', () => {
+    it('should successfully create a top level mailbox', async () => {
+      // Create a mock parameters checker for testing
+      const paramValues = {
+        authentication: 'imapThisNode',
+        resource: 'mailbox',
+        operation: 'createMailbox',
+        mailboxName: 'TestMailbox',
+      };
+      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);
+      
+      // Mock getCredentials to return ImapCredentialsData
+      context.getCredentials = jest.fn().mockResolvedValue(credentials);
+      context.getInputData = jest.fn().mockReturnValue([1]);
+
+      // Act
+      const resultData = await imap.execute.call(context as IExecuteFunctions);
+      // Assert
+      expect(resultData).toHaveLength(1);
+      expect(resultData[0]).toHaveLength(1);
+      expect(resultData?.[0]?.[0]?.json).toEqual(
+        {
+          created: true,
+          path: "TestMailbox",
+        }
+      );
+    });
+
+    it('should successfully rename a mailbox', async () => {
+      // Create a mock parameters checker for testing
+      const paramValues = {
+        authentication: 'imapThisNode',
+        resource: 'mailbox',
+        operation: 'renameMailbox',
+        mailboxPath: 'TestMailbox',
+        newMailboxName: 'TopLevelMailbox',
+      };
+      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);
+
+      // Mock getCredentials to return ImapCredentialsData
+      context.getCredentials = jest.fn().mockResolvedValue(credentials);
+      context.getInputData = jest.fn().mockReturnValue([1]);
+      // Act
+      const resultData = await imap.execute.call(context as IExecuteFunctions);
+      // Assert
+      expect(resultData).toHaveLength(1);
+      expect(resultData[0]).toHaveLength(1);
+      expect(resultData?.[0]?.[0]?.json).toEqual(
+        {
+          newPath: 'TopLevelMailbox',
+          path: '',
+        }
+      );
+    });
+
+  });
 });
 

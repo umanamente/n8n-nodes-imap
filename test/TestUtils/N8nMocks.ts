@@ -75,9 +75,14 @@ export const createNodeParametersCheckerMock = (
     throw new Error(`No mock value provided for parameter '${parameterName}'`);
   }) as any;
   
+  const getNodeMock = jest.fn().mockReturnValue({
+    name: 'Imap Test Node',
+  });
+
   return {
     getNodeParameter: getNodeParameterMock,
     logger: createMockLogger(false, false, false, false),
+    getNode: getNodeMock,
   };
 };
 
