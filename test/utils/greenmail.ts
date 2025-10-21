@@ -12,6 +12,7 @@
  */
 
 import { execSync, spawn, ChildProcess } from 'child_process';
+import * as net from 'net';
 import { ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
 
 export interface GreenMailConfig {
@@ -35,6 +36,8 @@ export interface GreenMailConfig {
   dockerImage?: string;
   /** Startup timeout in milliseconds (default: 10000) */
   startupTimeout?: number;
+  /** Enable debug logs from GreenMail container (default: false) */
+  enableDebugLogs?: boolean;
 }
 
 export interface TestUser {
@@ -60,6 +63,7 @@ export class GreenMailServer {
       containerName: config.containerName || 'greenmail-test',
       dockerImage: config.dockerImage || 'greenmail/standalone:2.0.1',
       startupTimeout: config.startupTimeout || (process.env.GREENMAIL_STARTUP_TIMEOUT ? parseInt(process.env.GREENMAIL_STARTUP_TIMEOUT, 10) : 60000),
+      enableDebugLogs: config.enableDebugLogs || !!process.env.DEBUG_GREENMAIL,
     };
   }
 
@@ -116,6 +120,13 @@ export class GreenMailServer {
     // Remove any existing container with the same name
     await this.removeExistingContainer();
 
+    const greenmailOpts = [
+      '-Dgreenmail.setup.test.all',
+      '-Dgreenmail.hostname=0.0.0.0',
+      '-Dgreenmail.auth.disabled=false',
+      '-Dgreenmail.verbose',
+    ];
+
     const dockerArgs = [
       'run',
       '--rm',
@@ -126,7 +137,7 @@ export class GreenMailServer {
       '-p', `${this.config.smtpsPort}:3465`,
       '-p', `${this.config.pop3Port}:3110`,
       '-p', `${this.config.pop3sPort}:3995`,
-      '-e', 'GREENMAIL_OPTS=-Dgreenmail.setup.test.all -Dgreenmail.hostname=0.0.0.0 -Dgreenmail.auth.disabled=false -Dgreenmail.verbose',
+      '-e', `GREENMAIL_OPTS=${greenmailOpts.join(' ')}`,
       this.config.dockerImage,
     ];
 
@@ -137,14 +148,14 @@ export class GreenMailServer {
 
     this.dockerProcess.stdout?.on('data', (data) => {
       const output = data.toString();
-      if (process.env.DEBUG_GREENMAIL) {
+      if (this.config.enableDebugLogs) {
         console.log(`[GreenMail STDOUT]: ${output}`);
       }
     });
 
     this.dockerProcess.stderr?.on('data', (data) => {
       const output = data.toString();
-      if (process.env.DEBUG_GREENMAIL) {
+      if (this.config.enableDebugLogs) {
         console.error(`[GreenMail STDERR]: ${output}`);
       }
     });
@@ -152,6 +163,35 @@ export class GreenMailServer {
     // Wait for GreenMail to be ready
     await this.waitForReady();
     this.containerRunning = true;
+  }
+
+  /**
+   * Check if a port is accessible by attempting to connect to it
+   */
+  private async checkPortConnection(port: number, host: string = this.config.host): Promise<boolean> {
+    return new Promise((resolve) => {
+      const socket = new net.Socket();
+      const timeout = 2000; // 2 second timeout for connection attempt
+
+      socket.setTimeout(timeout);
+      
+      socket.on('connect', () => {
+        socket.destroy();
+        resolve(true);
+      });
+
+      socket.on('timeout', () => {
+        socket.destroy();
+        resolve(false);
+      });
+
+      socket.on('error', () => {
+        socket.destroy();
+        resolve(false);
+      });
+
+      socket.connect(port, host);
+    });
   }
 
   /**
@@ -169,10 +209,26 @@ export class GreenMailServer {
           { encoding: 'utf-8' }
         ).trim();
 
+        console.log(`GreenMail container status: ${output}`);
+
         if (output.startsWith('Up')) {
-          // Give it a bit more time to fully initialize
-          await this.sleep(1000);
-          return;
+          // Check if IMAP port is accessible
+          const imapReady = await this.checkPortConnection(this.config.imapPort);
+
+          console.log(`Checking IMAP port ${this.config.imapPort}: ${imapReady ? 'open' : 'not open'}`);
+          
+          if (imapReady) {
+            const waitTimeSeconds = 5;
+
+            console.log(`GreenMail IMAP port is accessible. Waiting additional ${waitTimeSeconds} seconds for full initialization...`);
+
+            // Give it a bit more time to fully initialize
+            await this.sleep(waitTimeSeconds * 1000);
+
+            console.log('Assuming GreenMail server is ready.');
+
+            return;
+          }
         }
       } catch (error) {
         // Continue waiting
@@ -196,7 +252,17 @@ export class GreenMailServer {
     }
 
     try {
+      console.log('Stopping GreenMail container...');
+      const stopStartTime = Date.now();
       execSync(`docker stop ${this.config.containerName}`, { stdio: 'ignore' });
+      const stopTime = Date.now() - stopStartTime;
+      console.log(`GreenMail container stopped in ${stopTime}ms`);
+      // sleep a bit to allow Docker to fully stop
+      const sleepSeconds = 5;
+      console.log(`Waiting additional ${sleepSeconds} seconds for Docker to fully stop...`);
+      await new Promise((resolve) => setTimeout(resolve, sleepSeconds * 1000));
+      console.log('GreenMail server stopped.');
+
     } catch (error) {
       console.warn(`Failed to stop GreenMail container: ${error}`);
     }

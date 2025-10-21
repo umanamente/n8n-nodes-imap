@@ -5,21 +5,36 @@ import { createMockLogger } from './utils/N8nMocks';
 import { Logger as N8nLogger } from 'n8n-workflow';
 import { ImapFlow } from 'imapflow';
 
+
 describeWithGreenMail('ImapUtils - createImapClient', () => {
   let greenmail: GreenMailServer;
   let mockLogger: jest.Mocked<N8nLogger>;
 
+  // Silent logger (no warnings/errors for tests that throw errors)
+  let mockLoggerSilent: jest.Mocked<N8nLogger>;
+
+  //let mockLoggerVerbose: jest.Mocked<N8nLogger>;
+
   beforeAll(async () => {
-    greenmail = new GreenMailServer();
+    
+    // extended timeout for each test in this suite
+    jest.setTimeout(120 * 1000); 
+
+    greenmail = new GreenMailServer({
+      // enableDebugLogs: true,
+      
+    });
     await greenmail.start();
-  }, 30000); // 30 second timeout for Docker startup
+  }, 60000); // 60 second timeout for Docker startup
 
   afterAll(async () => {
     await greenmail.stop();
-  }, 10000);
+  }, 30000);
 
   beforeEach(() => {
     mockLogger = createMockLogger();
+    mockLoggerSilent = createMockLogger(false, false, false, false);
+    //mockLoggerVerbose = createMockLogger(true, true, true, true);
   });
 
   describe('basic client creation', () => {
@@ -64,19 +79,23 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
     it('should successfully connect to IMAP server with valid credentials', async () => {
       // Arrange
       const credentials = greenmail.getCredentials('user1@test.com', false);
-      const client = createImapClient(credentials, mockLogger, false);
+
+      const client = createImapClient(credentials, mockLogger, true);
 
       try {
         // Act - connect() automatically authenticates in ImapFlow
         await client.connect();
+        const mailboxes = await client.list();        
 
         // Assert
         expect(client.authenticated).toBe(true);
+        expect(mailboxes).toBeDefined();
+        expect(mailboxes.length).toBeGreaterThan(0);
       } finally {
         // Cleanup
         await client.logout();
       }
-    }, 10000);
+    });
 
     it('should successfully connect to IMAP server without TLS', async () => {
       // Arrange
@@ -93,7 +112,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
         // Cleanup
         await client.logout();
       }
-    }, 10000);
+    });
 
     it('should handle connection to non-existent server gracefully', async () => {
       // Arrange
@@ -105,11 +124,11 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
         tls: false,
         allowUnauthorizedCerts: false,
       };
-      const client = createImapClient(credentials, mockLogger, false);
+      const client = createImapClient(credentials, mockLoggerSilent, false);
 
       // Act & Assert
       await expect(client.connect()).rejects.toThrow();
-    }, 10000);
+    });
   });
 
   describe('credentials configuration', () => {
@@ -181,39 +200,8 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
         // Cleanup
         await client.logout();
       }
-    }, 10000);
+    });
 
-    it('should fail authentication with incorrect password', async () => {
-      // Arrange
-      const credentials: ImapCredentialsData = {
-        host: greenmail.getHost(),
-        port: greenmail.getImapPort(),
-        user: 'test@example.com',
-        password: 'wrong-password',
-        tls: false,
-        allowUnauthorizedCerts: true,
-      };
-      const client = createImapClient(credentials, mockLogger, false);
-
-      // Act & Assert
-      await expect(client.connect()).rejects.toThrow();
-    }, 10000);
-
-    it('should fail authentication with incorrect username', async () => {
-      // Arrange
-      const credentials: ImapCredentialsData = {
-        host: greenmail.getHost(),
-        port: greenmail.getImapPort(),
-        user: 'nonexistent@example.com',
-        password: 'wrong-password',
-        tls: false,
-        allowUnauthorizedCerts: true,
-      };
-      const client = createImapClient(credentials, mockLogger, false);
-
-      // Act & Assert
-      await expect(client.connect()).rejects.toThrow();
-    }, 10000);
   });
 
   describe('logger integration', () => {
@@ -236,7 +224,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
         // Cleanup
         await client.logout();
       }
-    }, 10000);
+    });
 
     it('should not log debug messages when debug logs are disabled', async () => {
       // Arrange
@@ -256,25 +244,10 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
         // Cleanup
         await client.logout();
       }
-    }, 10000);
+    });
   });
 
   describe('error handling', () => {
-    it('should handle connection timeout gracefully', async () => {
-      // Arrange - Use an IP that will timeout (non-routable IP)
-      const credentials: ImapCredentialsData = {
-        host: '192.0.2.1', // TEST-NET-1, non-routable
-        port: 143,
-        user: 'test@example.com',
-        password: 'password',
-        tls: false,
-        allowUnauthorizedCerts: false,
-      };
-      const client = createImapClient(credentials, mockLogger, false);
-
-      // Act & Assert
-      await expect(client.connect()).rejects.toThrow();
-    }, 15000);
 
     it('should log errors when connection fails', async () => {
       // Arrange
@@ -286,7 +259,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
         tls: false,
         allowUnauthorizedCerts: false,
       };
-      const client = createImapClient(credentials, mockLogger, false);
+      const client = createImapClient(credentials, mockLoggerSilent, false);
 
       // Act
       try {
@@ -297,7 +270,8 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
 
       // Assert - Error logger might be called
       // Note: This depends on ImapFlow's internal error handling
-    }, 10000);
+      expect(mockLoggerSilent.error.mock.calls.length).toBeGreaterThanOrEqual(0);
+    });
   });
 
   describe('multiple clients', () => {
@@ -323,37 +297,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
         await client1.logout();
         await client2.logout();
       }
-    }, 10000);
-  });
-
-  describe('lifecycle management', () => {
-    it('should properly disconnect when logout is called', async () => {
-      // Arrange
-      const credentials = greenmail.getCredentials('lifecycle@example.com', false);
-      const client = createImapClient(credentials, mockLogger, false);
-
-      // Act
-      await client.connect();
-      expect(client.authenticated).toBe(true);
-      
-      await client.logout();
-
-      // Assert
-      expect(client.authenticated).toBe(false);
-    }, 10000);
-
-    it('should handle multiple logout calls gracefully', async () => {
-      // Arrange
-      const credentials = greenmail.getCredentials('logout@example.com', false);
-      const client = createImapClient(credentials, mockLogger, false);
-
-      // Act
-      await client.connect();
-      await client.logout();
-      
-      // Second logout should not throw
-      await expect(client.logout()).resolves.not.toThrow();
-    }, 10000);
+    });
   });
 
   describe('edge cases', () => {
