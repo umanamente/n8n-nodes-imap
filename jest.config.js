@@ -1,5 +1,6 @@
 
-process.env.SKIP_GREENMAIL_TESTS = 'true';
+// uncomment if Greenmail tests are failing due to Greenmail container instability
+// process.env.SKIP_GREENMAIL_TESTS = 'true';
 
 module.exports = {
   preset: 'ts-jest',
