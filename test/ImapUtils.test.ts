@@ -1,16 +1,9 @@
 import { createImapClient } from '../nodes/Imap/utils/ImapUtils';
 import { ImapCredentialsData } from '../credentials/ImapCredentials.credentials';
 import { GreenMailServer, describeWithGreenMail } from './utils/greenmail';
+import { createMockLogger } from './utils/N8nMocks';
 import { Logger as N8nLogger } from 'n8n-workflow';
 import { ImapFlow } from 'imapflow';
-
-// Mock logger for testing
-const createMockLogger = (): jest.Mocked<N8nLogger> => ({
-  info: jest.fn(),
-  warn: jest.fn(),
-  error: jest.fn(),
-  debug: jest.fn(),
-} as jest.Mocked<N8nLogger>);
 
 describeWithGreenMail('ImapUtils - createImapClient', () => {
   let greenmail: GreenMailServer;
