@@ -77,7 +77,7 @@ export const createNodeParametersCheckerMock = (
   
   return {
     getNodeParameter: getNodeParameterMock,
-    logger: createMockLogger(),
+    logger: createMockLogger(false, false, false, false),
   };
 };
 

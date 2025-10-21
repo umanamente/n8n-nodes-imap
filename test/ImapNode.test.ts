@@ -22,6 +22,15 @@ describe('Imap Node - mocked ImapFlow', () => {
   let imap: Imap;
   let mockImapClient: any;
 
+  let defaultCredentials: ImapCredentialsData = {
+    user: 'test@example.com',
+    password: 'password',
+    host: 'imap.example.com',
+    port: 993,
+    tls: true,
+    allowUnauthorizedCerts: false
+  };
+
   afterAll(() => {
     // Restore the original implementation after all tests
     jest.restoreAllMocks();
@@ -61,20 +70,8 @@ describe('Imap Node - mocked ImapFlow', () => {
         includeStatusFields: [],
       };
       const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);      
-
-      // Mock getCredentials to return ImapCredentialsData
-      context.getCredentials = jest.fn().mockResolvedValue({
-        user: 'test@example.com',
-        password: 'password',
-        host: 'imap.example.com',
-        port: 993,
-        tls: true,
-        allowUnauthorizedCerts: false
-      } as ImapCredentialsData);
-
-      context.getInputData = jest.fn().mockReturnValue([
-        1
-      ]);
+      context.getCredentials = jest.fn().mockResolvedValue(defaultCredentials);
+      context.getInputData = jest.fn().mockReturnValue([1]);
 
       // Mock the ImapFlow client methods
       mockImapClient.list.mockResolvedValue([
@@ -111,6 +108,48 @@ describe('Imap Node - mocked ImapFlow', () => {
       );
 
     });
+  });
+
+  describe('mail operations', () => {
+    // Additional mail operation tests would go here
+  });
+
+  describe('corner cases', () => {
+    it('should handle invalid resource parameter gracefully', async () => {
+      // Create a mock parameters checker for testing
+      const paramValues = {
+        authentication: 'imapThisNode',
+        resource: 'invalidResource',
+        operation: 'someOperation',
+      };
+      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);      
+      context.getCredentials = jest.fn().mockResolvedValue(defaultCredentials);
+      context.getInputData = jest.fn().mockReturnValue([1]);
+      context.getNode = jest.fn().mockReturnValue({ name: 'Imap Test Node' });
+
+      // Act & Assert
+      await expect(imap.execute.call(context as IExecuteFunctions)).rejects.toThrow('Unknown operation "someOperation" for resource "invalidResource"');
+    });
+
+    it('should handle connection failure gracefully', async () => {
+      // Create a mock parameters checker for testing
+      const paramValues = {
+        authentication: 'imapThisNode',
+        resource: 'mailbox',
+        operation: 'loadMailboxList',
+      };
+      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);      
+      context.getCredentials = jest.fn().mockResolvedValue(defaultCredentials);
+      context.getInputData = jest.fn().mockReturnValue([1]);
+      context.getNode = jest.fn().mockReturnValue({ name: 'Imap Test Node' });
+
+      // mock connection failure
+      mockImapClient.connect.mockRejectedValue(new Error('Connection failed'));
+
+      // Act & Assert
+      await expect(imap.execute.call(context as IExecuteFunctions)).rejects.toThrow('Connection failed');
+    });
+
   });
 
 });
