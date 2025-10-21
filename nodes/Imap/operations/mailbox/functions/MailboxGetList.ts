@@ -14,8 +14,8 @@ enum MailboxListStatusFields {
 export const getMailboxListOperation: IResourceOperationDef = {
   operation: {
     name: 'Get Many',
-    value: 'loadMailboxList',
     description: 'Get a list of mailboxes',
+    value: 'loadMailboxList',
   },
   parameters: [
     {
