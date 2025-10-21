@@ -22,6 +22,11 @@ describe('Imap Node - mocked ImapFlow', () => {
   let imap: Imap;
   let mockImapClient: any;
 
+  afterAll(() => {
+    // Restore the original implementation after all tests
+    jest.restoreAllMocks();
+  });
+
   beforeEach(() => {
     // Reset the Imap instance before each test
     imap = new Imap();
