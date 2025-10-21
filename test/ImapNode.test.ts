@@ -5,7 +5,7 @@
  * using mocked dependencies.
  */
 
-import { IExecuteFunctions } from 'n8n-workflow';
+import { ICredentialTestFunctions, ICredentialsDecrypted, IExecuteFunctions } from 'n8n-workflow';
 import { Imap } from '../nodes/Imap/Imap.node';
 import { createNodeParametersCheckerMock } from './TestUtils/N8nMocks';
 import { ImapCredentialsData } from '../credentials/ImapCredentials.credentials';
@@ -171,6 +171,88 @@ describe('Imap Node - mocked ImapFlow', () => {
       await expect(imap.execute.call(context as IExecuteFunctions)).rejects.toThrow('Operation failed without IMAP errors');
     });
 
+  });
+
+  describe('credential testing', () => {
+    describe('testImapCredentials', () => {
+      it('should return OK status for valid credentials', async () => {
+        // Arrange
+        const credentials: ICredentialsDecrypted = {
+          id: 'test-cred-id',
+          name: 'Test IMAP Credentials',
+          type: 'imapApi',
+          data: {
+            user: 'test@example.com',
+            password: 'password123',
+            host: 'imap.example.com',
+            port: 993,
+            tls: true,
+            allowUnauthorizedCerts: false,
+          },
+        };
+
+        // Mock successful connection
+        mockImapClient.connect.mockResolvedValue(undefined);
+        mockImapClient.logout.mockResolvedValue(undefined);
+
+        // Create a mock context for credential testing
+        const mockContext = {} as ICredentialTestFunctions;
+
+        // Act
+        const result = await imap.methods.credentialTest.testImapCredentials.call(
+          mockContext,
+          credentials
+        );
+
+        // Assert
+        expect(result).toEqual({
+          status: 'OK',
+          message: 'Success',
+        });
+        expect(ImapUtils.createImapClient).toHaveBeenCalledWith(credentials.data);
+        expect(mockImapClient.connect).toHaveBeenCalled();
+        expect(mockImapClient.logout).toHaveBeenCalled();
+      });
+
+      it('should return Error status for invalid credentials with authentication failure', async () => {
+        // Arrange
+        const credentials: ICredentialsDecrypted = {
+          id: 'test-cred-id',
+          name: 'Test IMAP Credentials',
+          type: 'imapApi',
+          data: {
+            user: 'test@example.com',
+            password: 'wrongpassword',
+            host: 'imap.example.com',
+            port: 993,
+            tls: true,
+            allowUnauthorizedCerts: false,
+          },
+        };
+
+        // Mock authentication failure
+        const authError = new Error('Authentication failed');
+        mockImapClient.connect.mockRejectedValue(authError);
+
+        // Create a mock context for credential testing
+        const mockContext = {} as ICredentialTestFunctions;
+
+        // Act
+        const result = await imap.methods.credentialTest.testImapCredentials.call(
+          mockContext,
+          credentials
+        );
+
+        // Assert
+        expect(result).toEqual({
+          status: 'Error',
+          message: 'Authentication failed',
+        });
+        expect(ImapUtils.createImapClient).toHaveBeenCalledWith(credentials.data);
+        expect(mockImapClient.connect).toHaveBeenCalled();
+        expect(mockImapClient.logout).not.toHaveBeenCalled();
+      });
+    });
   });
 
 });
