@@ -36,7 +36,6 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           skip-step: install
-          test-script: npm test -- --coverage
   release:
     name: Release
     runs-on: ubuntu-latest
