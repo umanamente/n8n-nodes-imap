@@ -114,7 +114,7 @@ describe('Imap Node - mocked ImapFlow', () => {
     // Additional mail operation tests would go here
   });
 
-  describe('corner cases', () => {
+  describe('exception handling', () => {
     it('should handle invalid resource parameter gracefully', async () => {
       // Create a mock parameters checker for testing
       const paramValues = {
@@ -148,6 +148,27 @@ describe('Imap Node - mocked ImapFlow', () => {
 
       // Act & Assert
       await expect(imap.execute.call(context as IExecuteFunctions)).rejects.toThrow('Connection failed');
+    });
+
+    it('should handle operation failure without IMAP errors gracefully', async () => {
+      // Create a mock parameters checker for testing
+      const paramValues = {
+        authentication: 'imapThisNode',
+        resource: 'mailbox',
+        operation: 'loadMailboxList',
+        includeStatusFields: [],
+      };
+      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);      
+      context.getCredentials = jest.fn().mockResolvedValue(defaultCredentials);
+      context.getInputData = jest.fn().mockReturnValue([1]);
+      context.getNode = jest.fn().mockReturnValue({ name: 'Imap Test Node' });
+
+      // mock operation failure
+      mockImapClient.list.mockImplementation(() => {
+        throw new Error('Operation failed without IMAP errors');
+      });
+      // Act & Assert
+      await expect(imap.execute.call(context as IExecuteFunctions)).rejects.toThrow('Operation failed without IMAP errors');
     });
 
   });

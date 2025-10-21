@@ -71,8 +71,8 @@ export const createNodeParametersCheckerMock = (
       }
       return value;
     }
-    // Return undefined by default - tests should use mockReturnValue to set specific values
-    return undefined;
+    // throw error if no mock value is provided
+    throw new Error(`No mock value provided for parameter '${parameterName}'`);
   }) as any;
   
   return {

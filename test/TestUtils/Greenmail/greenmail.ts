@@ -218,7 +218,7 @@ export class GreenMailServer {
           console.log(`Checking IMAP port ${this.config.imapPort}: ${imapReady ? 'open' : 'not open'}`);
           
           if (imapReady) {
-            const waitTimeSeconds = 5;
+            const waitTimeSeconds = 10;
 
             console.log(`GreenMail IMAP port is accessible. Waiting additional ${waitTimeSeconds} seconds for full initialization...`);
 
