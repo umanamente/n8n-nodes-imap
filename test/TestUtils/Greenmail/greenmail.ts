@@ -277,6 +277,27 @@ export class GreenMailServer {
   }
 
   /**
+   * Reset the GreenMail server (clears all emails and users)
+   * Uses the API to reset without restarting the container
+   */
+  async reset(): Promise<void> {
+    if (!this.containerRunning) {
+      throw new Error('GreenMail server is not running. Call start() first.');
+    }
+    
+    console.log('Resetting GreenMail server...');
+    try {
+      await this.apiClient.reset();
+      //console.log('GreenMail server reset complete.');
+      // wait a bit to allow reset to complete
+      await this.apiClient.waitForReadiness(5000, 500);
+    } catch (error) {
+      console.error('Failed to reset GreenMail server:', error);
+      throw new Error(`Failed to reset GreenMail server: ${error}`);
+    }
+  }
+
+  /**
    * Get the GreenMail API client
    */
   getApiClient(): GreenmailApi {

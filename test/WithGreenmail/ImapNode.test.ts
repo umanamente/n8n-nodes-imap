@@ -14,6 +14,12 @@ import { getGlobalGreenmail } from './setup';
 describeWithGreenMail('Imap Node - with GreenMail', () => {
   let imap: Imap;
 
+  beforeAll(async () => {
+    // Reset Greenmail before all tests to ensure clean state
+    const greenmail = getGlobalGreenmail();
+    await greenmail.reset();
+  });
+
   beforeEach(() => {
     // Reset the Imap instance before each test
     imap = new Imap();
