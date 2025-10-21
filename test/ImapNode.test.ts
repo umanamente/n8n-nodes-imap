@@ -5,12 +5,13 @@
  * using mocked dependencies.
  */
 
-import { ICredentialTestFunctions, ICredentialsDecrypted, IExecuteFunctions } from 'n8n-workflow';
+import { ICredentialTestFunctions, ICredentialsDecrypted, IExecuteFunctions, NodeApiError } from 'n8n-workflow';
 import { Imap } from '../nodes/Imap/Imap.node';
 import { createNodeParametersCheckerMock } from './TestUtils/N8nMocks';
 import { ImapCredentialsData } from '../credentials/ImapCredentials.credentials';
 import * as ImapUtils from '../nodes/Imap/utils/ImapUtils';
 import { ListResponse } from 'imapflow';
+import { ImapFlowErrorCatcher } from '../nodes/Imap/utils/ImapUtils';
 
 // Mock the createImapClient function
 jest.mock('../nodes/Imap/utils/ImapUtils', () => ({
@@ -169,6 +170,49 @@ describe('Imap Node - mocked ImapFlow', () => {
       });
       // Act & Assert
       await expect(imap.execute.call(context as IExecuteFunctions)).rejects.toThrow('Operation failed without IMAP errors');
+    });
+
+    it('should handle operation failure with IMAP errors gracefully', async () => {
+      // Create a mock parameters checker for testing
+      const paramValues = {
+        authentication: 'imapThisNode',
+        resource: 'mailbox',
+        operation: 'loadMailboxList',
+        includeStatusFields: [],
+      };
+      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);      
+      context.getCredentials = jest.fn().mockResolvedValue(defaultCredentials);
+      context.getInputData = jest.fn().mockReturnValue([1]);
+      context.getNode = jest.fn().mockReturnValue({ name: 'Imap Test Node' });
+
+      // mock operation failure
+      mockImapClient.list.mockImplementation(() => {
+        // Simulate IMAP errors being captured            
+        ImapFlowErrorCatcher.getInstance().onImapError({
+          message: 'IMAP error 1',
+        });
+        
+        throw new Error('Operation failed with IMAP errors');
+      });
+
+      // Act & Assert
+      // Add a second IMAP error to test multiple errors
+      ImapFlowErrorCatcher.getInstance().onImapError({
+        message: 'IMAP error 2',
+      });
+      
+      await expect(imap.execute.call(context as IExecuteFunctions)).rejects.toThrow(ImapUtils.NodeImapError);
+      try {
+        await imap.execute.call(context as IExecuteFunctions);
+        fail('Expected error was not thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(ImapUtils.NodeImapError);
+        expect(error).toBeInstanceOf(NodeApiError);
+        expect(error).toHaveProperty('description');
+        expect((error as NodeApiError).description).toContain('The following errors were reported by the IMAP server:');
+        expect((error as NodeApiError).description).toContain('IMAP error 1');
+        expect((error as NodeApiError).message).toContain('Operation failed with IMAP errors');
+      }
     });
 
   });

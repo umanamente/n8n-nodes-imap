@@ -190,12 +190,12 @@ export class Imap implements INodeType {
 
       // close connection
       client.logout();
-      this.logger?.info('IMAP connection closed');
+      this.logger.info('IMAP connection closed');
 
     } catch (error) {
       // close connection and rethrow error
       client.logout();
-      this.logger?.error(`IMAP connection closed. Error: ${error.message}`);
+      this.logger.error(`IMAP connection closed. Error: ${error.message}`);
       throw error;
     }
 
