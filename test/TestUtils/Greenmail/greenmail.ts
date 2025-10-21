@@ -13,7 +13,7 @@
 
 import { execSync, spawn, ChildProcess } from 'child_process';
 import * as net from 'net';
-import { ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
+import { ImapCredentialsData } from '../../../credentials/ImapCredentials.credentials';
 
 export interface GreenMailConfig {
   /** Host to bind GreenMail server to (default: localhost) */
