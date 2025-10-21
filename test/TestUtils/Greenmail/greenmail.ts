@@ -219,26 +219,20 @@ export class GreenMailServer {
         console.log(`GreenMail container status: ${output}`);
 
         if (output.startsWith('Up')) {
-          // Check if IMAP port is accessible
-          const imapReady = await this.checkPortConnection(this.config.imapPort);
+          // Check if API port is accessible
+          const apiReady = await this.checkPortConnection(this.config.apiPort);
 
-          console.log(`Checking IMAP port ${this.config.imapPort}: ${imapReady ? 'open' : 'not open'}`);
-          
-          if (imapReady) {
+          console.log(`Checking API port ${this.config.apiPort}: ${apiReady ? 'open' : 'not open'}`);
+
+          if (apiReady) {
             const waitTimeSeconds = 10;
 
-            console.log(`GreenMail IMAP port is accessible. Waiting additional ${waitTimeSeconds} seconds for full initialization...`);
-
-            // Give it a bit more time to fully initialize
-            await this.sleep(waitTimeSeconds * 1000);
-
-            console.log('Assuming GreenMail server is ready.');
-
-            // read configuration from API to confirm
-            const config = await this.apiClient.getConfiguration();
-            console.log(`GreenMail configuration: ${JSON.stringify(config)}`);
-
-            return;
+            console.log(`GreenMail API port is accessible. Waiting additional ${waitTimeSeconds} seconds for full initialization...`);
+            const apiReadiness = await this.apiClient.waitForReadiness(waitTimeSeconds * 1000, 1000);
+            if (apiReadiness) {
+              console.log('GreenMail API reports readiness.');
+              return;
+            }
           }
         }
       } catch (error) {
