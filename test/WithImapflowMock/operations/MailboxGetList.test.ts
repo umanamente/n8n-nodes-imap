@@ -21,10 +21,6 @@ describe('MailboxGetList', () => {
     await mockImapflow.connect();
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   describe('executeImapAction - basic functionality', () => {
    
     it('should return mailbox list without status fields', async () => {

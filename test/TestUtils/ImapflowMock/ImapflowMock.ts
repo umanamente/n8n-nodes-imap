@@ -1,3 +1,4 @@
+import { QuotaResponse } from "imapflow";
 import { ImapCredentialsData } from "../../../credentials/ImapCredentials.credentials";
 
 /**
@@ -589,6 +590,31 @@ export function createImapflowMock(
         throw new Error(`Mailbox '${mailboxPath}' not found`);
       }
       return status;
+    }),
+
+    /**
+     * Get mailbox quota information
+     * Returns QuotaResponse or false if quota is not supported
+     */
+    getQuota: jest.fn().mockImplementation(async (mailboxPath?: string): Promise<QuotaResponse | boolean> => {
+      if (!authenticated || !currentUser) {
+        throw new Error('Not authenticated');
+      }
+      const path = mailboxPath || 'INBOX';
+      const mailbox = currentUser.getMailbox(path);
+      if (!mailbox) {
+        return false;
+      }
+      
+      // Return mock quota information following ImapFlow's QuotaResponse interface
+      // In a real implementation, this would be based on actual storage usage
+      return {
+        path: path,
+        storage: {
+          used: 1024,  // Mock value: 1KB used
+          limit: 2048, // Mock value: 2KB total
+        },
+      };
     }),
   };
 
