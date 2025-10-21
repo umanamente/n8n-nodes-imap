@@ -1,7 +1,7 @@
 import { createImapClient } from '../nodes/Imap/utils/ImapUtils';
 import { ImapCredentialsData } from '../credentials/ImapCredentials.credentials';
-import { GreenMailServer, describeWithGreenMail } from './utils/greenmail';
-import { createMockLogger } from './utils/N8nMocks';
+import { GreenMailServer, describeWithGreenMail } from './TestUtils/greenmail';
+import { createMockLogger } from './TestUtils/N8nMocks';
 import { Logger as N8nLogger } from 'n8n-workflow';
 import { ImapFlow } from 'imapflow';
 
