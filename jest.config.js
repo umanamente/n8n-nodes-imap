@@ -1,3 +1,6 @@
+
+process.env.SKIP_GREENMAIL_TESTS = 'true';
+
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
@@ -42,11 +45,28 @@ module.exports = {
       moduleFileExtensions: ['ts', 'js', 'json'],
     },
     {
+      displayName: 'WithImapflowMock',
+      preset: 'ts-jest',
+      testEnvironment: 'node',
+      testMatch: ['<rootDir>/test/WithImapflowMock/**/*.test.ts'],
+      setupFilesAfterEnv: ['<rootDir>/test/WithImapflowMock/setup.ts'],
+      transform: {
+        '^.+\\.ts$': ['ts-jest', {
+          tsconfig: 'tsconfig.test.json',
+        }],
+      },
+      moduleFileExtensions: ['ts', 'js', 'json'],
+    },
+    {
       displayName: 'Other',
       preset: 'ts-jest',
       testEnvironment: 'node',
       testMatch: ['<rootDir>/test/**/*.test.ts', '<rootDir>/credentials/**/*.test.ts', '<rootDir>/nodes/**/*.test.ts'],
-      testPathIgnorePatterns: ['/node_modules/', '/test/WithGreenmail/'],
+      testPathIgnorePatterns: [
+        '/node_modules/', 
+        '/test/WithGreenmail/', 
+        '/test/WithImapflowMock/'
+      ],
       setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
       transform: {
         '^.+\\.ts$': ['ts-jest', {

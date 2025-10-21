@@ -10,7 +10,6 @@ import { Imap } from '../nodes/Imap/Imap.node';
 import { createNodeParametersCheckerMock } from './TestUtils/N8nMocks';
 import { ImapCredentialsData } from '../credentials/ImapCredentials.credentials';
 import * as ImapUtils from '../nodes/Imap/utils/ImapUtils';
-import { ListResponse } from 'imapflow';
 import { ImapFlowErrorCatcher } from '../nodes/Imap/utils/ImapUtils';
 
 // Mock the createImapClient function
@@ -19,7 +18,7 @@ jest.mock('../nodes/Imap/utils/ImapUtils', () => ({
   createImapClient: jest.fn(),
 }));
 
-describe('Imap Node - mocked ImapFlow', () => {
+describe('Imap Node - exceptions handling', () => {
   let imap: Imap;
   let mockImapClient: any;
 
@@ -59,60 +58,6 @@ describe('Imap Node - mocked ImapFlow', () => {
 
     // Mock the createImapClient function to return our mocked client
     (ImapUtils.createImapClient as jest.Mock).mockReturnValue(mockImapClient);
-  });
-
-  describe('mailbox operations', () => {
-    it('should successfully execute loadMailboxList operation', async () => {
-      // Create a mock parameters checker for testing
-      const paramValues = {
-        authentication: 'imapThisNode',
-        resource: 'mailbox',
-        operation: 'loadMailboxList',
-        includeStatusFields: [],
-      };
-      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);      
-      context.getCredentials = jest.fn().mockResolvedValue(defaultCredentials);
-      context.getInputData = jest.fn().mockReturnValue([1]);
-
-      // Mock the ImapFlow client methods
-      mockImapClient.list.mockResolvedValue([
-          {
-            name: 'INBOX',
-            delimiter: '/',
-            path: 'INBOX',
-            pathAsListed: 'INBOX',
-            parent: "",
-            parentPath: '',
-            specialUse: null,
-            listed: true,
-            subscribed: true,            
-          },
-        ] as unknown as ListResponse[]);
-
-      // Act
-      const resultData = await imap.execute.call(context as IExecuteFunctions);
-
-      console.log('Result Data:', resultData);
-
-      // Assert
-      expect(imap).toBeDefined();
-      expect(imap).toBeInstanceOf(Imap);
-
-      expect(resultData).toHaveLength(1);
-      expect(resultData[0]).toHaveLength(1);
-      expect(resultData?.[0]?.[0]?.json).toEqual(
-        {
-          name: 'INBOX',
-          path: 'INBOX',
-          status: undefined,
-        }
-      );
-
-    });
-  });
-
-  describe('mail operations', () => {
-    // Additional mail operation tests would go here
   });
 
   describe('exception handling', () => {

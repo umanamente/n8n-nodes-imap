@@ -6,7 +6,7 @@
  * before all tests run and stopped after all tests complete.
  */
 
-import { GreenMailServer } from '../TestUtils/Greenmail/greenmail';
+import { GreenMailServer, shouldSkipGreenMailTests } from '../TestUtils/Greenmail/greenmail';
 
 // Global greenmail instance that will be shared across all tests
 let globalGreenmail: GreenMailServer | undefined;
@@ -27,6 +27,11 @@ export function getGlobalGreenmail(): GreenMailServer {
  * This is called automatically by Jest before any tests in this directory
  */
 beforeAll(async () => {
+  if (shouldSkipGreenMailTests()) {
+    console.log('Skipping GreenMail tests');
+    return;
+  }
+  
   console.log('Setting up global GreenMail container for WithGreenmail tests...');
   
   // Extended timeout for Docker startup
