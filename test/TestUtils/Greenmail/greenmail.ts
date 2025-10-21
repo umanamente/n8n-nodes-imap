@@ -14,6 +14,7 @@
 import { execSync, spawn, ChildProcess } from 'child_process';
 import * as net from 'net';
 import { ImapCredentialsData } from '../../../credentials/ImapCredentials.credentials';
+import { GreenmailApi } from './GreenmailApi';
 
 export interface GreenMailConfig {
   /** Host to bind GreenMail server to (default: localhost) */
@@ -30,6 +31,8 @@ export interface GreenMailConfig {
   pop3Port?: number;
   /** POP3S port (default: 3995) */
   pop3sPort?: number;
+  /** API server port (default: 8080) */
+  apiPort?: number;
   /** Container name for Docker (default: greenmail-test) */
   containerName?: string;
   /** Docker image to use (default: greenmail/standalone:2.0.1) */
@@ -50,6 +53,7 @@ export class GreenMailServer {
   private config: Required<GreenMailConfig>;
   private containerRunning: boolean = false;
   private dockerProcess?: ChildProcess;
+  private apiClient: GreenmailApi;
 
   constructor(config: GreenMailConfig = {}) {
     this.config = {
@@ -60,11 +64,13 @@ export class GreenMailServer {
       smtpsPort: config.smtpsPort || 3465,
       pop3Port: config.pop3Port || 3110,
       pop3sPort: config.pop3sPort || 3995,
+      apiPort: config.apiPort || 8080,
       containerName: config.containerName || 'greenmail-test',
       dockerImage: config.dockerImage || 'greenmail/standalone:2.0.1',
       startupTimeout: config.startupTimeout || (process.env.GREENMAIL_STARTUP_TIMEOUT ? parseInt(process.env.GREENMAIL_STARTUP_TIMEOUT, 10) : 60000),
       enableDebugLogs: config.enableDebugLogs || !!process.env.DEBUG_GREENMAIL,
     };
+    this.apiClient = new GreenmailApi(`http://${this.config.host}:${this.config.apiPort}`);
   }
 
   /**
@@ -137,6 +143,7 @@ export class GreenMailServer {
       '-p', `${this.config.smtpsPort}:3465`,
       '-p', `${this.config.pop3Port}:3110`,
       '-p', `${this.config.pop3sPort}:3995`,
+      '-p', `${this.config.apiPort}:8080`,
       '-e', `GREENMAIL_OPTS=${greenmailOpts.join(' ')}`,
       this.config.dockerImage,
     ];
@@ -227,6 +234,10 @@ export class GreenMailServer {
 
             console.log('Assuming GreenMail server is ready.');
 
+            // read configuration from API to confirm
+            const config = await this.apiClient.getConfiguration();
+            console.log(`GreenMail configuration: ${JSON.stringify(config)}`);
+
             return;
           }
         }
@@ -269,6 +280,13 @@ export class GreenMailServer {
 
     this.containerRunning = false;
     this.dockerProcess = undefined;
+  }
+
+  /**
+   * Get the GreenMail API client
+   */
+  getApiClient(): GreenmailApi {
+    return this.apiClient;
   }
 
   /**
