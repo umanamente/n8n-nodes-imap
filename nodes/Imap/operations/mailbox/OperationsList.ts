@@ -10,13 +10,10 @@ export const mailboxResourceDefinitions: IResourceDef = {
   resource: resourceMailbox,
   operationDefs: [
     getMailboxListOperation,
-		getMailboxQuotaOperation,
+    getMailboxQuotaOperation,
     getMailboxStatusOperation,
     createMailboxOperation,
     renameMailboxOperation,
-
-    // removed because it is dangerous, unless there will be a request to add it
-    //deleteMailboxOperation,
   ],
 };
 
