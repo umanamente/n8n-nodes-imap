@@ -58,8 +58,6 @@ describe('Imap Node - mocked ImapFlow', () => {
       // Act
       const resultData = await imap.execute.call(context as IExecuteFunctions);
 
-      console.log('Result Data:', resultData);
-
       // Assert
       expect(imap).toBeDefined();
       expect(imap).toBeInstanceOf(Imap);

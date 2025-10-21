@@ -1,3 +1,5 @@
+import { ImapCredentialsData } from "../../../credentials/ImapCredentials.credentials";
+
 /**
  * Represents an email stored in a mailbox
  */
@@ -297,6 +299,17 @@ class MockImapServer {
   reset(): void {
     this.users.clear();
   }
+
+  static getValidCredentials(user: string = 'user@example.com'): ImapCredentialsData {
+    return {
+      user: user,
+      password: user,
+      host: MockImapServer.HOSTNAME,
+      port: 993,
+      tls: true,
+      allowUnauthorizedCerts: false,
+    };
+  }
 }
 
 /**
@@ -320,7 +333,6 @@ export function createImapflowMock(
      * Connect and authenticate to the mock IMAP server
      */
     connect: jest.fn().mockImplementation(async () => {
-      // check if hostname matches
       if (credentials.user.indexOf('@') === -1) {
         throw new Error('Invalid username format');
       }
