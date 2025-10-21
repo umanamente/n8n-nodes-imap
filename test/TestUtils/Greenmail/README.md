@@ -6,6 +6,31 @@ This directory contains utility modules for testing the n8n IMAP node.
 
 The `greenmail.ts` module provides a wrapper for running GreenMail IMAP server in Docker for integration testing.
 
+## Quick Start
+
+### Running Tests with GreenMail (Docker Required)
+
+```bash
+# Make sure Docker is running
+docker --version
+
+# Run the ImapUtils tests
+npm test -- test/ImapUtils.test.ts
+```
+
+### Running Tests WITHOUT GreenMail (Skip Docker Tests)
+
+```bash
+# Windows PowerShell
+$env:SKIP_GREENMAIL_TESTS="true"; npm test -- test/ImapUtils.test.ts
+
+# Windows CMD
+set SKIP_GREENMAIL_TESTS=true && npm test -- test/ImapUtils.test.ts
+
+# Linux/Mac
+SKIP_GREENMAIL_TESTS=true npm test -- test/ImapUtils.test.ts
+```
+
 ### Prerequisites
 
 - Docker must be installed and running on your system
@@ -15,22 +40,43 @@ The `greenmail.ts` module provides a wrapper for running GreenMail IMAP server i
 
 ```typescript
 import { GreenMailServer } from './utils/greenmail';
+import { createImapClient } from '../nodes/Imap/utils/ImapUtils';
 
-// Create and start the server
-const greenmail = new GreenMailServer();
-await greenmail.start();
+describe('My IMAP Tests', () => {
+  let greenmail: GreenMailServer;
 
-// Get credentials for testing
-const credentials = greenmail.getCredentials('test@example.com', false);
+  beforeAll(async () => {
+    greenmail = new GreenMailServer();
+    await greenmail.start();
+  }, 30000); // 30 second timeout
 
-// Create IMAP client with credentials
-const client = createImapClient(credentials);
+  afterAll(async () => {
+    await greenmail.stop();
+  }, 10000);
 
-// Run your tests...
-
-// Clean up
-await greenmail.stop();
+  it('should connect to IMAP server', async () => {
+    const credentials = greenmail.getCredentials('test@example.com', false);
+    const client = createImapClient(credentials);
+    
+    await client.connect();
+    expect(client.authenticated).toBe(true);
+    
+    await client.logout();
+  });
+});
 ```
+
+### Test Helpers
+
+The GreenMailServer class provides several helper methods:
+
+- `getCredentials(email, useTls)` - Get credentials for test user
+- `getDefaultTestUser()` - Get a default test user
+- `createTestUser(email)` - Create custom test user
+- `isRunning()` - Check if server is running
+- `getHost()` - Get server host
+- `getImapPort()` - Get IMAP port
+- `getImapsPort()` - Get IMAPS port
 
 ### Configuration
 
@@ -104,6 +150,20 @@ describeWithGreenMail('My IMAP tests', () => {
 });
 ```
 
+### Test Coverage
+
+The `ImapUtils.test.ts` file includes tests for:
+
+1. **Basic client creation** - Creating ImapFlow instances
+2. **Connection establishment** - Connecting to IMAP server
+3. **Credentials configuration** - TLS, non-TLS, certificate handling
+4. **Authentication** - Valid/invalid credentials
+5. **Logger integration** - Debug logging functionality
+6. **Error handling** - Connection failures, timeouts
+7. **Multiple clients** - Independent client instances
+8. **Lifecycle management** - Connect/disconnect behavior
+9. **Edge cases** - Empty credentials, invalid ports, long hostnames
+
 
 
 ### Docker Image
@@ -143,18 +203,31 @@ const greenmail = new GreenMailServer({
 
 The utility automatically removes any existing container with the same name before starting a new one.
 
-#### Slow startup
+#### Tests timeout
 
-If tests timeout during startup, you can increase the timeout using either configuration or environment variable:
+If tests timeout during startup, increase the timeout:
 
 ```typescript
-// Option 1: Via configuration
-const greenmail = new GreenMailServer({
-  startupTimeout: 120000, // 120 seconds
-});
+beforeAll(async () => {
+  greenmail = new GreenMailServer({
+    startupTimeout: 30000, // 30 seconds
+  });
+  await greenmail.start();
+}, 60000); // 60 second Jest timeout
+```
 
-// Option 2: Via environment variable (applies globally to all tests)
-// GREENMAIL_STARTUP_TIMEOUT=120000 npm test
+Or use environment variable:
+
+```bash
+GREENMAIL_STARTUP_TIMEOUT=120000 npm test
+```
+
+#### Debug output
+
+Enable debug logging:
+
+```bash
+DEBUG_GREENMAIL=true npm test
 ```
 
 ### Jest Configuration
@@ -170,6 +243,37 @@ beforeAll(async () => {
 afterAll(async () => {
   await greenmail.stop();
 }, 10000);
+```
+
+## Best Practices
+
+1. **Always cleanup**: Use `afterAll` to stop GreenMail
+2. **Use proper timeouts**: GreenMail needs time to start (30 seconds recommended)
+3. **Skip when needed**: Use `SKIP_GREENMAIL_TESTS` for CI without Docker
+4. **Reuse server**: Start once in `beforeAll`, not before each test
+5. **Independent tests**: Each test should work independently
+
+## CI/CD Integration
+
+For CI/CD pipelines without Docker:
+
+```yaml
+# GitHub Actions example
+- name: Run tests
+  run: SKIP_GREENMAIL_TESTS=true npm test
+  env:
+    SKIP_GREENMAIL_TESTS: true
+```
+
+Or with Docker:
+
+```yaml
+# GitHub Actions example
+- name: Start Docker
+  run: docker --version
+  
+- name: Run tests with GreenMail
+  run: npm test
 ```
 
 ## Adding More Test Utilities
