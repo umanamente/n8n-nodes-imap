@@ -61,7 +61,7 @@ export const getMailboxListOperation: IResourceOperationDef = {
   ],
   async executeImapAction(context: IExecuteFunctions, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
     var returnData: INodeExecutionData[] = [];
-    context.logger?.info("includeStatusFields: " + context.getNodeParameter('includeStatusFields', itemIndex) as string);
+    context.logger.info("includeStatusFields: " + context.getNodeParameter('includeStatusFields', itemIndex) as string);
     const includeStatusFields = context.getNodeParameter('includeStatusFields', itemIndex) as string[];
     var statusQuery = {
       messages: includeStatusFields.includes(MailboxListStatusFields.includeMessageCount),
@@ -75,13 +75,13 @@ export const getMailboxListOperation: IResourceOperationDef = {
       statusQuery: statusQuery,
     });
     for (const mailbox of mailboxes) {
-      context.logger?.info(`  ${mailbox.path}`);
+      context.logger.info(`  ${mailbox.path}`);
       var item_json = {
         path: mailbox.path,
         name: mailbox.name,
         status: mailbox.status,
       };
-      context.logger?.info(`  ${JSON.stringify(item_json)}`);
+      context.logger.info(`  ${JSON.stringify(item_json)}`);
       returnData.push({
         json: item_json,
       });
