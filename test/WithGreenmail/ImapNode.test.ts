@@ -15,19 +15,32 @@ import { EmailParts } from '../../nodes/Imap/operations/email/functions/EmailGet
 
 
 const EML_WITH_ATTACHMENTS = `
-Content-Type: multipart/mixed; boundary="===============0228841361122441435=="
+Content-Type: multipart/mixed; boundary="===============8319016768625485467=="
 MIME-Version: 1.0
 From: test@example.com
 To: recipient@example.com
-Subject: Test email with small attachments
+Subject: Test email with HTML and small attachments
 
---===============0228841361122441435==
+--===============8319016768625485467==
+Content-Type: multipart/alternative;
+ boundary="===============7528588175812193873=="
+MIME-Version: 1.0
+
+--===============7528588175812193873==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 
-This is a test email with two small attachments.
---===============0228841361122441435==
+This is a test email with plain text and HTML parts, plus two attachments.
+--===============7528588175812193873==
+Content-Type: text/html; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>This is a <b>test email</b> with <i>HTML</i> content and two attachments.</p></body></html>
+--===============7528588175812193873==--
+
+--===============8319016768625485467==
 Content-Type: text/plain
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
@@ -35,7 +48,7 @@ Content-Disposition: attachment; filename="hello.txt"
 
 SGVsbG8gd29ybGQh
 
---===============0228841361122441435==
+--===============8319016768625485467==
 Content-Type: image/png
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
@@ -44,7 +57,7 @@ Content-Disposition: attachment; filename="tiny.png"
 iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGNgAAAAAgAB4iG8MwAA
 AABJRU5ErkJggg==
 
---===============0228841361122441435==--
+--===============8319016768625485467==--
 `.trim().replace(/\r\n/g, '\n');
 
 
@@ -491,15 +504,10 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
       expect(resultData).toHaveLength(1);
       expect(resultData[0]).toHaveLength(1);
       const emailItem = resultData?.[0]?.[0];
-      
-      console.log('Retrieved email item:', JSON.stringify(emailItem, null, 2));
-      
+          
       expect(emailItem.json).toHaveProperty('uid', 1);
       expect(emailItem.json).toHaveProperty('emlContent');
-      // Make line breaks visible in logs to help with debugging
-      console.log('Expected EML content:', JSON.stringify(EML_WITH_ATTACHMENTS.trim()));
-      console.log('Received EML content:', JSON.stringify(emailItem.json.emlContent));
-
+    
       const normalizedEmlContent = emailItem.json.emlContent && (emailItem.json.emlContent as string).replace(/\r\n/g, '\n').trim();
       
       expect(normalizedEmlContent).toBe(EML_WITH_ATTACHMENTS.trim());
@@ -532,13 +540,12 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
       // Act
       const resultData = await imap.execute.call(context as IExecuteFunctions);
 
-      console.log('Retrieved emails in ChildMailbox:', JSON.stringify(resultData, null, 2));
       // Assert
       expect(resultData).toHaveLength(1);
       expect(resultData[0].length).toBeGreaterThan(0);
       const emailItem = resultData?.[0]?.[0];
       expect(emailItem).toBeDefined();
-      expect(emailItem?.json).toHaveProperty('envelope.subject', 'Test email with small attachments');
+      expect(emailItem?.json).toHaveProperty('envelope.subject', 'Test email with HTML and small attachments');
       expect(emailItem?.json).toHaveProperty('bodyStructure.childNodes');
       expect(emailItem?.json).toHaveProperty('attachmentsInfo');
     });

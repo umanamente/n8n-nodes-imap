@@ -38,8 +38,6 @@ describe('MailboxGetList', () => {
       );
 
       // Assert
-      console.log('Mailbox List Result:', JSON.stringify(result, null, 2));
-      
       expect(result).toBeDefined();
       expect(result?.length).toBe(1);
       expect(result).toEqual([

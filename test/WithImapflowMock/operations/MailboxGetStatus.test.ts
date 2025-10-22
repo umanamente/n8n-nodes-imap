@@ -38,7 +38,6 @@ describe('MailboxGetStatus', () => {
       );
 
       // Assert
-      console.log('Mailbox Status Result:', JSON.stringify(result, null, 2));
 
       expect(result).toBeDefined();
       expect(result?.length).toBe(1);

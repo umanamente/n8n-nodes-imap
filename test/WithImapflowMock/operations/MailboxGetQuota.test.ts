@@ -38,8 +38,6 @@ describe('MailboxGetQuota', () => {
       );
 
       // Assert
-      console.log('Mailbox Quota Result:', JSON.stringify(result, null, 2));
-
       expect(result).toBeDefined();
       expect(result?.length).toBe(1);
       expect(result).toEqual([
