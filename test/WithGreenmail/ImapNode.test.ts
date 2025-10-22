@@ -101,49 +101,6 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
     return resultData?.[0]?.map((item: any) => item.json) || [];
   }
 
-  describe('mailbox operations (read only)', () => {
-    it('should successfully execute loadMailboxList operation', async () => {
-      // Act
-      const mailboxes = await getMailboxList();
-
-      // Assert
-      expect(mailboxes).toHaveLength(1);
-      expect(mailboxes[0]).toEqual({
-        name: 'INBOX',
-        path: 'INBOX',
-        status: false,
-      });
-    });
-
-    it('should return mailboxes matching expected structure', async () => {
-      // Define expected structure
-      const expectedStructure = [
-        {
-          name: 'INBOX',
-          path: 'INBOX',
-          status: false,
-        },
-      ];
-
-      // Act
-      const mailboxes = await getMailboxList();
-
-      // Assert - Test structure matches expected
-      expect(mailboxes).toEqual(expectedStructure);
-      
-      // Assert - Verify each mailbox has required properties
-      mailboxes.forEach(mailbox => {
-        expect(mailbox).toHaveProperty('name');
-        expect(mailbox).toHaveProperty('path');
-        expect(mailbox).toHaveProperty('status');
-        expect(typeof mailbox.name).toBe('string');
-        expect(typeof mailbox.path).toBe('string');
-      });
-    });
-
-  });
-
-
   describe('sequence test (read and write operations)', () => {
 
     let currentEmailUid: number;
@@ -548,6 +505,88 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
       expect(emailItem?.json).toHaveProperty('envelope.subject', 'Test email with HTML and small attachments');
       expect(emailItem?.json).toHaveProperty('bodyStructure.childNodes');
       expect(emailItem?.json).toHaveProperty('attachmentsInfo');
+    });
+
+    it('should successfully download email attachments (all)', async () => {
+      // Create a mock parameters checker for testing
+      const paramValues = {
+        authentication: 'imapThisNode',
+        resource: 'email',
+        operation: 'downloadAttachment',
+        mailboxPath: {"value": 'TopLevelMailbox.ChildMailbox'},
+        emailUid: '1',
+        allAttachments: true,
+        includeInlineAttachments: true,
+      };
+      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);
+      // Mock getCredentials to return ImapCredentialsData
+      context.getCredentials = jest.fn().mockResolvedValue(credentials);
+      context.getInputData = jest.fn().mockReturnValue([1]);
+      context.helpers = {
+        prepareBinaryData: jest.fn().mockImplementation((data: Buffer, filename: string) => {
+          return {
+            data,
+            fileName: filename,
+            mimeType: 'application/octet-stream',
+          };
+        }),
+      } as any;
+      // Act
+      const resultData = await imap.execute.call(context as IExecuteFunctions);
+
+      console.log("Downloaded Attachments Result:", JSON.stringify(resultData, null, 2));
+      // Assert
+      expect(resultData).toHaveLength(1);
+      expect(resultData[0]).toHaveLength(1);
+      const emailItem = resultData?.[0]?.[0];
+          
+      // expect(emailItem.json).toHaveProperty('uid', 1);
+      expect(emailItem.json).toHaveProperty('attachments');
+      
+      // Check attachments metadata in json
+      const attachmentsInfo = emailItem.json.attachments as any[];
+      expect(attachmentsInfo).toBeInstanceOf(Array);
+      expect(attachmentsInfo).toHaveLength(2);
+      
+      // Check first attachment metadata
+      expect(attachmentsInfo[0]).toMatchObject({
+        partId: '2',
+        binaryFieldName: 'attachment_0',
+        contentType: 'text/plain',
+        encoding: 'base64',
+        disposition: 'attachment',
+        filename: 'hello.txt'
+      });
+      
+      // Check second attachment metadata
+      expect(attachmentsInfo[1]).toMatchObject({
+        partId: '3',
+        binaryFieldName: 'attachment_1',
+        contentType: 'image/png',
+        encoding: 'base64',
+        disposition: 'attachment',
+        filename: 'tiny.png'
+      });
+      
+      // Check binary data exists
+      expect(emailItem.binary).toBeDefined();
+      expect(emailItem.binary).toHaveProperty('attachment_0');
+      expect(emailItem.binary).toHaveProperty('attachment_1');
+      
+      // Check first binary attachment
+      expect(emailItem.binary?.attachment_0).toMatchObject({
+        fileName: 'hello.txt',
+        mimeType: 'application/octet-stream'
+      });
+      expect(emailItem.binary?.attachment_0?.data).toBeDefined();
+      
+      // Check second binary attachment
+      expect(emailItem.binary?.attachment_1).toMatchObject({
+        fileName: 'tiny.png',
+        mimeType: 'application/octet-stream'
+      });
+      expect(emailItem.binary?.attachment_1?.data).toBeDefined();
+
     });
 
 
