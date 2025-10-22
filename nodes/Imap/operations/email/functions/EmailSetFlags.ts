@@ -5,7 +5,7 @@ import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from '../../.
 import { ImapFlowErrorCatcher, NodeImapError } from "../../../utils/ImapUtils";
 
 
-enum ImapFlags {
+export enum ImapFlags {
   Answered = '\\Answered',
   Flagged = '\\Flagged',
   Deleted = '\\Deleted',

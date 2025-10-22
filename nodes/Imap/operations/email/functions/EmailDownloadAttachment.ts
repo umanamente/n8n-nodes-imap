@@ -90,7 +90,7 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
       if (emailInfo.bodyStructure) {
         const partsInfo = getEmailPartsInfoRecursive(context, emailInfo.bodyStructure);
         for (const partInfo of partsInfo) {
-          context.logger?.debug(`Attachment part info: ${JSON.stringify(partInfo)}`);
+          context.logger.debug(`Attachment part info: ${JSON.stringify(partInfo)}`);
           if (partInfo.disposition === 'attachment') {
             // regular attachment
             partsToDownload.push(partInfo.partId);
@@ -100,24 +100,24 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
           }
         }
       } else{
-        context.logger?.warn(`IMAP server has not returned email body structure for email "${emailUid}"`);
+        context.logger.warn(`IMAP server has not returned email body structure for email "${emailUid}"`);
       }
       if (partsToDownload.length > 0) {
-        context.logger?.info(`Downloading all attachments from email "${emailUid}": ${partsToDownload.join(', ')}`);
+        context.logger.info(`Downloading all attachments from email "${emailUid}": ${partsToDownload.join(', ')}`);
       } else {
-        context.logger?.warn(`Email "${emailUid}" does not have any attachments`);
+        context.logger.warn(`Email "${emailUid}" does not have any attachments`);
       }
     } else {
       const partId = context.getNodeParameter('partId', itemIndex) as string;
       // split by comma and remove spaces
       const parts = partId.split(',').map((part) => part.trim());
       partsToDownload.push(...parts);
-      context.logger?.info(`Downloading some attachments from email "${emailUid}": ${partsToDownload.join(', ')}`);
+      context.logger.info(`Downloading some attachments from email "${emailUid}": ${partsToDownload.join(', ')}`);
     }
 
     for (const partId of partsToDownload) {
 
-      context.logger?.info(`Downloading attachment "${partId}" from email "${emailUid}"`);
+      context.logger.info(`Downloading attachment "${partId}" from email "${emailUid}"`);
 
 
       // start catching errors
@@ -139,7 +139,7 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
       }
 
       const binaryData = await context.helpers.prepareBinaryData(resp.content, resp.meta.filename, resp.meta.contentType);
-      context.logger?.info(`Attachment downloaded: ${binaryData.data.length} bytes`);
+      context.logger.info(`Attachment downloaded: ${binaryData.data.length} bytes`);
 
       const fieldName = `attachment_${attachmentCounter}`;
       attachmentCounter++;

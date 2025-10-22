@@ -83,6 +83,15 @@ export const createNodeParametersCheckerMock = (
     getNodeParameter: getNodeParameterMock,
     logger: createMockLogger(false, false, false, false),
     getNode: getNodeMock,
+    helpers: {
+        prepareBinaryData: jest.fn().mockImplementation((data: Buffer, filename: string) => {
+          return {
+            data,
+            fileName: filename,
+            mimeType: 'application/octet-stream',
+          };
+        }),
+    } as any,
   };
 };
 
