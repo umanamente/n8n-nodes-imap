@@ -136,15 +136,22 @@ describe('Imap Node - exceptions handling', () => {
         ImapFlowErrorCatcher.getInstance().onImapError({
           message: 'IMAP error 1',
         });
+        ImapFlowErrorCatcher.getInstance().onImapWarning({
+          message: 'IMAP warning 1',
+        });
         
         throw new Error('Operation failed with IMAP errors');
       });
 
-      // Act & Assert
-      // Add a second IMAP error to test multiple errors
+      // Add a second IMAP error after the operation failure to verify only errors during operation are captured
       ImapFlowErrorCatcher.getInstance().onImapError({
-        message: 'IMAP error 2',
+        message: 'IMAP error - not captured',
       });
+      ImapFlowErrorCatcher.getInstance().onImapWarning({
+        message: 'IMAP warning - not captured',
+      });
+
+      // Act & Assert
       
       await expect(imap.execute.call(context as IExecuteFunctions)).rejects.toThrow(ImapUtils.NodeImapError);
       try {
@@ -156,6 +163,9 @@ describe('Imap Node - exceptions handling', () => {
         expect(error).toHaveProperty('description');
         expect((error as NodeApiError).description).toContain('The following errors were reported by the IMAP server:');
         expect((error as NodeApiError).description).toContain('IMAP error 1');
+        expect((error as NodeApiError).description).toContain('IMAP warning 1');
+        expect((error as NodeApiError).description).not.toContain('IMAP error - not captured');
+        expect((error as NodeApiError).description).not.toContain('IMAP warning - not captured');
         expect((error as NodeApiError).message).toContain('Operation failed with IMAP errors');
       }
     });

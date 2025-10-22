@@ -43,7 +43,7 @@ beforeAll(async () => {
 
   await globalGreenmail.start();
   console.log('Global GreenMail container is ready.');
-}, 60000); // 60 second timeout for Docker startup
+}, 120 * 1000); // 120 second timeout for Docker startup
 
 /**
  * Teardown function - stops the GreenMail container
