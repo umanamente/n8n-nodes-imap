@@ -522,19 +522,11 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
       // Mock getCredentials to return ImapCredentialsData
       context.getCredentials = jest.fn().mockResolvedValue(credentials);
       context.getInputData = jest.fn().mockReturnValue([1]);
-      context.helpers = {
-        prepareBinaryData: jest.fn().mockImplementation((data: Buffer, filename: string) => {
-          return {
-            data,
-            fileName: filename,
-            mimeType: 'application/octet-stream',
-          };
-        }),
-      } as any;
+
       // Act
       const resultData = await imap.execute.call(context as IExecuteFunctions);
 
-      console.log("Downloaded Attachments Result:", JSON.stringify(resultData, null, 2));
+      // console.log("Downloaded Attachments Result:", JSON.stringify(resultData, null, 2));
       // Assert
       expect(resultData).toHaveLength(1);
       expect(resultData[0]).toHaveLength(1);
@@ -589,7 +581,58 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
 
     });
 
+    it('should successfully download email attachments (selected)', async () => {
+      // Create a mock parameters checker for testing
+      const paramValues = {
+        authentication: 'imapThisNode',
+        resource: 'email',
+        operation: 'downloadAttachment',
+        mailboxPath: {"value": 'TopLevelMailbox.ChildMailbox'},
+        emailUid: '1',
+        allAttachments: false,
+        partId: '2',
+      };
+      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);
+      // Mock getCredentials to return ImapCredentialsData
+      context.getCredentials = jest.fn().mockResolvedValue(credentials);
+      context.getInputData = jest.fn().mockReturnValue([1]);
 
+      // Act
+      const resultData = await imap.execute.call(context as IExecuteFunctions);
+
+      // Assert
+      expect(resultData).toHaveLength(1);
+      expect(resultData[0]).toHaveLength(1);
+      const emailItem = resultData?.[0]?.[0];
+      
+      // Check attachments metadata in json - should only have the selected attachment
+      expect(emailItem.json).toHaveProperty('attachments');
+      const attachmentsInfo = emailItem.json.attachments as any[];
+      expect(attachmentsInfo).toBeInstanceOf(Array);
+      expect(attachmentsInfo).toHaveLength(1);
+      
+      // Check selected attachment metadata (partId '2' = hello.txt)
+      expect(attachmentsInfo[0]).toMatchObject({
+        partId: '2',
+        binaryFieldName: 'attachment_0',
+        contentType: 'text/plain',
+        encoding: 'base64',
+        disposition: 'attachment',
+        filename: 'hello.txt'
+      });
+      
+      // Check binary data exists - should only have one binary field
+      expect(emailItem.binary).toBeDefined();
+      expect(Object.keys(emailItem.binary || {})).toHaveLength(1);
+      expect(emailItem.binary).toHaveProperty('attachment_0');
+      
+      // Check binary attachment metadata
+      expect(emailItem.binary?.attachment_0).toMatchObject({
+        fileName: 'hello.txt',
+        mimeType: 'application/octet-stream'
+      });
+      expect(emailItem.binary?.attachment_0?.data).toBeDefined();      
+    });
 
 
   }); // describe sequence test (read and write operations)
