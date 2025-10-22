@@ -11,6 +11,42 @@ import { describeWithGreenMail, GreenMailServer } from '../TestUtils/Greenmail/g
 import { createNodeParametersCheckerMock } from '../TestUtils/N8nMocks';
 import { getGlobalGreenmail } from './setup';
 import { ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
+import { EmailParts } from '../../nodes/Imap/operations/email/functions/EmailGetList';
+
+
+const EML_WITH_ATTACHMENTS = `
+Content-Type: multipart/mixed; boundary="===============0228841361122441435=="
+MIME-Version: 1.0
+From: test@example.com
+To: recipient@example.com
+Subject: Test email with small attachments
+
+--===============0228841361122441435==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+This is a test email with two small attachments.
+--===============0228841361122441435==
+Content-Type: text/plain
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="hello.txt"
+
+SGVsbG8gd29ybGQh
+
+--===============0228841361122441435==
+Content-Type: image/png
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="tiny.png"
+
+iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGNgAAAAAgAB4iG8MwAA
+AABJRU5ErkJggg==
+
+--===============0228841361122441435==--
+`.trim().replace(/\r\n/g, '\n');
+
 
 describeWithGreenMail('Imap Node - with GreenMail', () => {
   let imap: Imap;
@@ -409,6 +445,107 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
       expect(emailItem).toBeDefined();
       expect(emailItem?.json).toHaveProperty('envelope.subject', 'Test Draft Email');
     });
-  });
-});
+
+    it('should successfully create an email from RFC822 content', async () => {
+      // Create a mock parameters checker for testing
+      const paramValues = {
+        authentication: 'imapThisNode',
+        resource: 'email',
+        operation: 'createDraft',
+        destinationMailbox: {"value": 'TopLevelMailbox.ChildMailbox'},
+        inputFormat: 'rfc822',
+        rfc822: EML_WITH_ATTACHMENTS,
+      };
+      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);
+      // Mock getCredentials to return ImapCredentialsData
+      context.getCredentials = jest.fn().mockResolvedValue(credentials);
+      context.getInputData = jest.fn().mockReturnValue([1]);
+      // Act
+      const resultData = await imap.execute.call(context as IExecuteFunctions);
+      // Assert
+      expect(resultData).toHaveLength(1);
+      expect(resultData[0]).toHaveLength(1);
+      expect(resultData?.[0]?.[0]?.json).toHaveProperty('uid');
+      expect(resultData?.[0]?.[0]?.json).toHaveProperty('path');
+      expect(resultData?.[0]?.[0]?.json?.path).toBe('TopLevelMailbox.ChildMailbox');
+    });
+
+    it('should successfully download email RFC822 content with attachments', async () => {
+      // First, create the email in the mailbox
+      const createParamValues = {
+        authentication: 'imapThisNode',
+        resource: 'email',
+        operation: 'downloadEml',
+        mailboxPath: {"value": 'TopLevelMailbox.ChildMailbox'},
+        emailUid: '1',
+        outputToBinary: false,
+        binaryPropertyName: 'emlData',
+      };
+      const createContext = createNodeParametersCheckerMock(imap.description.properties, createParamValues);
+      // Mock getCredentials to return ImapCredentialsData
+      createContext.getCredentials = jest.fn().mockResolvedValue(credentials);
+      createContext.getInputData = jest.fn().mockReturnValue([1]);
+      // Act
+      const resultData = await imap.execute.call(createContext as IExecuteFunctions);
+      // Assert
+      expect(resultData).toHaveLength(1);
+      expect(resultData[0]).toHaveLength(1);
+      const emailItem = resultData?.[0]?.[0];
+      
+      console.log('Retrieved email item:', JSON.stringify(emailItem, null, 2));
+      
+      expect(emailItem.json).toHaveProperty('uid', 1);
+      expect(emailItem.json).toHaveProperty('emlContent');
+      // Make line breaks visible in logs to help with debugging
+      console.log('Expected EML content:', JSON.stringify(EML_WITH_ATTACHMENTS.trim()));
+      console.log('Received EML content:', JSON.stringify(emailItem.json.emlContent));
+
+      const normalizedEmlContent = emailItem.json.emlContent && (emailItem.json.emlContent as string).replace(/\r\n/g, '\n').trim();
+      
+      expect(normalizedEmlContent).toBe(EML_WITH_ATTACHMENTS.trim());
+    });
+
+    it('should successfully retrieve a list of emails in ChildMailbox with all parts', async () => {
+      // Create a mock parameters checker for testing
+      const paramValues = {
+        authentication: 'imapThisNode',
+        resource: 'email',
+        operation: 'getEmailsList',
+        mailboxPath: {"value": 'TopLevelMailbox.ChildMailbox'},
+        emailDateRange: {},
+        emailFlags: {},
+        emailSearchFilters: {},
+        includeParts: [
+          EmailParts.BodyStructure,
+          EmailParts.Flags,
+          EmailParts.Size,
+          EmailParts.TextContent,
+          EmailParts.Headers,
+          EmailParts.AttachmentsInfo          
+        ],
+        includeAllHeaders: true,
+      };
+      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);
+      // Mock getCredentials to return ImapCredentialsData
+      context.getCredentials = jest.fn().mockResolvedValue(credentials);
+      context.getInputData = jest.fn().mockReturnValue([1]);
+      // Act
+      const resultData = await imap.execute.call(context as IExecuteFunctions);
+
+      console.log('Retrieved emails in ChildMailbox:', JSON.stringify(resultData, null, 2));
+      // Assert
+      expect(resultData).toHaveLength(1);
+      expect(resultData[0].length).toBeGreaterThan(0);
+      const emailItem = resultData?.[0]?.[0];
+      expect(emailItem).toBeDefined();
+      expect(emailItem?.json).toHaveProperty('envelope.subject', 'Test email with small attachments');
+      expect(emailItem?.json).toHaveProperty('bodyStructure.childNodes');
+      expect(emailItem?.json).toHaveProperty('attachmentsInfo');
+    });
+
+
+
+
+  }); // describe sequence test (read and write operations)
+}); // describe Imap Node with GreenMail
 

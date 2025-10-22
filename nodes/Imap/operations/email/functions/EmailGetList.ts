@@ -8,7 +8,7 @@ import { simpleParser } from 'mailparser';
 import { getEmailPartsInfoRecursive } from "../../../utils/EmailParts";
 
 
-enum EmailParts {
+export enum EmailParts {
   BodyStructure = 'bodyStructure',
   Flags = 'flags',
   Size = 'size',
