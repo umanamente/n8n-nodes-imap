@@ -4,8 +4,8 @@ import {
   CREDENTIALS_TYPE_THIS_NODE,
   CREDENTIALS_TYPE_CORE_IMAP_ACCOUNT,
   credentialNames,
-} from '../nodes/Imap/utils/CredentialsSelector';
-import { ImapCredentialsData } from '../credentials/ImapCredentials.credentials';
+} from '../../nodes/Imap/utils/CredentialsSelector';
+import { ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
 
 describe('CredentialsSelector', () => {
   describe('getImapCredentials', () => {

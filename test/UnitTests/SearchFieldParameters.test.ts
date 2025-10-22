@@ -1,5 +1,5 @@
 import { IExecuteFunctions } from 'n8n-workflow';
-import { getMailboxPathFromNodeParameter } from '../nodes/Imap/utils/SearchFieldParameters';
+import { getMailboxPathFromNodeParameter } from '../../nodes/Imap/utils/SearchFieldParameters';
 
 describe('SearchFieldParameters', () => {
   describe('getMailboxPathFromNodeParameter', () => {

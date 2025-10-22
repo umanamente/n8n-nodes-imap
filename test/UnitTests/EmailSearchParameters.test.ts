@@ -3,7 +3,7 @@ import { SearchObject } from 'imapflow';
 import {
   emailSearchParameters,
   getEmailSearchParametersFromNode,
-} from '../nodes/Imap/utils/EmailSearchParameters';
+} from '../../nodes/Imap/utils/EmailSearchParameters';
 
 describe('EmailSearchParameters', () => {
   describe('emailSearchParameters structure', () => {

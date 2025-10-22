@@ -1,4 +1,4 @@
-import { ImapCredentials, ImapCredentialsData } from '../credentials/ImapCredentials.credentials';
+import { ImapCredentials, ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
 
 describe('ImapCredentials', () => {
   let credentials: ImapCredentials;

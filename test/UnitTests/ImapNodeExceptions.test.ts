@@ -6,15 +6,15 @@
  */
 
 import { ICredentialTestFunctions, ICredentialsDecrypted, IExecuteFunctions, NodeApiError } from 'n8n-workflow';
-import { Imap } from '../nodes/Imap/Imap.node';
-import { createNodeParametersCheckerMock } from './TestUtils/N8nMocks';
-import { ImapCredentialsData } from '../credentials/ImapCredentials.credentials';
-import * as ImapUtils from '../nodes/Imap/utils/ImapUtils';
-import { ImapFlowErrorCatcher } from '../nodes/Imap/utils/ImapUtils';
+import { Imap } from '../../nodes/Imap/Imap.node';
+import { createNodeParametersCheckerMock } from '../TestUtils/N8nMocks';
+import { ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
+import * as ImapUtils from '../../nodes/Imap/utils/ImapUtils';
+import { ImapFlowErrorCatcher } from '../../nodes/Imap/utils/ImapUtils';
 
 // Mock the createImapClient function
-jest.mock('../nodes/Imap/utils/ImapUtils', () => ({
-  ...jest.requireActual('../nodes/Imap/utils/ImapUtils'),
+jest.mock('../../nodes/Imap/utils/ImapUtils', () => ({
+  ...jest.requireActual('../../nodes/Imap/utils/ImapUtils'),
   createImapClient: jest.fn(),
 }));
 
