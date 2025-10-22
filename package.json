@@ -24,6 +24,9 @@
     "format": "prettier nodes credentials --write",
     "lint": "eslint nodes credentials package.json",
     "lintfix": "eslint nodes credentials package.json --fix",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "prepublishOnly": "npm run build && npm run lint -c .eslintrc.prepublish.js nodes credentials package.json",
     "semantic-release": "semantic-release"
   },
@@ -46,6 +49,7 @@
     "@semantic-release/npm": "^12.0.1",
     "@semantic-release/release-notes-generator": "^14.0.3",
     "@types/imapflow": "^1.0.22",
+    "@types/jest": "^30.0.0",
     "@types/mailparser": "^3.4.6",
     "@types/nodemailer": "^6.4.17",
     "@typescript-eslint/parser": "~7.18",
@@ -53,9 +57,11 @@
     "cross-env": "^7.0.3",
     "eslint-plugin-n8n-nodes-base": "^1.16.3",
     "gulp": "^5.0.1",
+    "jest": "^30.2.0",
     "n8n-workflow": "*",
     "prettier": "^3.5.3",
     "semantic-release": "^24.2.5",
+    "ts-jest": "^29.4.5",
     "typescript": "~5.8.3"
   },
   "peerDependencies": {

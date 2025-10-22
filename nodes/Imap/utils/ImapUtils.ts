@@ -27,10 +27,6 @@ export class ImapErrorsList {
     this.caughtEntries.push(entry);
   }
 
-  public getCaughtEntries(): ImapLoggerEntryError[] {
-    return this.caughtEntries;
-  }
-
   public combineFullEntriesToString(): string {
     return JSON.stringify(this.caughtEntries, null, 2);
   }
@@ -73,7 +69,6 @@ export class ImapFlowErrorCatcher {
   private errorsList: ImapErrorsList = new ImapErrorsList();
 
   private isCatching = false;
-  private catchWarnings = true;
 
   private constructor() {
     // private constructor
@@ -91,16 +86,10 @@ export class ImapFlowErrorCatcher {
     this.errorsList = new ImapErrorsList();
   }
 
-  public startErrorCatching(catchWarnings: boolean = true) {
+  public startErrorCatching() {
     // clear previous errors (assume that if we are catching errors, we don't need previous ones)
     this.clear();
-    this.catchWarnings = catchWarnings;
     this.isCatching = true;
-  }
-
-  public stopAndGetCombinedErrorsString(): string {
-    const imapErrorList = this.stopAndGetErrorsList();
-    return imapErrorList.combineFullEntriesToString();
   }
 
   public stopAndGetErrorsList(): ImapErrorsList {
@@ -119,9 +108,6 @@ export class ImapFlowErrorCatcher {
 
   public onImapWarning(warning: object) {
     if (!this.isCatching) {
-      return;
-    }
-    if (!this.catchWarnings) {
       return;
     }
     this.errorsList.addEntry(warning as ImapLoggerEntryError);

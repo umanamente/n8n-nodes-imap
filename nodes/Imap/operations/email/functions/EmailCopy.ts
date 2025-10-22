@@ -5,7 +5,7 @@ import {
   getMailboxPathFromNodeParameter,
   parameterSelectMailbox,
 } from '../../../utils/SearchFieldParameters';
-import { ImapFlowErrorCatcher, NodeImapError } from '../../../utils/ImapUtils';
+import { ImapFlowErrorCatcher } from '../../../utils/ImapUtils';
 
 const PARAM_NAME_SOURCE_MAILBOX = 'sourceMailbox';
 const PARAM_NAME_DESTINATION_MAILBOX = 'destinationMailbox';
@@ -57,7 +57,7 @@ export const copyEmailOperation: IResourceOperationDef = {
 
     const emailUid = context.getNodeParameter('emailUid', itemIndex) as string;
 
-    context.logger?.info(
+    context.logger.info(
       `Copying email "${emailUid}" from "${sourceMailboxPath}" to "${destinationMailboxPath}"`,
     );
 
@@ -68,15 +68,6 @@ export const copyEmailOperation: IResourceOperationDef = {
     const resp: CopyResponseObject = await client.messageCopy(emailUid, destinationMailboxPath, {
       uid: true,
     });
-
-    if (!resp) {
-      const errorsList = ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
-      throw new NodeImapError(
-        context.getNode(),
-        'Copying email failed',
-        errorsList,
-      )
-    }
 
     var item_json = JSON.parse(JSON.stringify(resp));
 
