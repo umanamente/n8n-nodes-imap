@@ -97,6 +97,8 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
 
   describe('sequence test (read and write operations)', () => {
 
+    let currentEmailUid: number;
+
     it('should successfully create a top level mailbox', async () => {
       // Create a mock parameters checker for testing
       const paramValues = {
@@ -276,6 +278,9 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
       expect(resultData?.[0]?.[0]?.json).toHaveProperty('uid');
       expect(resultData?.[0]?.[0]?.json).toHaveProperty('path');
       expect(resultData?.[0]?.[0]?.json?.path).toBe('TopLevelMailbox');
+
+      // set currentEmailUid for next test
+      currentEmailUid = resultData?.[0]?.[0]?.json?.uid as number;
     });
 
     it('should successfully list mailboxes with email counts included', async () => {
@@ -318,8 +323,92 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
       ]);
     });
 
-    
+    it('should successfully get mailbox status for TopLevelMailbox', async () => {
+      // Create a mock parameters checker for testing
+      const paramValues = {
+        authentication: 'imapThisNode',
+        resource: 'mailbox',
+        operation: 'getMailboxStatus',
+        mailboxPath: {"value":'TopLevelMailbox'},
+      };
+      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);
+      // Mock getCredentials to return ImapCredentialsData
+      context.getCredentials = jest.fn().mockResolvedValue(credentials);
+      context.getInputData = jest.fn().mockReturnValue([1]);
 
+      // Act
+      const resultData = await imap.execute.call(context as IExecuteFunctions);
+      // Assert
+      expect(resultData).toHaveLength(1);
+      expect(resultData[0]).toHaveLength(1);
+      expect(resultData?.[0]?.[0]?.json).toEqual(
+        {
+          "path": "TopLevelMailbox",
+          "messages": 1,
+          "recent": expect.any(Number),
+          "unseen": 1,
+          "uidNext": expect.any(Number),
+          "uidValidity": expect.any(String)
+        }
+      );
+    });
+
+    it('should successfully copy an email from TopLevelMailbox to INBOX', async () => {
+      // Create a mock parameters checker for testing
+      const paramValues = {
+        authentication: 'imapThisNode',
+        resource: 'email',
+        operation: 'copyEmail',
+        sourceMailbox: {"value": 'TopLevelMailbox'},
+        destinationMailbox: {"value": 'INBOX'},
+        emailUid: currentEmailUid.toString(),
+      };
+      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);
+      // Mock getCredentials to return ImapCredentialsData
+      context.getCredentials = jest.fn().mockResolvedValue(credentials);
+      context.getInputData = jest.fn().mockReturnValue([{
+        uid: 1, // assuming the draft email created earlier has UID 1
+      }]);
+      // Act
+      const resultData = await imap.execute.call(context as IExecuteFunctions);
+      // Assert
+      expect(resultData).toHaveLength(1);
+      expect(resultData[0]).toHaveLength(1);
+      expect(resultData?.[0]?.[0]?.json).toEqual(
+        {
+          "destination": "INBOX",
+          "path": "TopLevelMailbox",
+          "uidMap": expect.any(Object),
+          "uidValidity": expect.any(String),
+        }
+      );
+    });
+
+    it('should successfully retrieve a list of emails in INBOX', async () => {
+      // Create a mock parameters checker for testing
+      const paramValues = {
+        authentication: 'imapThisNode',
+        resource: 'email',
+        operation: 'getEmailsList',
+        mailboxPath: {"value": 'INBOX'},
+        emailDateRange: {},
+        emailFlags: {},
+        emailSearchFilters: {},
+        includeParts: ["textContent"]
+      };
+      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);
+      // Mock getCredentials to return ImapCredentialsData
+      context.getCredentials = jest.fn().mockResolvedValue(credentials);
+      context.getInputData = jest.fn().mockReturnValue([1]);
+      // Act
+      const resultData = await imap.execute.call(context as IExecuteFunctions);
+      // Assert
+      expect(resultData).toHaveLength(1);
+      expect(resultData[0].length).toBeGreaterThan(0);
+      const emailItem = resultData?.[0]?.find(item => item.json.uid === currentEmailUid);
+      expect(emailItem).toBeDefined();
+      expect(emailItem?.json).toHaveProperty('envelope.subject', 'Test Draft Email');
+    });
   });
 });
 
