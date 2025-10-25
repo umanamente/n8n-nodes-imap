@@ -29,6 +29,7 @@ NPMJS: [n8n-nodes-imap](https://www.npmjs.com/package/n8n-nodes-imap)
 * Email
   * Get list of emails in a mailbox
   * Download attachments from an email
+  * Permanently delete an email from a mailbox
   * Move an email to another mailbox
   * Copy an email into another mailbox
   * Set/remove flags on an email ("seen", "answered", "flagged", "deleted", "draft")
@@ -41,4 +42,3 @@ Currently, this node supports only basic authentication (username and password).
 OAuth2 authentication is not supported yet.  
 
 > NOTE: You can reuse core [N8N IMAP Trigger node](https://docs.n8n.io/integrations/builtin/credentials/imap/) credentials for this node.
-
