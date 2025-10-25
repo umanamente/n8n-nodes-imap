@@ -1,5 +1,5 @@
 import { IExecuteFunctions } from 'n8n-workflow';
-import { ImapFlow } from 'imapflow';
+import { ImapFlow, type MailboxObject } from 'imapflow';
 import { deleteEmailOperation } from '../../../../nodes/Imap/operations/email/functions/EmailDelete';
 import { createMockLogger } from '../../../TestUtils/N8nMocks';
 import { NodeImapError, ImapFlowErrorCatcher } from '../../../../nodes/Imap/utils/ImapUtils';
@@ -42,7 +42,7 @@ describe('EmailDelete operation', () => {
   });
 
   it('should delete email and return confirmation', async () => {
-    mockClient.mailboxOpen.mockResolvedValue(undefined);
+    mockClient.mailboxOpen.mockResolvedValue({ path: MAILBOX_PATH } as MailboxObject);
     mockClient.messageDelete.mockResolvedValue(true as any);
 
     const result = await deleteEmailOperation.executeImapAction(mockContext, ITEM_INDEX, mockClient);
@@ -60,7 +60,7 @@ describe('EmailDelete operation', () => {
   });
 
   it('should throw NodeImapError when messageDelete fails', async () => {
-    mockClient.mailboxOpen.mockResolvedValue(undefined);
+    mockClient.mailboxOpen.mockResolvedValue({ path: MAILBOX_PATH } as MailboxObject);
     mockClient.messageDelete.mockResolvedValue(false as any);
 
     await expect(
