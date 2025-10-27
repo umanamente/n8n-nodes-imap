@@ -80,7 +80,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
       expect(mailboxes.length).toBeGreaterThan(0);
       
       // Cleanup
-      await client.close();
+      client.close();
     });
 
     it('should successfully connect to IMAP server without TLS', async () => {
@@ -96,7 +96,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
       expect(client.secureConnection).toBe(false); // Non-TLS connection
       
       // Cleanup
-      await client.close();
+      client.close();
     });
 
     it('should handle connection to non-existent server gracefully', async () => {
@@ -187,7 +187,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
       expect(client.authenticated).toBe(true);
       
       // Cleanup
-      await client.close();
+      client.close();
     });
 
   });
@@ -210,7 +210,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
       ).toBe(true);
       
       // Cleanup
-      await client.close();
+      client.close();
     });
 
     it('should not log debug messages when debug logs are disabled', async () => {
@@ -229,7 +229,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
       expect(debugMockLogger.debug.mock.calls.length).toBe(0);
       
       // Cleanup
-      await client.close();
+      client.close();
     });
   });
 
