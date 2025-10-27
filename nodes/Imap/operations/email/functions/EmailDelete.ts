@@ -35,7 +35,7 @@ export const deleteEmailOperation: IResourceOperationDef = {
     const mailboxPath = getMailboxPathFromNodeParameter(context, itemIndex);
     const emailUid = context.getNodeParameter('emailUid', itemIndex) as string;
 
-    context.logger?.info(`Deleting email "${emailUid}" from "${mailboxPath}"`);
+    context.logger.info(`Deleting email "${emailUid}" from "${mailboxPath}"`);
 
     await client.mailboxOpen(mailboxPath, { readOnly: false });
 
