@@ -32,7 +32,7 @@ jobs:
       - name: Build and test
         run: npm run prepublishOnly
       - name: Run Jest tests with coverage
-        run: npx jest --coverage --coverageReporters json-summary
+        run: npx jest --coverage
       - name: Jest Coverage Comment
         uses: MishaKav/jest-coverage-comment@main
         with:
