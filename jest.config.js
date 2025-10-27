@@ -28,7 +28,7 @@ module.exports = {
   ],
   moduleFileExtensions: ['ts', 'js', 'json'],
   coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov', 'html'],
+  coverageReporters: ['json-summary', 'text', 'lcov', 'html'],
   verbose: true,
   setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
   projects: [
