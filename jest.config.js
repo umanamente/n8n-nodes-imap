@@ -69,7 +69,8 @@ module.exports = {
       testEnvironment: 'node',
       testMatch: ['<rootDir>/test/**/*.test.ts', '<rootDir>/credentials/**/*.test.ts', '<rootDir>/nodes/**/*.test.ts'],
       testPathIgnorePatterns: [
-        '/node_modules/', 
+        '/node_modules/',
+        '/dist/',
         '/test/WithGreenmail/', 
         '/test/WithImapflowMock/'
       ],
