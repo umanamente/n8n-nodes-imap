@@ -40,8 +40,7 @@ export class Imap implements INodeType {
       {
         name: credentialNames[CREDENTIALS_TYPE_THIS_NODE],
         required: true,
-        // "testedBy" function doesn't work in current version of n8n
-        // testedBy: 'testImapCredentials',
+        testedBy: 'testImapCredentials',
         displayOptions: {
           show: {
             authentication: [
