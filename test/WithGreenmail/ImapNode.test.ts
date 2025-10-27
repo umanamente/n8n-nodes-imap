@@ -462,6 +462,28 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
       );
     });
 
+
+    it('should successfully list mailboxes after moving an email with 0 messages in TopLevelMailbox', async () => {
+      // Act
+      const mailboxes = await getMailboxList([
+        'includeMessageCount',
+        'includeUnseenCount',
+      ]);
+
+      // Assert
+      expect(mailboxes).toHaveLength(3);
+      
+      // find TopLevelMailbox
+      const topLevelMailbox = mailboxes.find(mb => mb.path === 'TopLevelMailbox');
+      expect(topLevelMailbox).toBeDefined();
+      expect(topLevelMailbox?.status).toEqual({
+        "path": "TopLevelMailbox",
+        "messages":0,
+        "unseen":0
+      });
+
+    });
+
     it('should successfully copy an email from INBOX to TopLevelMailbox', async () => {
       // Create a mock parameters checker for testing
       const paramValues = {
@@ -493,6 +515,24 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
       );
     });
 
+    it('should successfully list mailboxes after copying an email with 1 message in TopLevelMailbox', async () => {
+      // Act
+      const mailboxes = await getMailboxList([
+        'includeMessageCount',
+      ]);
+
+      // Assert
+      expect(mailboxes).toHaveLength(3);
+      
+      // find TopLevelMailbox
+      const topLevelMailbox = mailboxes.find(mb => mb.path === 'TopLevelMailbox');
+      expect(topLevelMailbox).toBeDefined();
+      expect(topLevelMailbox?.status).toEqual({
+        "path": "TopLevelMailbox",
+        "messages":1,
+      });
+
+    });
 
 
     it('should successfully retrieve a list of emails in INBOX', async () => {
@@ -519,6 +559,81 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
       const emailItem = resultData?.[0]?.find(item => item.json.uid === currentEmailUid);
       expect(emailItem).toBeDefined();
       expect(emailItem?.json).toHaveProperty('envelope.subject', 'Test Draft Email');
+    });
+
+    it('should successfully retrieve a list of emails in TopLevelMailbox', async () => {
+      // Create a mock parameters checker for testing
+      const paramValues = {
+        authentication: 'imapThisNode',
+        resource: 'email',
+        operation: 'getEmailsList',
+        mailboxPath: {"value": 'TopLevelMailbox'},
+        emailDateRange: {},
+        emailFlags: {},
+        emailSearchFilters: {},
+        includeParts: ["textContent"]
+      };
+      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);
+      // Mock getCredentials to return ImapCredentialsData
+      context.getCredentials = jest.fn().mockResolvedValue(credentials);
+      context.getInputData = jest.fn().mockReturnValue([1]);
+      // Act
+      const resultData = await imap.execute.call(context as IExecuteFunctions);
+      // Assert
+      expect(resultData).toHaveLength(1);
+      expect(resultData[0]).toHaveLength(1);
+      const emailItem = resultData?.[0]?.[0];
+      expect(emailItem).toBeDefined();
+      
+      // save email UID for deletion test
+      currentEmailUid = emailItem?.json.uid as number;
+    });
+
+
+
+    it('should successfully delete an email from TopLevelMailbox', async () => {
+      // Create a mock parameters checker for testing
+      const paramValues = {
+        authentication: 'imapThisNode',
+        resource: 'email',
+        operation: 'deleteEmail',
+        mailboxPath: {"value": 'TopLevelMailbox'},
+        emailUid: currentEmailUid.toString(),
+      };
+      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);
+      // Mock getCredentials to return ImapCredentialsData
+      context.getCredentials = jest.fn().mockResolvedValue(credentials);
+      context.getInputData = jest.fn().mockReturnValue([1]);
+      // Act
+      const resultData = await imap.execute.call(context as IExecuteFunctions);
+      // Assert
+      expect(resultData).toHaveLength(1);
+      expect(resultData[0]).toHaveLength(1);
+      expect(resultData?.[0]?.[0]?.json).toEqual(
+        {
+          "uid": currentEmailUid.toString(),
+          "deleted": true,
+        }
+      );
+    });
+
+    it('should successfully list mailboxes after deleting an email with 0 messages in TopLevelMailbox', async () => {
+      // Act
+      const mailboxes = await getMailboxList([
+        'includeMessageCount',
+        'includeUnseenCount',
+      ]);
+      // Assert
+      expect(mailboxes).toHaveLength(3);
+
+      // check that TopLevelMailbox has 1 message (the copied one) after deletion
+      const topLevelMailbox = mailboxes.find(mb => mb.path === 'TopLevelMailbox');
+      expect(topLevelMailbox).toBeDefined();
+      expect(topLevelMailbox?.status).toEqual({
+        "path": "TopLevelMailbox",
+        "messages":0,
+        "unseen":0
+      });
     });
 
     it('should successfully create an email from RFC822 content', async () => {
