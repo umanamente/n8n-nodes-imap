@@ -1,0 +1,97 @@
+name: ✨ Feature Request
+description: Suggest a new feature or enhancement for the IMAP node
+title: "[Feature]: "
+labels: ["enhancement"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## ✨ Feature Request
+        
+        Thank you for suggesting a new feature! Please describe your idea and help us understand how it would benefit users of the n8n IMAP node.
+
+  - type: dropdown
+    id: feature_type
+    attributes:
+      label: Feature Type
+      description: What type of feature are you requesting?
+      options:
+        - New email operation
+        - New mailbox operation
+        - Enhanced authentication method
+        - Performance improvement
+        - UI/UX improvement
+        - Better error handling
+        - Documentation improvement
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: feature_description
+    attributes:
+      label: Feature Description
+      description: Describe the feature you'd like to see implemented
+      placeholder: "Provide a clear and detailed description of the feature..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use Case/Problem
+      description: What problem would this feature solve? What use case would it enable?
+      placeholder: "Describe the problem or use case this feature would address..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_solution
+    attributes:
+      label: Proposed Solution
+      description: How do you envision this feature working?
+      placeholder: "Describe how you think this feature should work..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Solutions
+      description: Have you considered any alternative solutions or workarounds?
+      placeholder: "Describe any alternative solutions you've considered..."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Low - Nice to have
+        - Medium - Would be helpful
+        - High - Important for my workflow
+        - Critical - Blocking my use case
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Would you be willing to contribute to implementing this feature?
+      options:
+        - label: I would be willing to implement this feature myself
+        - label: I would be willing to test this feature once implemented
+        - label: I would be willing to provide feedback during development
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Add any other context, mockups, or examples about the feature request here
+      placeholder: "Any additional information that might help..."
+    validations:
+      required: false

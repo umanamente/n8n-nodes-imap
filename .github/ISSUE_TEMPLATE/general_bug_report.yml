@@ -1,0 +1,194 @@
+name: 🐛 General Bug Report
+description: Report other bugs, issues, or unexpected behavior not covered by other templates
+title: "[Bug]: "
+labels: ["possible_bug"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🐛 General Bug Report
+        
+        Thank you for reporting an issue! This template is for general bugs and issues that don't fit into the other specific categories:
+        - Installation or setup issues
+        - Documentation problems
+        - Performance issues
+        - Compatibility problems
+        - Other unexpected behavior
+        
+        Please fill out the information below to help us diagnose the issue.
+
+  - type: input
+    id: node_version
+    attributes:
+      label: Node Version
+      description: What version of n8n-nodes-imap are you using?
+      placeholder: "e.g., 2.11.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue_category
+    attributes:
+      label: Issue Category
+      description: What type of issue are you experiencing?
+      options:
+        - Installation/Setup
+        - Performance
+        - Documentation
+        - Compatibility
+        - Memory/Resource Usage
+        - Dependencies
+        - Build/Compilation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: issue_description
+    attributes:
+      label: Issue Description
+      description: Describe the issue you're experiencing in detail
+      placeholder: "Provide a clear and concise description of what the issue is..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: "Describe what you expected to happen..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: actual_behavior
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: "Describe what actually happened..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: reproduction_steps
+    attributes:
+      label: Steps to Reproduce
+      description: Please provide step-by-step instructions to reproduce the issue
+      placeholder: |
+        1. Go to...
+        2. Click on...
+        3. Execute...
+        4. See error...
+    validations:
+      required: false
+
+  - type: textarea
+    id: error_message
+    attributes:
+      label: Error Message/Stack Trace
+      description: If you received an error message or stack trace, please paste it here
+      placeholder: "Paste the exact error message or stack trace here"
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs
+      description: |
+        Please provide any relevant logs. To get n8n logs:
+        1. Set N8N_LOG_LEVEL=debug in your environment variables
+        2. Reproduce the issue
+        3. Check n8n logs in your console or log files
+        4. Copy relevant log entries here
+        
+        **Important:** Remove any sensitive information like passwords, tokens, or personal data!
+      placeholder: "Paste relevant log entries here (remove sensitive information)"
+      render: text
+    validations:
+      required: false
+
+  - type: input
+    id: n8n_version
+    attributes:
+      label: N8N Version
+      description: What version of n8n are you running?
+      placeholder: "e.g., 1.65.1"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      description: Where are you running n8n?
+      options:
+        - Self-hosted (Docker)
+        - Self-hosted (npm)
+        - Self-hosted (other)
+        - n8n Cloud
+        - Other
+    validations:
+      required: false
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      description: What operating system are you using?
+      placeholder: "e.g., Windows 11, macOS 14.0, Ubuntu 22.04"
+    validations:
+      required: false
+
+  - type: input
+    id: node_js_version
+    attributes:
+      label: Node.js Version
+      description: What version of Node.js are you running? (run `node --version`)
+      placeholder: "e.g., v18.17.0"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: troubleshooting
+    attributes:
+      label: Troubleshooting Checklist
+      description: Please confirm you have tried these basic troubleshooting steps
+      options:
+        - label: This is indeed an issue and not a question
+        - label: I have searched existing issues to make sure this is not a duplicate
+        - label: I have searched N8N documentation and community forums for similar issues
+        - label: I have tried restarting my n8n instance
+        - label: I have checked the n8n logs for additional error information
+        - label: I have verified I'm using a recent version of n8n        
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: |
+        If applicable, add screenshots to help explain your problem.
+        You can paste images directly into this field.
+    validations:
+      required: false
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Workaround
+      description: Have you found any workaround for this issue?
+      placeholder: "Describe any workaround you've found..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here
+      placeholder: "Any additional information that might help..."
+    validations:
+      required: false

@@ -1,0 +1,183 @@
+name: ⚙️ N8N Node Functionality Issue
+description: Report issues with the n8n IMAP node functionality, operations, or workflow integration
+title: "[Node Issue]: "
+labels: ["possible_bug"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## ⚙️ N8N Node Functionality Issue
+        
+        Thank you for reporting an issue! This template is for problems specifically related to:
+        - Node operations not working as expected
+        - Workflow integration problems
+        - Data processing or formatting issues
+        - Node configuration problems
+        - Parameter handling issues
+        
+        Please fill out the information below to help us diagnose the issue.
+
+  - type: input
+    id: community_node_version
+    attributes:
+      label: n8n-nodes-imap Version
+      description: What version of n8n-nodes-imap are you using?
+      placeholder: "e.g., 2.11.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: issue_description
+    attributes:
+      label: Issue Description
+      description: Describe what's happening vs what you expected to happen
+      placeholder: |
+        Expected: The node should...
+        Actual: Instead, the node...
+    validations:
+      required: true
+
+  - type: textarea
+    id: node_configuration
+    attributes:
+      label: Node Configuration
+      description: |
+        Please share your node configuration (remove sensitive information like passwords)
+        You can export this from n8n or describe the key settings
+      placeholder: |
+        Resource: Email
+        Operation: Search
+        Parameters:
+        - Search criteria: FROM "example@test.com"
+        - Limit: 10
+        - etc...
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: input_data
+    attributes:
+      label: Input Data
+      description: |
+        What data is being passed into the IMAP node? (remove sensitive information)
+      placeholder: "Paste the input data structure here"
+      render: json
+    validations:
+      required: false
+
+  - type: textarea
+    id: output_data
+    attributes:
+      label: Actual Output Data
+      description: |
+        What data is the node actually outputting? (remove sensitive information)
+      placeholder: "Paste the actual output data here"
+      render: json
+    validations:
+      required: false
+
+  - type: textarea
+    id: expected_output
+    attributes:
+      label: Expected Output Data
+      description: |
+        What data did you expect the node to output?
+      placeholder: "Describe or paste the expected output structure"
+      render: json
+    validations:
+      required: false
+
+  - type: textarea
+    id: error_message
+    attributes:
+      label: Error Message
+      description: If you received an error message, please paste it here
+      placeholder: "Paste the exact error message here"
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: n8n_logs
+    attributes:
+      label: N8N Logs
+      description: |
+        Please provide relevant n8n logs. To get logs:
+        1. Set N8N_LOG_LEVEL=debug in your environment variables
+        2. Reproduce the issue
+        3. Check n8n logs in your console or log files
+        4. Copy relevant log entries here
+        
+        **Important:** Remove any sensitive information like passwords, tokens, or personal data!
+      placeholder: "Paste relevant log entries here (remove sensitive information)"
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: reproduction_steps
+    attributes:
+      label: Steps to Reproduce
+      description: Please provide step-by-step instructions to reproduce the issue
+      placeholder: |
+        1. Create a workflow with...
+        2. Configure the IMAP node with...
+        3. Set the parameters to...
+        4. Execute the workflow...
+        5. Issue occurs...
+    validations:
+      required: true
+
+  - type: input
+    id: n8n_version
+    attributes:
+      label: N8N Version
+      description: What version of n8n are you running?
+      placeholder: "e.g., 1.65.1"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      description: Where are you running n8n?
+      options:
+        - Self-hosted (Docker)
+        - Self-hosted (npm)
+        - Self-hosted (other)
+        - n8n Cloud
+        - Other
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: troubleshooting
+    attributes:
+      label: Troubleshooting Checklist
+      description: Please confirm you have tried these basic troubleshooting steps
+      options:
+        - label: I have tested with a simple workflow to isolate the issue
+        - label: I have searched N8N documentation and community forums for similar issues
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: |
+        If applicable, add screenshots to help explain your problem.
+        You can paste images directly into this field.
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here
+      placeholder: "Any additional information that might help..."
+    validations:
+      required: false
+      
