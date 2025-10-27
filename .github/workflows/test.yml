@@ -1,0 +1,40 @@
+name: Test
+on:
+  push:
+    branches:
+      - '**'
+  pull_request_target:
+
+permissions:
+  contents: read # for checkout
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write # for jest-coverage-report
+      contents: read # for checkout
+      pull-requests: write # for jest-coverage-report
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "lts/*"
+      - name: Install dependencies
+        run: npm clean-install
+      - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
+        run: npm audit signatures
+      - name: Build and test
+        run: npm run prepublishOnly
+      - name: Run Jest tests with coverage
+        run: npx jest --coverage
+      - name: Jest Coverage Comment
+        uses: MishaKav/jest-coverage-comment@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          coverage-path: ./coverage/coverage.txt
