@@ -31,6 +31,8 @@ jobs:
         run: npm audit signatures
       - name: Build and test
         run: npm run prepublishOnly
+      - name: Run Jest tests with coverage
+        run: npx jest --coverage --coverageReporters json-summary
       - name: Jest Coverage Comment
         uses: MishaKav/jest-coverage-comment@main
         with:
