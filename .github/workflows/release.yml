@@ -37,6 +37,8 @@ jobs:
         uses: MishaKav/jest-coverage-comment@main
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          coverage-path: ./coverage/coverage.txt
+
   release:
     name: Release
     runs-on: ubuntu-latest
