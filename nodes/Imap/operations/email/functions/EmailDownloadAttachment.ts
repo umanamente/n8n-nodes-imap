@@ -87,6 +87,12 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
         bodyStructure: true,
       };
       const emailInfo = await client.fetchOne(emailUid, query, { uid: true });
+      
+      if (!emailInfo) {
+        const errors = ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
+        throw new NodeImapError(context.getNode(), 'Failed to fetch email', errors);
+      }
+      
       if (emailInfo.bodyStructure) {
         const partsInfo = getEmailPartsInfoRecursive(context, emailInfo.bodyStructure);
         for (const partInfo of partsInfo) {

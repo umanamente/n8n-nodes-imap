@@ -1,11 +1,11 @@
-import { CopyResponseObject, ImapFlow } from 'imapflow';
+import { ImapFlow } from 'imapflow';
 import { IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';
 import { IResourceOperationDef } from '../../../utils/CommonDefinitions';
 import {
   getMailboxPathFromNodeParameter,
   parameterSelectMailbox,
 } from '../../../utils/SearchFieldParameters';
-import { ImapFlowErrorCatcher } from '../../../utils/ImapUtils';
+import { ImapFlowErrorCatcher, NodeImapError } from '../../../utils/ImapUtils';
 
 const PARAM_NAME_SOURCE_MAILBOX = 'sourceMailbox';
 const PARAM_NAME_DESTINATION_MAILBOX = 'destinationMailbox';
@@ -65,9 +65,14 @@ export const copyEmailOperation: IResourceOperationDef = {
 
     ImapFlowErrorCatcher.getInstance().startErrorCatching();
 
-    const resp: CopyResponseObject = await client.messageCopy(emailUid, destinationMailboxPath, {
+    const resp = await client.messageCopy(emailUid, destinationMailboxPath, {
       uid: true,
     });
+
+    if (!resp) {
+      const errors = ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
+      throw new NodeImapError(context.getNode(), 'Email copy operation failed', errors);
+    }
 
     var item_json = JSON.parse(JSON.stringify(resp));
 

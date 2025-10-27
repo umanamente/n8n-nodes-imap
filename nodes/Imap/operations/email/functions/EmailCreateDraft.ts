@@ -1,4 +1,4 @@
-import { ImapFlow, AppendResponseObject } from 'imapflow';
+import { ImapFlow } from 'imapflow';
 import * as nodemailer from 'nodemailer';
 import { IExecuteFunctions, INodeExecutionData, NodeApiError } from "n8n-workflow";
 import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
@@ -225,7 +225,7 @@ export const createDraftOperation: IResourceOperationDef = {
 
     ImapFlowErrorCatcher.getInstance().startErrorCatching();
 
-    const resp : AppendResponseObject = await client.append(
+    const resp = await client.append(
       destinationMailboxPath,
       rfc822Content,
       ["\\Draft"],

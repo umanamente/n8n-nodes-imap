@@ -1,4 +1,4 @@
-import { CopyResponseObject, ImapFlow } from "imapflow";
+import { ImapFlow } from "imapflow";
 import { IExecuteFunctions, INodeExecutionData } from "n8n-workflow";
 import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from '../../../utils/SearchFieldParameters';
@@ -50,7 +50,7 @@ export const moveEmailOperation: IResourceOperationDef = {
 
     ImapFlowErrorCatcher.getInstance().startErrorCatching();
 
-    const resp : CopyResponseObject = await client.messageMove(emailUid, destinationMailboxPath, {
+    const resp = await client.messageMove(emailUid, destinationMailboxPath, {
       uid: true,
     });
 

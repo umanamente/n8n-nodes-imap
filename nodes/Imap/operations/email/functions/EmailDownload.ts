@@ -2,6 +2,7 @@ import { FetchQueryObject, ImapFlow } from "imapflow";
 import { IBinaryKeyData, IDataObject, IExecuteFunctions, INodeExecutionData } from "n8n-workflow";
 import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from "../../../utils/SearchFieldParameters";
+import { ImapFlowErrorCatcher, NodeImapError } from '../../../utils/ImapUtils';
 
 export const downloadOperation: IResourceOperationDef = {
   operation: {
@@ -60,6 +61,10 @@ export const downloadOperation: IResourceOperationDef = {
     };
     const emailInfo = await client.fetchOne(emailUid, query, { uid: true });
 
+    if (!emailInfo) {
+      const errors = ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
+      throw new NodeImapError(context.getNode(), 'Failed to fetch email', errors);
+    }
 
     let binaryFields: IBinaryKeyData | undefined = undefined;
     let jsonData: IDataObject = {
