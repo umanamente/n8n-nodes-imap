@@ -31,11 +31,14 @@ jobs:
         run: npm audit signatures
       - name: Build and test
         run: npm run prepublishOnly
-      - name: Jest Coverage Report
-        uses: ArtiomTr/jest-coverage-report-action@v2
+      - name: Run Jest tests with coverage
+        run: npx jest --coverage
+      - name: Jest Coverage Comment
+        uses: MishaKav/jest-coverage-comment@main
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          skip-step: install
+          coverage-path: ./coverage/coverage.txt
+
   release:
     name: Release
     runs-on: ubuntu-latest

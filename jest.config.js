@@ -2,6 +2,10 @@
 // uncomment if Greenmail tests are failing due to Greenmail container instability
 // process.env.SKIP_GREENMAIL_TESTS = 'true';
 
+// uncomment to enable Greenmail debug logs
+// process.env.DEBUG_GREENMAIL = 'true';
+
+
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
@@ -28,7 +32,12 @@ module.exports = {
   ],
   moduleFileExtensions: ['ts', 'js', 'json'],
   coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov', 'html'],
+  coverageReporters: [
+    'json-summary', 
+    'lcov', 
+    'html',
+    ['text', { file: 'coverage.txt' }],
+  ],
   verbose: true,
   setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
   projects: [
@@ -64,7 +73,8 @@ module.exports = {
       testEnvironment: 'node',
       testMatch: ['<rootDir>/test/**/*.test.ts', '<rootDir>/credentials/**/*.test.ts', '<rootDir>/nodes/**/*.test.ts'],
       testPathIgnorePatterns: [
-        '/node_modules/', 
+        '/node_modules/',
+        '/dist/',
         '/test/WithGreenmail/', 
         '/test/WithImapflowMock/'
       ],
