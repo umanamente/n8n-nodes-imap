@@ -41,34 +41,78 @@ Thank you for your interest in contributing to the n8n-nodes-imap project! This 
    ```
 
 4. **Verify the setup:**
+   > Greenmail tests require Docker to be running. See the [Running Tests](#running-tests) section for more details.
    ```bash
-   npm test
+   npx jest --ignoreProjects WithGreenmail
    ```
 
-### Development Commands
+## 🔧 Local Development Environment Setup
+
+For testing your node in a local n8n instance, follow these steps to set up a complete development environment.
+
+For more detailed information about testing nodes locally, see the [official n8n documentation](https://docs.n8n.io/integrations/creating-nodes/test/run-node-locally/).
+
+
+### Install n8n Globally
+
+First, install n8n globally using npm:
 
 ```bash
-# Build the project
-npm run build
-
-# Watch mode for development
-npm run dev
-
-# Run n8n with the node in development mode
-npm run run-dev
-
-# Run n8n with tunnel (for webhook testing)
-npm run run-dev-tunnel
-
-# Format code
-npm run format
-
-# Lint code
-npm run lint
-
-# Fix linting issues automatically
-npm run lintfix
+npm install n8n -g
 ```
+
+### Link Your Node Package
+
+When you're ready to test your node:
+
+1. **Build and link your node locally:**
+   ```bash
+   # In your node directory (n8n-nodes-imap)
+   npm run build
+
+   # create a global link for your node package
+   npm link
+   ```
+
+2. **Install the node into your local n8n instance:**
+
+   
+   Navigate to the nodes directory within your n8n installation.
+
+   ```bash
+   # check where n8n is installed
+   npm list -g n8n
+
+   # Navigate to the custom nodes directory
+   cd <path-to-n8n-installation>
+
+   # Link the node package (use the name from package.json)
+   npm link n8n-nodes-imap
+   ```
+
+### Start n8n
+
+Start your local n8n instance:
+
+```bash
+n8n start
+```
+
+### Access Your Node
+
+Open n8n in your browser (typically http://localhost:5678). You should see your IMAP nodes when you search for them in the nodes panel.
+
+> **Important:** Search using the node name (e.g., "IMAP"), not the package name ("n8n-nodes-imap").
+
+### Development Workflow
+
+For efficient development, use this workflow:
+
+1. Make changes to your node code
+2. Build the project: `npm run build`
+3. Restart n8n to see the changes
+4. Test your changes in the n8n UI
+
 
 ## 🧪 Running Tests
 
@@ -91,11 +135,6 @@ npm run test:watch
 
 # Run tests with coverage report
 npm run test:coverage
-
-# Run specific test suites
-npx jest --selectProjects UnitTests
-npx jest --selectProjects WithGreenmail
-npx jest --selectProjects WithImapflowMock
 ```
 
 ### Greenmail Prerequisites (Docker)
@@ -104,7 +143,7 @@ For integration tests that require a real IMAP server, we use **Greenmail** runn
 
 **Requirements:**
 - Docker must be installed and running
-- The following ports must be available: `3143`, `3993`, `3025`, `3465`, `3110`, `3995`
+  - Install Docker from [here](https://www.docker.com/get-started)
 
 **Environment Variables:**
 ```bash
