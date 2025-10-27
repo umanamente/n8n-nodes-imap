@@ -81,7 +81,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
         expect(mailboxes.length).toBeGreaterThan(0);
       } finally {
         // Cleanup
-        await client.logout();
+        await client.close();
       }
     });
 
@@ -99,7 +99,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
         expect(client.secureConnection).toBe(false); // Non-TLS connection
       } finally {
         // Cleanup
-        await client.logout();
+        await client.close();
       }
     });
 
@@ -192,7 +192,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
         expect(client.authenticated).toBe(true);
       } finally {
         // Cleanup
-        await client.logout();
+        await client.close();
       }
     });
 
@@ -217,7 +217,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
         ).toBe(true);
       } finally {
         // Cleanup
-        await client.logout();
+        await client.close();
       }
     });
 
@@ -238,7 +238,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
         expect(debugMockLogger.debug.mock.calls.length).toBe(0);
       } finally {
         // Cleanup
-        await client.logout();
+        await client.close();
       }
     });
   });
