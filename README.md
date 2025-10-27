@@ -6,6 +6,7 @@ This is an n8n community node that adds support for [IMAP](https://en.wikipedia.
 * [Operations](#operations)  
 * [Credentials](#credentials)
 * [Version history](CHANGELOG.md)
+* **For Developers**: [Contributing Guide](CONTRIBUTING.md) | [Developer Quick Start](DEVELOPER.md)
 
 ## Installation
 
