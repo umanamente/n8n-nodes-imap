@@ -1,3 +1,9 @@
+## [2.11.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.10.0...v2.11.0) (2025-10-27)
+
+### Features
+
+* added "Delete email" operation ([#93](https://github.com/umanamente/n8n-nodes-imap/issues/93)) ([62d4575](https://github.com/umanamente/n8n-nodes-imap/commit/62d45753735a5483b8d80199d4606d431e8d09ae))
+
 ## [2.10.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.9.0...v2.10.0) (2025-06-22)
 
 ### Features
