@@ -70,19 +70,17 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
 
       const client = createImapClient(credentials, mockLogger, true);
 
-      try {
-        // Act - connect() automatically authenticates in ImapFlow
-        await client.connect();
-        const mailboxes = await client.list();        
+      // Act - connect() automatically authenticates in ImapFlow
+      await client.connect();
+      const mailboxes = await client.list();        
 
-        // Assert
-        expect(client.authenticated).toBe(true);
-        expect(mailboxes).toBeDefined();
-        expect(mailboxes.length).toBeGreaterThan(0);
-      } finally {
-        // Cleanup
-        await client.close();
-      }
+      // Assert
+      expect(client.authenticated).toBe(true);
+      expect(mailboxes).toBeDefined();
+      expect(mailboxes.length).toBeGreaterThan(0);
+      
+      // Cleanup
+      await client.close();
     });
 
     it('should successfully connect to IMAP server without TLS', async () => {
@@ -91,16 +89,14 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
       const credentials = greenmail.getCredentials('user2@test.com', false);
       const client = createImapClient(credentials, mockLogger, false);
 
-      try {
-        // Act
-        await client.connect();
+      // Act
+      await client.connect();
 
-        // Assert
-        expect(client.secureConnection).toBe(false); // Non-TLS connection
-      } finally {
-        // Cleanup
-        await client.close();
-      }
+      // Assert
+      expect(client.secureConnection).toBe(false); // Non-TLS connection
+      
+      // Cleanup
+      await client.close();
     });
 
     it('should handle connection to non-existent server gracefully', async () => {
@@ -184,16 +180,14 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
       const credentials = greenmail.getCredentials(testUser.email, false);
       const client = createImapClient(credentials, mockLogger, false);
 
-      try {
-        // Act
-        await client.connect();
-        
-        // Assert
-        expect(client.authenticated).toBe(true);
-      } finally {
-        // Cleanup
-        await client.close();
-      }
+      // Act
+      await client.connect();
+      
+      // Assert
+      expect(client.authenticated).toBe(true);
+      
+      // Cleanup
+      await client.close();
     });
 
   });
@@ -205,20 +199,18 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
       const credentials = greenmail.getCredentials('logger-test@example.com', false);
       const client = createImapClient(credentials, mockLogger, true);
 
-      try {
-        // Act
-        await client.connect();
+      // Act
+      await client.connect();
 
-        // Assert - Logger should have been called with debug/info messages
-        // Note: The exact calls depend on ImapFlow internals
-        expect(
-          mockLogger.info.mock.calls.length > 0 || 
-          mockLogger.debug.mock.calls.length > 0
-        ).toBe(true);
-      } finally {
-        // Cleanup
-        await client.close();
-      }
+      // Assert - Logger should have been called with debug/info messages
+      // Note: The exact calls depend on ImapFlow internals
+      expect(
+        mockLogger.info.mock.calls.length > 0 || 
+        mockLogger.debug.mock.calls.length > 0
+      ).toBe(true);
+      
+      // Cleanup
+      await client.close();
     });
 
     it('should not log debug messages when debug logs are disabled', async () => {
@@ -228,18 +220,16 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
       const debugMockLogger = createMockLogger();
       const client = createImapClient(credentials, debugMockLogger, false);
 
-      try {
-        // Act
-        await client.connect();
+      // Act
+      await client.connect();
 
-        // Assert - Debug/info should not be called when debug is disabled
-        // Errors might still be logged
-        expect(debugMockLogger.info.mock.calls.length).toBe(0);
-        expect(debugMockLogger.debug.mock.calls.length).toBe(0);
-      } finally {
-        // Cleanup
-        await client.close();
-      }
+      // Assert - Debug/info should not be called when debug is disabled
+      // Errors might still be logged
+      expect(debugMockLogger.info.mock.calls.length).toBe(0);
+      expect(debugMockLogger.debug.mock.calls.length).toBe(0);
+      
+      // Cleanup
+      await client.close();
     });
   });
 
@@ -280,20 +270,18 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
       const client1 = createImapClient(credentials1, mockLogger, false);
       const client2 = createImapClient(credentials2, mockLogger, false);
 
-      try {
-        // Act
-        await client1.connect();
-        await client2.connect();
+      // Act
+      await client1.connect();
+      await client2.connect();
 
-        // Assert
-        expect(client1.authenticated).toBe(true);
-        expect(client2.authenticated).toBe(true);
-        expect(client1).not.toBe(client2);
-      } finally {
-        // Cleanup
-        await client1.logout();
-        await client2.logout();
-      }
+      // Assert
+      expect(client1.authenticated).toBe(true);
+      expect(client2.authenticated).toBe(true);
+      expect(client1).not.toBe(client2);
+      
+      // Cleanup
+      await client1.logout();
+      await client2.logout();
     });
   });
 
