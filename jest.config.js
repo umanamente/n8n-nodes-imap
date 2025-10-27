@@ -33,7 +33,6 @@ module.exports = {
     'lcov', 
     'html',
     ['text', { file: 'coverage.txt' }],
-
   ],
   verbose: true,
   setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
