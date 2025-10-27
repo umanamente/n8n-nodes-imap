@@ -2,6 +2,10 @@
 // uncomment if Greenmail tests are failing due to Greenmail container instability
 // process.env.SKIP_GREENMAIL_TESTS = 'true';
 
+// uncomment to enable Greenmail debug logs
+// process.env.DEBUG_GREENMAIL = 'true';
+
+
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
