@@ -1,3 +1,11 @@
+## [2.12.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.11.0...v2.12.0) (2025-10-28)
+
+### Features
+
+* added "N8N_NODES_DEBUG_ENABLED=true" env to enable debug output in the node ([126dfce](https://github.com/umanamente/n8n-nodes-imap/commit/126dfcef7552639008545d8c4546ba1e3405a8a4))
+* enabled testing IMAP credentials ([ad36fce](https://github.com/umanamente/n8n-nodes-imap/commit/ad36fced71ca022a1743c2b644db5887af1c3cda))
+* updated Imapflow version to 1.1.1 ([134cecb](https://github.com/umanamente/n8n-nodes-imap/commit/134cecbe56b348da3e576f056a6cf424c82b9f1d))
+
 ## [2.11.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.10.0...v2.11.0) (2025-10-27)
 
 ### Features
