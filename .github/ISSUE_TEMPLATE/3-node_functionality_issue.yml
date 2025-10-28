@@ -1,4 +1,4 @@
-name: ⚙️ N8N Node Functionality Issue
+name: ❌ n8n-nodes-imap Node Functionality Issue
 description: Report issues with the n8n IMAP node functionality, operations, or workflow integration
 title: "[Node Issue]: "
 labels: ["possible_bug"]
@@ -7,7 +7,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## ⚙️ N8N Node Functionality Issue
+        ## ❌ n8n-nodes-imap Node Functionality Issue
         
         Thank you for reporting an issue! This template is for problems specifically related to:
         - Node operations not working as expected

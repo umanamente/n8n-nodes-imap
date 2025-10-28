@@ -1,11 +1,14 @@
 blank_issues_enabled: false
 contact_links:
-  - name: 💬 Questions and General Help
-    url: https://community.n8n.io/
-    about: For questions and general help, please use the n8n community forum
-  - name: 📖 Documentation
-    url: https://docs.n8n.io/integrations/community-nodes/
-    about: Check the official n8n documentation for community nodes
-  - name: 🐛 Report n8n Core Issues
+  - name: ❌ Report n8n Core Issues
     url: https://github.com/n8n-io/n8n/issues
     about: For issues with n8n core functionality, please report to the main n8n repository
+  - name: 💬 n8n-nodes-imap Questions
+    url: https://github.com/umanamente/n8n-nodes-imap/discussions/categories/q-a
+    about: For questions specific to the n8n-nodes-imap package, please use the discussions section of this repository
+  - name: 💬 N8N Questions and General Help
+    url: https://community.n8n.io/
+    about: For questions and general help, please use the n8n community forum
+  - name: 📖 N8N Documentation
+    url: https://docs.n8n.io/integrations/community-nodes/
+    about: Check the official n8n documentation for community nodes

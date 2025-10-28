@@ -1,4 +1,4 @@
-name: 🔐 IMAP Server Connection Issue
+name: ❌ Issue related to IMAP Server
 description: Report issues related to IMAP server authentication, connection, or server-specific operations
 title: "[IMAP issue]: "
 labels: ["possible_bug"]
@@ -7,8 +7,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## 🔐 Issue related to IMAP Server
-        
+        ## ❌ Issue related to IMAP Server
+
         Thank you for reporting an issue! This template is for problems specifically related to:
         - IMAP server authentication failures
         - Connection issues with specific IMAP servers
