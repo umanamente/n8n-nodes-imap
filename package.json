@@ -62,7 +62,7 @@
     "prettier": "^3.5.3",
     "semantic-release": "^24.2.5",
     "ts-jest": "^29.4.5",
-    "typescript": "~5.8.3"
+    "typescript": "~5.5.4"
   },
   "peerDependencies": {
     "n8n-workflow": "*"
