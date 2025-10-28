@@ -68,15 +68,11 @@ module.exports = {
       moduleFileExtensions: ['ts', 'js', 'json'],
     },
     {
-      displayName: 'Other',
+      displayName: 'UnitTests',
       preset: 'ts-jest',
       testEnvironment: 'node',
-      testMatch: ['<rootDir>/test/**/*.test.ts', '<rootDir>/credentials/**/*.test.ts', '<rootDir>/nodes/**/*.test.ts'],
+      testMatch: ['<rootDir>/test/UnitTests/**/*.test.ts'],
       testPathIgnorePatterns: [
-        '/node_modules/',
-        '/dist/',
-        '/test/WithGreenmail/', 
-        '/test/WithImapflowMock/'
       ],
       setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
       transform: {
@@ -86,5 +82,28 @@ module.exports = {
       },
       moduleFileExtensions: ['ts', 'js', 'json'],
     },
+    {
+      displayName: 'DebugMode',
+      preset: 'ts-jest',
+      testEnvironment: 'node',
+      testMatch: [
+        '<rootDir>/test/UnitTests/**/*.test.ts',
+        '<rootDir>/test/WithImapflowMock/**/*.test.ts',
+      ],
+      testPathIgnorePatterns: [
+        // debug mode suppresses errors, so ignore tests that expect errors
+        '<rootDir>/test/UnitTests/ImapNodeExceptions.test.ts',
+      ],      
+      setupFilesAfterEnv: [
+        '<rootDir>/test/setup.withDebug.ts',
+        '<rootDir>/test/WithImapflowMock/setup.ts',
+      ],
+      transform: {
+        '^.+\\.ts$': ['ts-jest', {
+          tsconfig: 'tsconfig.test.json',
+        }],
+      },
+      moduleFileExtensions: ['ts', 'js', 'json'],
+    }
   ],
 };

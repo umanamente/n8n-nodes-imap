@@ -33,6 +33,7 @@ describe('MailboxGetStatus', () => {
       // Act
       const result = await getMailboxStatusOperation.executeImapAction(
         context as IExecuteFunctions,
+        context.logger!,
         ITEM_INDEX,
         mockImapflow
       );
@@ -69,6 +70,7 @@ describe('MailboxGetStatus', () => {
       // Act
       const result = await getMailboxStatusOperation.executeImapAction(
         context as IExecuteFunctions,
+        context.logger!,
         ITEM_INDEX,
         mockImapflow
       );
@@ -95,6 +97,7 @@ describe('MailboxGetStatus', () => {
       // Act
       const result = await getMailboxStatusOperation.executeImapAction(
         context as IExecuteFunctions,
+        context.logger!,
         ITEM_INDEX,
         mockImapflow
       );
@@ -120,6 +123,7 @@ describe('MailboxGetStatus', () => {
       await expect(
         getMailboxStatusOperation.executeImapAction(
           context as IExecuteFunctions,
+          context.logger!,
           ITEM_INDEX,
           mockImapflow
         )

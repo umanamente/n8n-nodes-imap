@@ -45,7 +45,7 @@ describe('EmailDelete operation', () => {
     mockClient.mailboxOpen.mockResolvedValue({ path: MAILBOX_PATH } as MailboxObject);
     mockClient.messageDelete.mockResolvedValue(true as any);
 
-    const result = await deleteEmailOperation.executeImapAction(mockContext, ITEM_INDEX, mockClient);
+    const result = await deleteEmailOperation.executeImapAction(mockContext, mockContext.logger, ITEM_INDEX, mockClient);
 
     expect(mockClient.mailboxOpen).toHaveBeenCalledWith(MAILBOX_PATH, { readOnly: false });
     expect(mockClient.messageDelete).toHaveBeenCalledWith(EMAIL_UID, { uid: true });
@@ -64,7 +64,7 @@ describe('EmailDelete operation', () => {
     mockClient.messageDelete.mockResolvedValue(false as any);
 
     await expect(
-      deleteEmailOperation.executeImapAction(mockContext, ITEM_INDEX, mockClient),
+      deleteEmailOperation.executeImapAction(mockContext, mockContext.logger, ITEM_INDEX, mockClient),
     ).rejects.toThrow(NodeImapError);
   });
 });

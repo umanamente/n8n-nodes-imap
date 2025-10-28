@@ -1,6 +1,6 @@
 import { ImapFlow } from 'imapflow';
 import * as nodemailer from 'nodemailer';
-import { IExecuteFunctions, INodeExecutionData, NodeApiError } from "n8n-workflow";
+import { IExecuteFunctions, INodeExecutionData, NodeApiError, Logger as N8nLogger } from "n8n-workflow";
 import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from '../../../utils/SearchFieldParameters';
 import { ImapFlowErrorCatcher, NodeImapError } from '../../../utils/ImapUtils';
@@ -132,7 +132,7 @@ export const createDraftOperation: IResourceOperationDef = {
     },
   ],
 
-  async executeImapAction(context: IExecuteFunctions, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
+  async executeImapAction(context: IExecuteFunctions, logger: N8nLogger, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
     var returnData: INodeExecutionData[] = [];
 
     const destinationMailboxPath = getMailboxPathFromNodeParameter(context, itemIndex, PARAM_NAME_DESTINATION_MAILBOX);

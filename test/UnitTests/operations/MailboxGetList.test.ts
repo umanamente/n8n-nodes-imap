@@ -45,6 +45,7 @@ describe('MailboxGetList', () => {
       // Act
       const result = await getMailboxListOperation.executeImapAction(
         mockContext,
+        mockContext.logger,
         ITEM_INDEX,
         mockClient
       );
@@ -78,6 +79,7 @@ describe('MailboxGetList', () => {
       // Act
       const result = await getMailboxListOperation.executeImapAction(
         mockContext,
+        mockContext.logger,
         ITEM_INDEX,
         mockClient
       );
@@ -105,6 +107,7 @@ describe('MailboxGetList', () => {
       // Act
       await getMailboxListOperation.executeImapAction(
         mockContext,
+        mockContext.logger,
         ITEM_INDEX,
         mockClient
       );
@@ -142,6 +145,7 @@ describe('MailboxGetList', () => {
       // Act
       const result = await getMailboxListOperation.executeImapAction(
         mockContext,
+        mockContext.logger,
         ITEM_INDEX,
         mockClient
       );
@@ -174,6 +178,7 @@ describe('MailboxGetList', () => {
       // Act
       const result = await getMailboxListOperation.executeImapAction(
         mockContext,
+        mockContext.logger,
         ITEM_INDEX,
         mockClient
       );
@@ -203,6 +208,7 @@ describe('MailboxGetList', () => {
       // Act
       const result = await getMailboxListOperation.executeImapAction(
         mockContext,
+        mockContext.logger,
         ITEM_INDEX,
         mockClient
       );
@@ -228,6 +234,7 @@ describe('MailboxGetList', () => {
       // Act
       const result = await getMailboxListOperation.executeImapAction(
         mockContext,
+        mockContext.logger,
         ITEM_INDEX,
         mockClient
       );
@@ -253,6 +260,7 @@ describe('MailboxGetList', () => {
       // Act
       const result = await getMailboxListOperation.executeImapAction(
         mockContext,
+        mockContext.logger,
         ITEM_INDEX,
         mockClient
       );
@@ -273,7 +281,7 @@ describe('MailboxGetList', () => {
 
       // Act & Assert
       await expect(
-        getMailboxListOperation.executeImapAction(mockContext, ITEM_INDEX, mockClient)
+        getMailboxListOperation.executeImapAction(mockContext, mockContext.logger, ITEM_INDEX, mockClient)
       ).rejects.toThrow('IMAP connection error');
     });
 
@@ -285,7 +293,7 @@ describe('MailboxGetList', () => {
 
       // Act & Assert
       await expect(
-        getMailboxListOperation.executeImapAction(mockContext, ITEM_INDEX, mockClient)
+        getMailboxListOperation.executeImapAction(mockContext, mockContext.logger, ITEM_INDEX, mockClient)
       ).rejects.toThrow('Network timeout');
     });
   });
@@ -300,6 +308,7 @@ describe('MailboxGetList', () => {
       // Act
       await getMailboxListOperation.executeImapAction(
         mockContext,
+        mockContext.logger,
         customIndex,
         mockClient
       );
@@ -319,6 +328,7 @@ describe('MailboxGetList', () => {
       // Act
       await getMailboxListOperation.executeImapAction(
         mockContext,
+        mockContext.logger,
         0,
         mockClient
       );
@@ -367,6 +377,7 @@ describe('MailboxGetList', () => {
       // Act
       const result = await getMailboxListOperation.executeImapAction(
         mockContext,
+        mockContext.logger,
         ITEM_INDEX,
         mockClient
       );
@@ -390,6 +401,7 @@ describe('MailboxGetList', () => {
       // Act
       const result = await getMailboxListOperation.executeImapAction(
         mockContext,
+        mockContext.logger,
         ITEM_INDEX,
         mockClient
       );

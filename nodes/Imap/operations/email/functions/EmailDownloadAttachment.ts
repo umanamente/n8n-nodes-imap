@@ -1,5 +1,5 @@
 import { DownloadObject, FetchQueryObject, ImapFlow } from "imapflow";
-import { IExecuteFunctions, INodeExecutionData } from "n8n-workflow";
+import { IExecuteFunctions, INodeExecutionData, Logger as N8nLogger } from "n8n-workflow";
 import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from "../../../utils/SearchFieldParameters";
 import { ImapFlowErrorCatcher, NodeImapError } from "../../../utils/ImapUtils";
@@ -60,7 +60,7 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
       },
     }
   ],
-  async executeImapAction(context: IExecuteFunctions, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
+  async executeImapAction(context: IExecuteFunctions, logger: N8nLogger, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
 
     var returnItem: INodeExecutionData = {
       json: {},
@@ -96,7 +96,7 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
       if (emailInfo.bodyStructure) {
         const partsInfo = getEmailPartsInfoRecursive(context, emailInfo.bodyStructure);
         for (const partInfo of partsInfo) {
-          context.logger.debug(`Attachment part info: ${JSON.stringify(partInfo)}`);
+          logger.debug(`Attachment part info: ${JSON.stringify(partInfo)}`);
           if (partInfo.disposition === 'attachment') {
             // regular attachment
             partsToDownload.push(partInfo.partId);
@@ -106,24 +106,24 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
           }
         }
       } else{
-        context.logger.warn(`IMAP server has not returned email body structure for email "${emailUid}"`);
+        logger.warn(`IMAP server has not returned email body structure for email "${emailUid}"`);
       }
       if (partsToDownload.length > 0) {
-        context.logger.info(`Downloading all attachments from email "${emailUid}": ${partsToDownload.join(', ')}`);
+        logger.info(`Downloading all attachments from email "${emailUid}": ${partsToDownload.join(', ')}`);
       } else {
-        context.logger.warn(`Email "${emailUid}" does not have any attachments`);
+        logger.warn(`Email "${emailUid}" does not have any attachments`);
       }
     } else {
       const partId = context.getNodeParameter('partId', itemIndex) as string;
       // split by comma and remove spaces
       const parts = partId.split(',').map((part) => part.trim());
       partsToDownload.push(...parts);
-      context.logger.info(`Downloading some attachments from email "${emailUid}": ${partsToDownload.join(', ')}`);
+      logger.info(`Downloading some attachments from email "${emailUid}": ${partsToDownload.join(', ')}`);
     }
 
     for (const partId of partsToDownload) {
 
-      context.logger.info(`Downloading attachment "${partId}" from email "${emailUid}"`);
+      logger.info(`Downloading attachment "${partId}" from email "${emailUid}"`);
 
 
       // start catching errors
@@ -145,7 +145,7 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
       }
 
       const binaryData = await context.helpers.prepareBinaryData(resp.content, resp.meta.filename, resp.meta.contentType);
-      context.logger.info(`Attachment downloaded: ${binaryData.data.length} bytes`);
+      logger.info(`Attachment downloaded: ${binaryData.data.length} bytes`);
 
       const fieldName = `attachment_${attachmentCounter}`;
       attachmentCounter++;

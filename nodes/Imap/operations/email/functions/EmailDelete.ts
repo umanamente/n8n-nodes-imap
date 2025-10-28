@@ -1,5 +1,5 @@
 import { ImapFlow } from 'imapflow';
-import { IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';
+import { IExecuteFunctions, INodeExecutionData, Logger as N8nLogger } from 'n8n-workflow';
 import { IResourceOperationDef } from '../../../utils/CommonDefinitions';
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from '../../../utils/SearchFieldParameters';
 import { ImapFlowErrorCatcher, NodeImapError } from '../../../utils/ImapUtils';
@@ -27,6 +27,7 @@ export const deleteEmailOperation: IResourceOperationDef = {
   ],
   async executeImapAction(
     context: IExecuteFunctions,
+    logger: N8nLogger,
     itemIndex: number,
     client: ImapFlow,
   ): Promise<INodeExecutionData[] | null> {
@@ -35,7 +36,7 @@ export const deleteEmailOperation: IResourceOperationDef = {
     const mailboxPath = getMailboxPathFromNodeParameter(context, itemIndex);
     const emailUid = context.getNodeParameter('emailUid', itemIndex) as string;
 
-    context.logger.info(`Deleting email "${emailUid}" from "${mailboxPath}"`);
+    logger.info(`Deleting email "${emailUid}" from "${mailboxPath}"`);
 
     await client.mailboxOpen(mailboxPath, { readOnly: false });
 

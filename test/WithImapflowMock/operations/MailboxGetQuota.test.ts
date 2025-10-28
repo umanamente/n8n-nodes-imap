@@ -33,6 +33,7 @@ describe('MailboxGetQuota', () => {
       // Act
       const result = await getMailboxQuotaOperation.executeImapAction(
         context as IExecuteFunctions,
+        context.logger!,
         ITEM_INDEX,
         mockImapflow
       );
@@ -63,6 +64,7 @@ describe('MailboxGetQuota', () => {
       // Act
       const result = await getMailboxQuotaOperation.executeImapAction(
         context as IExecuteFunctions,
+        context.logger!,
         ITEM_INDEX,
         mockImapflow
       );

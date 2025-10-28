@@ -1,4 +1,4 @@
-import { IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';
+import { IExecuteFunctions, INodeExecutionData, Logger as N8nLogger } from 'n8n-workflow';
 import { ImapFlow, StatusObject } from 'imapflow';
 import { IResourceOperationDef } from '../../../utils/CommonDefinitions';
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from '../../../utils/SearchFieldParameters';
@@ -15,7 +15,7 @@ export const getMailboxStatusOperation: IResourceOperationDef = {
       description: 'Select the mailbox',
     },
   ],
-  async executeImapAction(context: IExecuteFunctions, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
+  async executeImapAction(context: IExecuteFunctions, logger: N8nLogger, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
     var returnData: INodeExecutionData[] = [];
     var statusQuery = {
       messages: true,

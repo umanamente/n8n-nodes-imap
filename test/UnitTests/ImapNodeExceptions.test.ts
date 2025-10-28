@@ -233,7 +233,7 @@ describe('Imap Node - exceptions handling', () => {
       const resultData = await imap.execute.call(context as IExecuteFunctions);
 
       // Assert
-      expect(resultData).toHaveLength(1);
+      expect(resultData.length).toBeGreaterThanOrEqual(1);
       expect(resultData[0]).toHaveLength(0);
     });
   });

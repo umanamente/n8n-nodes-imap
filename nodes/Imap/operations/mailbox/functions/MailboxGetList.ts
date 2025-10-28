@@ -1,4 +1,4 @@
-import { IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';
+import { IExecuteFunctions, INodeExecutionData, Logger as N8nLogger } from 'n8n-workflow';
 import { ImapFlow } from 'imapflow';
 import { IResourceOperationDef } from '../../../utils/CommonDefinitions';
 
@@ -59,9 +59,9 @@ export const getMailboxListOperation: IResourceOperationDef = {
     },
 
   ],
-  async executeImapAction(context: IExecuteFunctions, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
+  async executeImapAction(context: IExecuteFunctions, logger: N8nLogger, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
     var returnData: INodeExecutionData[] = [];
-    context.logger.info("includeStatusFields: " + context.getNodeParameter('includeStatusFields', itemIndex) as string);
+    logger.info("includeStatusFields: " + context.getNodeParameter('includeStatusFields', itemIndex) as string);
     const includeStatusFields = context.getNodeParameter('includeStatusFields', itemIndex) as string[];
     var statusQuery = {
       messages: includeStatusFields.includes(MailboxListStatusFields.includeMessageCount),
@@ -75,13 +75,13 @@ export const getMailboxListOperation: IResourceOperationDef = {
       statusQuery: statusQuery,
     });
     for (const mailbox of mailboxes) {
-      context.logger.info(`  ${mailbox.path}`);
+      logger.info(`  ${mailbox.path}`);
       var item_json = {
         path: mailbox.path,
         name: mailbox.name,
         status: mailbox.status,
       };
-      context.logger.info(`  ${JSON.stringify(item_json)}`);
+      logger.info(`  ${JSON.stringify(item_json)}`);
       returnData.push({
         json: item_json,
       });

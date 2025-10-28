@@ -1,4 +1,5 @@
 import { Logger as N8nLogger, IExecuteFunctions, INodeProperties } from 'n8n-workflow';
+import { ImapNodeDebugParameters, ImapNodeDebugUtils } from '../../nodes/Imap/utils/debug/ImapNodeDebugUtils';
 
 /**
  * Creates a mock N8n logger for testing purposes.
@@ -54,18 +55,29 @@ export const createNodeParametersCheckerMock = (
   properties: INodeProperties[],
   mockValues: Record<string, any> = {}
 ): Partial<jest.Mocked<IExecuteFunctions>> => {
+  // always include debug parameters if debug utils are enabled
+  const debugParameterNames = ImapNodeDebugUtils.GetDebugNodeProperties().map(prop => prop.name);
+  const mockDebugValues: ImapNodeDebugParameters|{} =  ImapNodeDebugUtils.ImapNodeDebugUtilsEnabled() ? {
+    debugOutputFormats: ['logAsText', 'logAsJson'],
+    debugEnableDebugImapLogs: false,
+  } : {};
+
   const parameterNames = new Set(properties.map(prop => prop.name));
+
+  const allParameterNames = new Set([...parameterNames, ...debugParameterNames]);
+
+  const allValues: Record<string, any> = { ...mockValues, ...mockDebugValues };
   
   const getNodeParameterMock = jest.fn((parameterName: string, itemIndex: number) => {
-    if (!parameterNames.has(parameterName)) {
+    if (!allParameterNames.has(parameterName)) {
       throw new Error(
         `Parameter '${parameterName}' not found in node properties. ` +
-        `Available parameters: ${Array.from(parameterNames).join(', ')}`
+        `Available parameters: ${Array.from(allParameterNames).join(', ')}`
       );
     }
     // if a mock value is provided for this parameter, return it
-    if (parameterName in mockValues) {
-      const value = mockValues[parameterName];
+    if (parameterName in allValues) {
+      const value = allValues[parameterName];
       if (typeof value === 'function') {
         return value(itemIndex);
       }

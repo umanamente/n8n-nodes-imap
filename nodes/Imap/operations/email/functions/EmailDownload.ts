@@ -1,5 +1,5 @@
 import { FetchQueryObject, ImapFlow } from "imapflow";
-import { IBinaryKeyData, IDataObject, IExecuteFunctions, INodeExecutionData } from "n8n-workflow";
+import { IBinaryKeyData, IDataObject, IExecuteFunctions, INodeExecutionData, Logger as N8nLogger } from "n8n-workflow";
 import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from "../../../utils/SearchFieldParameters";
 import { ImapFlowErrorCatcher, NodeImapError } from '../../../utils/ImapUtils';
@@ -45,7 +45,7 @@ export const downloadOperation: IResourceOperationDef = {
     },
 
   ],
-  async executeImapAction(context: IExecuteFunctions, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
+  async executeImapAction(context: IExecuteFunctions, logger: N8nLogger, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
     const mailboxPath = getMailboxPathFromNodeParameter(context, itemIndex);
 
     await client.mailboxOpen(mailboxPath, { readOnly: true });

@@ -1,5 +1,5 @@
 import { ImapFlow } from "imapflow";
-import { IExecuteFunctions, INodeExecutionData } from "n8n-workflow";
+import { IExecuteFunctions, INodeExecutionData, Logger as N8nLogger } from "n8n-workflow";
 import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from '../../../utils/SearchFieldParameters';
 import { ImapFlowErrorCatcher, NodeImapError } from "../../../utils/ImapUtils";
@@ -36,7 +36,7 @@ export const moveEmailOperation: IResourceOperationDef = {
       name: PARAM_NAME_DESTINATION_MAILBOX,
     },
   ],
-  async executeImapAction(context: IExecuteFunctions, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
+  async executeImapAction(context: IExecuteFunctions, logger: N8nLogger, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
     var returnData: INodeExecutionData[] = [];
 
     const sourceMailboxPath = getMailboxPathFromNodeParameter(context, itemIndex, PARAM_NAME_SOURCE_MAILBOX);
@@ -44,7 +44,7 @@ export const moveEmailOperation: IResourceOperationDef = {
 
     const emailUid = context.getNodeParameter('emailUid', itemIndex) as string;
 
-    context.logger?.info(`Moving email "${emailUid}" from "${sourceMailboxPath}" to "${destinationMailboxPath}"`);
+    logger?.info(`Moving email "${emailUid}" from "${sourceMailboxPath}" to "${destinationMailboxPath}"`);
 
     await client.mailboxOpen(sourceMailboxPath, { readOnly: false });
 

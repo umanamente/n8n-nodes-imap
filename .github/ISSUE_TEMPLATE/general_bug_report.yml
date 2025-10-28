@@ -101,9 +101,12 @@ body:
       description: |
         Please provide any relevant logs. To get n8n logs:
         1. Set N8N_LOG_LEVEL=debug in your environment variables
-        2. Reproduce the issue
-        3. Check n8n logs in your console or log files
-        4. Copy relevant log entries here
+        2. **Enable IMAP node debug mode**: Set N8N_NODES_DEBUG_ENABLED=true in your environment variables
+        3. Reproduce the issue
+        4. Check n8n logs in your console or log files
+        5. Copy relevant log entries here
+        
+        **Note:** When N8N_NODES_DEBUG_ENABLED=true is set, the IMAP node will create a "debug" output with detailed logs and additional debug capabilities.
         
         **Important:** Remove any sensitive information like passwords, tokens, or personal data!
       placeholder: "Paste relevant log entries here (remove sensitive information)"
@@ -163,6 +166,7 @@ body:
         - label: I have searched N8N documentation and community forums for similar issues
         - label: I have tried restarting my n8n instance
         - label: I have checked the n8n logs for additional error information
+        - label: I have enabled debug mode by setting N8N_NODES_DEBUG_ENABLED=true
         - label: I have verified I'm using a recent version of n8n        
 
   - type: textarea

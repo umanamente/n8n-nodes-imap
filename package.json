@@ -19,8 +19,8 @@
   "scripts": {
     "build": "tsc && gulp build:icons",
     "dev": "tsc --watch",
-    "run-dev": "npm run build && cross-env N8N_LOG_LEVEL=debug n8n start",
-    "run-dev-tunnel": "npm run build && cross-env N8N_LOG_LEVEL=debug n8n start --tunnel",
+    "run-dev": "npm run build && cross-env N8N_NODES_DEBUG_ENABLED=true N8N_LOG_LEVEL=debug n8n start",
+    "run-dev-tunnel": "npm run build && cross-env N8N_NODES_DEBUG_ENABLED=true N8N_LOG_LEVEL=debug n8n start --tunnel",
     "format": "prettier nodes credentials --write",
     "lint": "eslint nodes credentials package.json",
     "lintfix": "eslint nodes credentials package.json --fix",

@@ -1,4 +1,4 @@
-import { IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';
+import { IExecuteFunctions, INodeExecutionData, Logger as N8nLogger } from 'n8n-workflow';
 import { ImapFlow, MailboxCreateResponse } from 'imapflow';
 import { IResourceOperationDef } from '../../../utils/CommonDefinitions';
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from '../../../utils/SearchFieldParameters';
@@ -37,7 +37,7 @@ export const createMailboxOperation: IResourceOperationDef = {
       required: true,
     },
   ],
-  async executeImapAction(context: IExecuteFunctions, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
+  async executeImapAction(context: IExecuteFunctions, logger: N8nLogger, itemIndex: number, client: ImapFlow): Promise<INodeExecutionData[] | null> {
     var returnData: INodeExecutionData[] = [];
     const mailboxPath = getMailboxPathFromNodeParameter(context, itemIndex);
     const mailboxName = context.getNodeParameter('mailboxName', itemIndex) as string;
@@ -48,7 +48,7 @@ export const createMailboxOperation: IResourceOperationDef = {
     } else {
       resultPath = mailboxName;
     }
-    context.logger.info(`Creating mailbox "${resultPath}"`);
+    logger.info(`Creating mailbox "${resultPath}"`);
 
     const mailboxCreateResp : MailboxCreateResponse = await client.mailboxCreate(resultPath);
     var item_json = JSON.parse(JSON.stringify(mailboxCreateResp));

@@ -62,7 +62,7 @@ describe('Imap Node - mocked ImapFlow', () => {
       expect(imap).toBeDefined();
       expect(imap).toBeInstanceOf(Imap);
 
-      expect(resultData).toHaveLength(1);
+      expect(resultData.length).toBeGreaterThanOrEqual(1);
       expect(resultData[0]).toHaveLength(1);
       expect(resultData?.[0]?.[0]?.json).toEqual(
         {

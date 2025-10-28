@@ -1,10 +1,10 @@
 import { ImapFlow } from "imapflow";
-import { IExecuteFunctions, INodeExecutionData, INodeProperties, INodePropertyOptions, NodeExecutionWithMetadata } from "n8n-workflow";
+import { IExecuteFunctions, INodeExecutionData, INodeProperties, INodePropertyOptions, NodeExecutionWithMetadata, Logger as N8nLogger } from 'n8n-workflow';
 
 export interface IResourceOperationDef {
   operation: INodePropertyOptions;
   parameters: INodeProperties[];
-  executeImapAction: (context: IExecuteFunctions, itemIndex: number, client: ImapFlow) => Promise<INodeExecutionData[] | NodeExecutionWithMetadata[] | null>;
+  executeImapAction: (context: IExecuteFunctions, logger:N8nLogger, itemIndex: number, client: ImapFlow) => Promise<INodeExecutionData[] | NodeExecutionWithMetadata[] | null>;
 };
 
 export interface IResourceDef {

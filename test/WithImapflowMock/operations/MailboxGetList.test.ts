@@ -33,6 +33,7 @@ describe('MailboxGetList', () => {
       // Act
       const result = await getMailboxListOperation.executeImapAction(
         context as IExecuteFunctions,
+        context.logger!,
         ITEM_INDEX,
         mockImapflow
       );
