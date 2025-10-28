@@ -30,7 +30,7 @@ export class ImapNodeDebugUtils {
 
       // output formats
       {
-        displayName: "Output formats",
+        displayName: 'Output Formats',
         name: "debugOutputFormats",
         type: "multiOptions",
         placeholder: "Add Debug Output",
@@ -38,7 +38,7 @@ export class ImapNodeDebugUtils {
         default: ["logAsText", "logAsJson"],
         options: [
           {
-            name: "Log as text",
+            name: 'Log as Text',
             value: "logAsText",
           },
           {
@@ -49,11 +49,11 @@ export class ImapNodeDebugUtils {
       },
       // IMAP debug logs
       {
-        displayName: 'Enable debug IMAP logs',
+        displayName: 'Enable Debug IMAP Logs',
         name: 'debugEnableDebugImapLogs',
         type: 'boolean',
         default: true,
-        description: 'Enable debug logging for IMAP library (imapflow)',
+        description: 'Whether to enable debug logging for IMAP library (imapflow)',
       },
       // notice: debug options end
       {
