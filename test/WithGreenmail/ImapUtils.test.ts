@@ -19,6 +19,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
   jest.retryTimes(5, { 
     logErrorsBeforeRetry: true,
     waitBeforeRetry: 500,
+    retryImmediately: true,
   });
 
   beforeEach(() => {
