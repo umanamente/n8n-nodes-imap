@@ -30,6 +30,9 @@ module.exports = {
     //'\\.credentials\\.ts$',
     //'\\.node\\.ts$'
   ],
+  modulePathIgnorePatterns: [
+    '<rootDir>/dist/'
+  ],
   moduleFileExtensions: ['ts', 'js', 'json'],
   coverageDirectory: 'coverage',
   coverageReporters: [
