@@ -50,8 +50,21 @@ jobs:
           result-encoding: string
 
       - name: Jest Coverage Comment
+        id: coverage
         uses: MishaKav/jest-coverage-comment@main
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           coverage-path: ./coverage.txt
           issue-number: ${{ steps.pr-number.outputs.result }}
+
+      - name: Create Coverage Badge
+        if: github.event.workflow_run.head_branch == 'master'
+        uses: schneegans/dynamic-badges-action@v1.7.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: 3aec0274e0d5f029ab76a16627825c67
+          filename: n8n-nodes-imap-coverage-badge.svg
+          label: Coverage
+          message: ${{ steps.coverage.outputs.coverage }}%
+          color: ${{ steps.coverage.outputs.color }}
+          
