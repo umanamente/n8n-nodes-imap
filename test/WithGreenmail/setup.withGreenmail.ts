@@ -6,30 +6,19 @@
  * before all tests run and stopped after all tests complete.
  */
 
-import { GreenMailServer, shouldSkipGreenMailTests, GreenMailConfig } from '../TestUtils/Greenmail/greenmail';
+import { GreenMailServer, shouldSkipGreenMailTests, GreenMailConfig, getDefaultGreenMailConfig } from '../TestUtils/Greenmail/greenmail';
 import { GreenmailApi } from '../TestUtils/Greenmail/GreenmailApi';
 
 // Global greenmail config that will be shared across all tests
-const globalGreenmailConfig: GreenMailConfig = {
+export const globalGreenmailConfig: GreenMailConfig = getDefaultGreenMailConfig({
   // enableDebugLogs: true, // Uncomment for debugging
-};
+});
 
 // Global greenmail instance that will be shared across all tests
 let globalGreenmail: GreenMailServer | undefined;
 
 // Global greenmail API instance
 let globalGreenmailApi: GreenmailApi | undefined;
-
-/**
- * Get the global GreenMail instance
- * This should be called from test files to access the shared container
- */
-export function getGlobalGreenmail(): GreenMailServer {
-  if (!globalGreenmail) {
-    throw new Error('GreenMail server not initialized. This should not happen if setup is configured correctly.');
-  }
-  return globalGreenmail;
-}
 
 /**
  * Get the global GreenMail API instance
@@ -40,6 +29,14 @@ export function getGlobalGreenmailApi(): GreenmailApi {
     globalGreenmailApi = new GreenmailApi(globalGreenmailConfig);
   }
   return globalGreenmailApi;
+}
+
+/**
+ * Get the global GreenMail configuration with default values applied
+ * This should be called from test files to access the complete config
+ */
+export function getGlobalGreenmailConfig(): Required<GreenMailConfig> {
+  return getDefaultGreenMailConfig(globalGreenmailConfig);
 }
 
 /**

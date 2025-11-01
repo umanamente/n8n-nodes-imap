@@ -16,12 +16,12 @@ This approach improves test performance by avoiding the overhead of starting/sto
 To access the shared GreenMail instance in your tests:
 
 ```typescript
-import { getGlobalGreenmail } from './setup';
+import { getGlobalGreenmailApi } from './setup.withGreenmail';
 
 describe('My Test Suite', () => {
   it('should do something with IMAP', async () => {
-    const greenmail = getGlobalGreenmail();
-    const credentials = greenmail.getCredentials('user@test.com', false);
+    const greenmailApi = getGlobalGreenmailApi();
+    const credentials = greenmailApi.getCredentials('user@test.com', false);
     
     // Use credentials for your test...
   });
@@ -32,7 +32,7 @@ describe('My Test Suite', () => {
 
 The global setup is configured in `jest.config.js` using Jest's project feature:
 
-- Tests in `/test/WithGreenmail/` use `setup.ts` for initialization
+- Tests in `/test/WithGreenmail/` use `setup.withGreenmail.ts` for initialization
 - Tests in other directories use the standard `test/setup.ts`
 
 ## Environment Variables
@@ -51,18 +51,19 @@ The global setup is configured in `jest.config.js` using Jest's project feature:
 To add a new test file that uses GreenMail:
 
 1. Create your test file in `/test/WithGreenmail/`
-2. Import and use `getGlobalGreenmail()` from `./setup`
+2. Import and use `getGlobalGreenmailApi()` from `./setup.withGreenmail`
 3. The container will automatically be available
 
 Example:
 
 ```typescript
-import { getGlobalGreenmail } from './setup';
+import { getGlobalGreenmailApi } from './setup.withGreenmail';
 import { describeWithGreenMail } from '../TestUtils/Greenmail/greenmail';
 
 describeWithGreenMail('My New Test Suite', () => {
   it('should test something', async () => {
-    const greenmail = getGlobalGreenmail();
+    const greenmailApi = getGlobalGreenmailApi();
+    const credentials = greenmailApi.getCredentials('user@test.com', false);
     // Your test code here
   });
 });

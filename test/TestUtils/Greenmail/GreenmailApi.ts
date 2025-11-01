@@ -177,6 +177,10 @@ export class GreenmailApi {
       const error = await response.json() as ErrorResponse;
       throw new Error(`Failed to reset service: ${error.message}`);
     }
+
+    // wait for restart using readiness check
+    await this.waitForReadiness(30000, 500);    
+
     return response.json() as Promise<SuccessResponse>;
   }
 
@@ -199,17 +203,17 @@ export class GreenmailApi {
    * Waits for the service to be ready
    * @param timeoutMs Maximum time to wait in milliseconds
    * @param intervalMs Interval between checks in milliseconds
-   * @returns True if service becomes ready, false if timeout
+   * @throws Error if service doesn't become ready within timeout
    */
-  async waitForReadiness(timeoutMs: number = 30000, intervalMs: number = 500): Promise<boolean> {
+  async waitForReadiness(timeoutMs: number = 30000, intervalMs: number = 500): Promise<void> {
     const startTime = Date.now();
     while (Date.now() - startTime < timeoutMs) {
       if (await this.checkReadiness()) {
-        return true;
+        return;
       }
       await new Promise((resolve) => setTimeout(resolve, intervalMs));
     }
-    return false;
+    throw new Error(`GreenMail service did not become ready within ${timeoutMs}ms`);
   }
 
   /**

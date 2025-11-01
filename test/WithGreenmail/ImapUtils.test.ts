@@ -4,7 +4,7 @@ import { describeWithGreenMail } from '../TestUtils/Greenmail/greenmail';
 import { createMockLogger } from '../TestUtils/N8nMocks';
 import { Logger as N8nLogger } from 'n8n-workflow';
 import { ImapFlow } from 'imapflow';
-import { getGlobalGreenmail, getGlobalGreenmailApi } from './setup.withGreenmail';
+import { getGlobalGreenmailApi, globalGreenmailConfig } from './setup.withGreenmail';
 
 
 describeWithGreenMail('ImapUtils - createImapClient', () => {
@@ -295,10 +295,9 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
   describe('edge cases', () => {
     it('should handle empty user credentials', () => {
       // Arrange
-      const greenmail = getGlobalGreenmail();
       const credentials: ImapCredentialsData = {
-        host: greenmail.getHost(),
-        port: greenmail.getImapPort(),
+        host: globalGreenmailConfig.host!,
+        port: globalGreenmailConfig.imapPort!,
         user: '',
         password: '',
         tls: false,
@@ -312,9 +311,8 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
 
     it('should handle port 0', () => {
       // Arrange
-      const greenmail = getGlobalGreenmail();
       const credentials: ImapCredentialsData = {
-        host: greenmail.getHost(),
+        host: globalGreenmailConfig.host!,
         port: 0,
         user: 'test@example.com',
         password: 'password',
@@ -329,11 +327,10 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
 
     it('should handle very long hostnames', () => {
       // Arrange
-      const greenmail = getGlobalGreenmail();
       const longHostname = 'a'.repeat(255) + '.com';
       const credentials: ImapCredentialsData = {
         host: longHostname,
-        port: greenmail.getImapPort(),
+        port: globalGreenmailConfig.imapPort!,
         user: 'test@example.com',
         password: 'password',
         tls: false,
