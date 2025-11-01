@@ -3,6 +3,8 @@
  * Based on the Greenmail OpenAPI specification
  */
 
+import { GreenMailConfig } from './greenmail';
+
 export interface GreenmailConfiguration {
   defaultHostname: string;
   portOffset: number;
@@ -54,10 +56,12 @@ export class GreenmailApi {
 
   /**
    * Creates a new Greenmail API client
-   * @param baseUrl Base URL of the Greenmail service (e.g., 'http://localhost:8080')
+   * @param config GreenMail configuration object containing host and apiPort
    */
-  constructor(baseUrl: string) {
-    this.baseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+  constructor(config: GreenMailConfig) {
+    const host = config.host || 'localhost';
+    const apiPort = config.apiPort || 8080;
+    this.baseUrl = `http://${host}:${apiPort}`;
   }
 
   /**

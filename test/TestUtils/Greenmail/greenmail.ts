@@ -72,7 +72,7 @@ export class GreenMailServer {
       startupTimeout: config.startupTimeout || (process.env.GREENMAIL_STARTUP_TIMEOUT ? parseInt(process.env.GREENMAIL_STARTUP_TIMEOUT, 10) : 60000),
       enableDebugLogs: config.enableDebugLogs || !!process.env.DEBUG_GREENMAIL,
     };
-    this.apiClient = new GreenmailApi(`http://${this.config.host}:${this.config.apiPort}`);
+    this.apiClient = new GreenmailApi(this.config);
   }
 
   /**
