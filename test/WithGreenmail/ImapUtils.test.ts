@@ -16,9 +16,9 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
   //let mockLoggerVerbose: jest.Mocked<N8nLogger>;
 
   // Enable retries for tests that might be flaky due to Greenmail instability
-  jest.retryTimes(3, { 
+  jest.retryTimes(5, { 
     logErrorsBeforeRetry: true,
-    //waitBeforeRetry: 50,
+    waitBeforeRetry: 50,
   });
 
   beforeEach(() => {
