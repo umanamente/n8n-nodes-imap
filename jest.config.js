@@ -46,7 +46,7 @@ module.exports = {
       preset: 'ts-jest',
       testEnvironment: 'node',
       testMatch: ['<rootDir>/test/WithGreenmail/**/*.test.ts'],
-      setupFilesAfterEnv: ['<rootDir>/test/WithGreenmail/setup.ts'],
+      setupFilesAfterEnv: ['<rootDir>/test/WithGreenmail/setup.withGreenmail.ts'],
       transform: {
         '^.+\\.ts$': ['ts-jest', {
           tsconfig: 'tsconfig.test.json',
