@@ -46,14 +46,10 @@ jobs:
         with:
           script: |
             const pullRequests = context.payload.workflow_run.pull_requests;
-            if (pullRequests && pullRequests.length > 0) {
-              return pullRequests[0].number;
-            }
-            return null;
+            return pullRequests && pullRequests.length > 0 ? pullRequests[0].number : '';
           result-encoding: string
 
       - name: Jest Coverage Comment
-        if: steps.pr-number.outputs.result != 'null'
         uses: MishaKav/jest-coverage-comment@main
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
