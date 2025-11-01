@@ -30,6 +30,9 @@ module.exports = {
     //'\\.credentials\\.ts$',
     //'\\.node\\.ts$'
   ],
+  modulePathIgnorePatterns: [
+    '<rootDir>/dist/'
+  ],
   moduleFileExtensions: ['ts', 'js', 'json'],
   coverageDirectory: 'coverage',
   coverageReporters: [
@@ -46,13 +49,16 @@ module.exports = {
       preset: 'ts-jest',
       testEnvironment: 'node',
       testMatch: ['<rootDir>/test/WithGreenmail/**/*.test.ts'],
-      setupFilesAfterEnv: ['<rootDir>/test/WithGreenmail/setup.ts'],
+      globalSetup: '<rootDir>/test/WithGreenmail/globalSetup.ts',
+      globalTeardown: '<rootDir>/test/WithGreenmail/globalTeardown.ts',
+      setupFilesAfterEnv: ['<rootDir>/test/WithGreenmail/setup.withGreenmail.ts'],
       transform: {
         '^.+\\.ts$': ['ts-jest', {
           tsconfig: 'tsconfig.test.json',
         }],
       },
       moduleFileExtensions: ['ts', 'js', 'json'],
+      maxWorkers: 1, // Force serial execution for GreenMail tests
     },
     {
       displayName: 'WithImapflowMock',

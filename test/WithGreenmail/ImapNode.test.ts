@@ -7,12 +7,13 @@
 
 import { IExecuteFunctions } from 'n8n-workflow';
 import { Imap } from '../../nodes/Imap/Imap.node';
-import { describeWithGreenMail, GreenMailServer } from '../TestUtils/Greenmail/greenmail';
+import { describeWithGreenMail } from '../TestUtils/Greenmail/greenmail';
 import { createNodeParametersCheckerMock } from '../TestUtils/N8nMocks';
-import { getGlobalGreenmail } from './setup';
+import { getGlobalGreenmailApi } from './setup.withGreenmail';
 import { ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
 import { EmailParts } from '../../nodes/Imap/operations/email/functions/EmailGetList';
 import { ImapFlags } from '../../nodes/Imap/operations/email/functions/EmailSetFlags';
+import { GreenmailApi } from '../TestUtils/Greenmail/GreenmailApi';
 
 
 const EML_WITH_ATTACHMENTS = `
@@ -74,14 +75,14 @@ AABJRU5ErkJggg==
 
 describeWithGreenMail('Imap Node - with GreenMail', () => {
   let imap: Imap;
-  let greenmail: GreenMailServer;
+  let greenmailApi: GreenmailApi;
   let credentials: ImapCredentialsData;
 
   beforeAll(async () => {
     // Reset Greenmail before all tests to ensure clean state
-    greenmail = getGlobalGreenmail();
-    await greenmail.reset();
-    credentials = greenmail.getCredentials('test@example.com');
+    greenmailApi = getGlobalGreenmailApi();
+    await greenmailApi.reset();
+    credentials = greenmailApi.getCredentials('test@example.com');
   });
 
   beforeEach(() => {

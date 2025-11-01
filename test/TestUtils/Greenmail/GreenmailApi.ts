@@ -3,6 +3,9 @@
  * Based on the Greenmail OpenAPI specification
  */
 
+import { GreenMailConfig } from './greenmail';
+import { ImapCredentialsData } from '../../../credentials/ImapCredentials.credentials';
+
 export interface GreenmailConfiguration {
   defaultHostname: string;
   portOffset: number;
@@ -49,15 +52,25 @@ export interface SuccessResponse {
   message: string;
 }
 
+export interface TestUser {
+  email: string;
+  username: string;
+  password: string;
+}
+
 export class GreenmailApi {
   private baseUrl: string;
+  private config: GreenMailConfig;
 
   /**
    * Creates a new Greenmail API client
-   * @param baseUrl Base URL of the Greenmail service (e.g., 'http://localhost:8080')
+   * @param config GreenMail configuration object containing host and apiPort
    */
-  constructor(baseUrl: string) {
-    this.baseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+  constructor(config: GreenMailConfig) {
+    this.config = config;
+    const host = config.host || 'localhost';
+    const apiPort = config.apiPort || 8080;
+    this.baseUrl = `http://${host}:${apiPort}`;
   }
 
   /**
@@ -164,6 +177,10 @@ export class GreenmailApi {
       const error = await response.json() as ErrorResponse;
       throw new Error(`Failed to reset service: ${error.message}`);
     }
+
+    // wait for restart using readiness check
+    await this.waitForReadiness(30000, 500);    
+
     return response.json() as Promise<SuccessResponse>;
   }
 
@@ -186,16 +203,56 @@ export class GreenmailApi {
    * Waits for the service to be ready
    * @param timeoutMs Maximum time to wait in milliseconds
    * @param intervalMs Interval between checks in milliseconds
-   * @returns True if service becomes ready, false if timeout
+   * @throws Error if service doesn't become ready within timeout
    */
-  async waitForReadiness(timeoutMs: number = 30000, intervalMs: number = 500): Promise<boolean> {
+  async waitForReadiness(timeoutMs: number = 30000, intervalMs: number = 500): Promise<void> {
     const startTime = Date.now();
     while (Date.now() - startTime < timeoutMs) {
       if (await this.checkReadiness()) {
-        return true;
+        return;
       }
       await new Promise((resolve) => setTimeout(resolve, intervalMs));
     }
-    return false;
+    throw new Error(`GreenMail service did not become ready within ${timeoutMs}ms`);
+  }
+
+  /**
+   * Create a test user credentials object for IMAP connection
+   * 
+   * GreenMail creates default test users with the pattern: user@domain.com / user@domain.com
+   * You can use any email address as both username and password.
+   */
+  getCredentials(email: string, useTls: boolean = false): ImapCredentialsData {
+    const config = this.config;
+    return {
+      host: config.host || 'localhost',
+      port: useTls ? (config.imapsPort || 3993) : (config.imapPort || 3143),
+      user: email,
+      password: email, // GreenMail default: password same as email
+      tls: useTls,
+      allowUnauthorizedCerts: true, // GreenMail uses self-signed certs
+    };
+  }
+
+  /**
+   * Get a default test user
+   */
+  getDefaultTestUser(): TestUser {
+    return {
+      email: 'test@example.com',
+      username: 'test@example.com',
+      password: 'test@example.com',
+    };
+  }
+
+  /**
+   * Create a test user object
+   */
+  createTestUser(email: string): TestUser {
+    return {
+      email,
+      username: email,
+      password: email, // GreenMail default behavior
+    };
   }
 }

@@ -4,7 +4,8 @@ import { describeWithGreenMail } from '../TestUtils/Greenmail/greenmail';
 import { createMockLogger } from '../TestUtils/N8nMocks';
 import { Logger as N8nLogger } from 'n8n-workflow';
 import { ImapFlow } from 'imapflow';
-import { getGlobalGreenmail } from './setup';
+import { getGlobalGreenmailApi } from './setup.withGreenmail';
+import { globalGreenmailConfig } from './globalSetup';
 
 
 describeWithGreenMail('ImapUtils - createImapClient', () => {
@@ -18,7 +19,8 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
   // Enable retries for tests that might be flaky due to Greenmail instability
   jest.retryTimes(5, { 
     logErrorsBeforeRetry: true,
-    waitBeforeRetry: 50,
+    waitBeforeRetry: 500,
+    retryImmediately: true,
   });
 
   beforeEach(() => {
@@ -30,8 +32,8 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
   describe('basic client creation', () => {
     it('should create an ImapFlow client with valid credentials', () => {
       // Arrange
-      const greenmail = getGlobalGreenmail();
-      const credentials = greenmail.getCredentials('test@example.com', false);
+      const greenmailApi = getGlobalGreenmailApi();
+      const credentials = greenmailApi.getCredentials('test@example.com', false);
 
       // Act
       const client = createImapClient(credentials, mockLogger, false);
@@ -43,8 +45,8 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
 
     it('should create an ImapFlow client without logger', () => {
       // Arrange
-      const greenmail = getGlobalGreenmail();
-      const credentials = greenmail.getCredentials('test@example.com', false);
+      const greenmailApi = getGlobalGreenmailApi();
+      const credentials = greenmailApi.getCredentials('test@example.com', false);
 
       // Act
       const client = createImapClient(credentials);
@@ -56,8 +58,8 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
 
     it('should create an ImapFlow client with debug logs enabled', () => {
       // Arrange
-      const greenmail = getGlobalGreenmail();
-      const credentials = greenmail.getCredentials('test@example.com', false);
+      const greenmailApi = getGlobalGreenmailApi();
+      const credentials = greenmailApi.getCredentials('test@example.com', false);
 
       // Act
       const client = createImapClient(credentials, mockLogger, true);
@@ -71,8 +73,8 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
   describe('connection establishment', () => {
     it('should successfully connect to IMAP server with valid credentials', async () => {
       // Arrange
-      const greenmail = getGlobalGreenmail();
-      const credentials = greenmail.getCredentials('user1@test.com', false);
+      const greenmailApi = getGlobalGreenmailApi();
+      const credentials = greenmailApi.getCredentials('user1@test.com', false);
 
       const client = createImapClient(credentials, mockLogger, true);
 
@@ -91,8 +93,8 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
 
     it('should successfully connect to IMAP server without TLS', async () => {
       // Arrange
-      const greenmail = getGlobalGreenmail();
-      const credentials = greenmail.getCredentials('user2@test.com', false);
+      const greenmailApi = getGlobalGreenmailApi();
+      const credentials = greenmailApi.getCredentials('user2@test.com', false);
       const client = createImapClient(credentials, mockLogger, false);
 
       // Act
@@ -125,8 +127,8 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
   describe('credentials configuration', () => {
     it('should create client with non-TLS credentials', () => {
       // Arrange
-      const greenmail = getGlobalGreenmail();
-      const credentials = greenmail.getCredentials('test@example.com', false);
+      const greenmailApi = getGlobalGreenmailApi();
+      const credentials = greenmailApi.getCredentials('test@example.com', false);
 
       // Act
       const client = createImapClient(credentials, mockLogger, false);
@@ -138,8 +140,8 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
 
     it('should create client with TLS credentials', () => {
       // Arrange
-      const greenmail = getGlobalGreenmail();
-      const credentials = greenmail.getCredentials('test@example.com', true);
+      const greenmailApi = getGlobalGreenmailApi();
+      const credentials = greenmailApi.getCredentials('test@example.com', true);
 
       // Act
       const client = createImapClient(credentials, mockLogger, false);
@@ -151,8 +153,8 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
 
     it('should configure allowUnauthorizedCerts correctly when true', () => {
       // Arrange
-      const greenmail = getGlobalGreenmail();
-      const credentials = greenmail.getCredentials('test@example.com', true);
+      const greenmailApi = getGlobalGreenmailApi();
+      const credentials = greenmailApi.getCredentials('test@example.com', true);
       credentials.allowUnauthorizedCerts = true;
 
       // Act
@@ -165,8 +167,8 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
 
     it('should configure allowUnauthorizedCerts correctly when false', () => {
       // Arrange
-      const greenmail = getGlobalGreenmail();
-      const credentials = greenmail.getCredentials('test@example.com', false);
+      const greenmailApi = getGlobalGreenmailApi();
+      const credentials = greenmailApi.getCredentials('test@example.com', false);
       credentials.allowUnauthorizedCerts = false;
 
       // Act
@@ -181,9 +183,9 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
   describe('authentication', () => {
     it('should authenticate with correct credentials', async () => {
       // Arrange
-      const greenmail = getGlobalGreenmail();
-      const testUser = greenmail.getDefaultTestUser();
-      const credentials = greenmail.getCredentials(testUser.email, false);
+      const greenmailApi = getGlobalGreenmailApi();
+      const testUser = greenmailApi.getDefaultTestUser();
+      const credentials = greenmailApi.getCredentials(testUser.email, false);
       const client = createImapClient(credentials, mockLogger, false);
 
       // Act
@@ -201,8 +203,8 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
   describe('logger integration', () => {
     it('should use provided logger when debug logs are enabled', async () => {
       // Arrange
-      const greenmail = getGlobalGreenmail();
-      const credentials = greenmail.getCredentials('logger-test@example.com', false);
+      const greenmailApi = getGlobalGreenmailApi();
+      const credentials = greenmailApi.getCredentials('logger-test@example.com', false);
       const client = createImapClient(credentials, mockLogger, true);
 
       // Act
@@ -221,8 +223,8 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
 
     it('should not log debug messages when debug logs are disabled', async () => {
       // Arrange
-      const greenmail = getGlobalGreenmail();
-      const credentials = greenmail.getCredentials('logger-test2@example.com', false);
+      const greenmailApi = getGlobalGreenmailApi();
+      const credentials = greenmailApi.getCredentials('logger-test2@example.com', false);
       const debugMockLogger = createMockLogger();
       const client = createImapClient(credentials, debugMockLogger, false);
 
@@ -269,9 +271,9 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
   describe('multiple clients', () => {
     it('should create and connect multiple clients independently', async () => {
       // Arrange
-      const greenmail = getGlobalGreenmail();
-      const credentials1 = greenmail.getCredentials('user1@multi.com', false);
-      const credentials2 = greenmail.getCredentials('user2@multi.com', false);
+      const greenmailApi = getGlobalGreenmailApi();
+      const credentials1 = greenmailApi.getCredentials('user1@multi.com', false);
+      const credentials2 = greenmailApi.getCredentials('user2@multi.com', false);
       
       const client1 = createImapClient(credentials1, mockLogger, false);
       const client2 = createImapClient(credentials2, mockLogger, false);
@@ -294,10 +296,9 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
   describe('edge cases', () => {
     it('should handle empty user credentials', () => {
       // Arrange
-      const greenmail = getGlobalGreenmail();
       const credentials: ImapCredentialsData = {
-        host: greenmail.getHost(),
-        port: greenmail.getImapPort(),
+        host: globalGreenmailConfig.host!,
+        port: globalGreenmailConfig.imapPort!,
         user: '',
         password: '',
         tls: false,
@@ -311,9 +312,8 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
 
     it('should handle port 0', () => {
       // Arrange
-      const greenmail = getGlobalGreenmail();
       const credentials: ImapCredentialsData = {
-        host: greenmail.getHost(),
+        host: globalGreenmailConfig.host!,
         port: 0,
         user: 'test@example.com',
         password: 'password',
@@ -328,11 +328,10 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
 
     it('should handle very long hostnames', () => {
       // Arrange
-      const greenmail = getGlobalGreenmail();
       const longHostname = 'a'.repeat(255) + '.com';
       const credentials: ImapCredentialsData = {
         host: longHostname,
-        port: greenmail.getImapPort(),
+        port: globalGreenmailConfig.imapPort!,
         user: 'test@example.com',
         password: 'password',
         tls: false,

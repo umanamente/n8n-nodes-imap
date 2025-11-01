@@ -13,7 +13,6 @@
 
 import { execSync, spawn, ChildProcess } from 'child_process';
 import * as net from 'net';
-import { ImapCredentialsData } from '../../../credentials/ImapCredentials.credentials';
 import { GreenmailApi } from './GreenmailApi';
 import { createImapClient } from '../../../nodes/Imap/utils/ImapUtils';
 
@@ -44,10 +43,27 @@ export interface GreenMailConfig {
   enableDebugLogs?: boolean;
 }
 
-export interface TestUser {
-  email: string;
-  username: string;
-  password: string;
+/**
+ * Get default GreenMail configuration with all required values
+ * 
+ * @param overrides - Optional config overrides to merge with defaults
+ * @returns Complete GreenMailConfig with all required properties
+ */
+export function getDefaultGreenMailConfig(overrides: GreenMailConfig = {}): Required<GreenMailConfig> {
+  return {
+    host: overrides.host || 'localhost',
+    imapPort: overrides.imapPort || 3143,
+    imapsPort: overrides.imapsPort || 3993,
+    smtpPort: overrides.smtpPort || 3025,
+    smtpsPort: overrides.smtpsPort || 3465,
+    pop3Port: overrides.pop3Port || 3110,
+    pop3sPort: overrides.pop3sPort || 3995,
+    apiPort: overrides.apiPort || 8080,
+    containerName: overrides.containerName || 'greenmail-test',
+    dockerImage: overrides.dockerImage || 'greenmail/standalone:2.1.7',
+    startupTimeout: overrides.startupTimeout || (process.env.GREENMAIL_STARTUP_TIMEOUT ? parseInt(process.env.GREENMAIL_STARTUP_TIMEOUT, 10) : 60000),
+    enableDebugLogs: overrides.enableDebugLogs || !!process.env.DEBUG_GREENMAIL,
+  };
 }
 
 export class GreenMailServer {
@@ -57,21 +73,8 @@ export class GreenMailServer {
   private apiClient: GreenmailApi;
 
   constructor(config: GreenMailConfig = {}) {
-    this.config = {
-      host: config.host || 'localhost',
-      imapPort: config.imapPort || 3143,
-      imapsPort: config.imapsPort || 3993,
-      smtpPort: config.smtpPort || 3025,
-      smtpsPort: config.smtpsPort || 3465,
-      pop3Port: config.pop3Port || 3110,
-      pop3sPort: config.pop3sPort || 3995,
-      apiPort: config.apiPort || 8080,
-      containerName: config.containerName || 'greenmail-test',
-      dockerImage: config.dockerImage || 'greenmail/standalone:2.1.7',
-      startupTimeout: config.startupTimeout || (process.env.GREENMAIL_STARTUP_TIMEOUT ? parseInt(process.env.GREENMAIL_STARTUP_TIMEOUT, 10) : 60000),
-      enableDebugLogs: config.enableDebugLogs || !!process.env.DEBUG_GREENMAIL,
-    };
-    this.apiClient = new GreenmailApi(`http://${this.config.host}:${this.config.apiPort}`);
+    this.config = getDefaultGreenMailConfig(config);
+    this.apiClient = new GreenmailApi(this.config);
   }
 
   /**
@@ -221,28 +224,23 @@ export class GreenMailServer {
         const portReady = await this.checkPortConnection(this.config.apiPort);
         
         if (portReady) {
-          console.log(`API port ${this.config.apiPort} is accessible.`);
+          //console.log(`API port ${this.config.apiPort} is accessible.`);
           
           // Step 2: Wait for API readiness
-          const apiReady = await this.apiClient.waitForReadiness(5000, 500);
+          await this.apiClient.waitForReadiness(15000, 500);
           
-          if (apiReady) {
-            console.log('GreenMail API reports readiness.');
-            
-            // Step 3: Try IMAP authentication
-            const authReady = await this.tryImapAuth();
-            
-            if (authReady) {
-              console.log('IMAP authentication successful. GreenMail server is fully ready.');
-              return;
-            } else {
-              console.log('IMAP authentication failed, retrying...');
-            }
+          // Step 3: Try IMAP authentication
+          const authReady = await this.tryImapAuth();
+          
+          if (authReady) {
+            console.log('IMAP authentication successful. GreenMail server is fully ready.');
+            return;
           } else {
-            console.log('API not ready yet, retrying...');
+            // console.log('IMAP authentication failed, retrying...');
           }
+
         } else {
-          console.log(`API port ${this.config.apiPort} not accessible yet, retrying...`);
+          // console.log(`API port ${this.config.apiPort} not accessible yet, retrying...`);
         }
       } catch (error) {
         // Continue waiting
@@ -275,7 +273,7 @@ export class GreenMailServer {
           { encoding: 'utf-8' }
         ).trim();
 
-        console.log(`GreenMail container status: ${output}`);
+        // console.log(`GreenMail container status: ${output}`);
 
         if (output.startsWith('Up')) {
           containerIsReady = true;
@@ -356,45 +354,6 @@ export class GreenMailServer {
   }
 
   /**
-   * Create a test user credentials object for IMAP connection
-   * 
-   * GreenMail creates default test users with the pattern: user@domain.com / user@domain.com
-   * You can use any email address as both username and password.
-   */
-  getCredentials(email: string, useTls: boolean = false): ImapCredentialsData {
-    return {
-      host: this.config.host,
-      port: useTls ? this.config.imapsPort : this.config.imapPort,
-      user: email,
-      password: email, // GreenMail default: password same as email
-      tls: useTls,
-      allowUnauthorizedCerts: true, // GreenMail uses self-signed certs
-    };
-  }
-
-  /**
-   * Get a default test user
-   */
-  getDefaultTestUser(): TestUser {
-    return {
-      email: 'test@example.com',
-      username: 'test@example.com',
-      password: 'test@example.com',
-    };
-  }
-
-  /**
-   * Create a test user object
-   */
-  createTestUser(email: string): TestUser {
-    return {
-      email,
-      username: email,
-      password: email, // GreenMail default behavior
-    };
-  }
-
-  /**
    * Get the IMAP port (non-TLS)
    */
   getImapPort(): number {
@@ -436,9 +395,15 @@ export class GreenMailServer {
    * @returns Promise<boolean> - true if authentication succeeds, false otherwise
    */
   async tryImapAuth(): Promise<boolean> {
-    const credentials = this.getCredentials("wait-for-auth-test@imap.com");
-    const client = createImapClient(credentials);
-    
+    const credentials = this.apiClient.getCredentials("wait-for-auth-test@imap.com");
+    // Create a simple logger that doesn't depend on Jest (for global setup/teardown)
+    const simpleLogger = {
+      info: () => {},
+      warn: () => {},
+      error: () => {},
+      debug: () => {},
+    };
+    const client = createImapClient(credentials, simpleLogger as any);
     try {
       await client.connect();
       await client.logout();
