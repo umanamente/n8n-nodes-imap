@@ -1,4 +1,4 @@
-# <img src="nodes/Imap/node-imap-icon.svg"  height="40"> n8n-nodes-imap
+# <img src="nodes/Imap/node-imap-icon.svg"  height="40"> <img src="https://gist.githubusercontent.com/umanamente/3aec0274e0d5f029ab76a16627825c67/raw/n8n-nodes-imap-coverage-badge.svg" align="right"> n8n-nodes-imap
 
 This is an n8n community node that adds support for [IMAP](https://en.wikipedia.org/wiki/Internet_Message_Access_Protocol) email servers.
 
