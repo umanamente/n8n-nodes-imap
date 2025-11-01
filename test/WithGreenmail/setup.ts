@@ -31,9 +31,7 @@ beforeAll(async () => {
     console.log('Skipping GreenMail tests');
     return;
   }
-  
-  console.log('Setting up global GreenMail container for WithGreenmail tests...');
-  
+    
   // Extended timeout for Docker startup
   jest.setTimeout(120 * 1000);
 

@@ -17,7 +17,6 @@ export class ImapNodeDebugUtils {
     if (!ImapNodeDebugUtils.ImapNodeDebugUtilsEnabled()) {
       return [];
     }
-    console.log('Adding IMAP debug node properties');
 
     return [
       // notice: debug options start

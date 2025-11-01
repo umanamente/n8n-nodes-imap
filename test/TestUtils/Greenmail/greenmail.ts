@@ -16,6 +16,7 @@ import * as net from 'net';
 import { ImapCredentialsData } from '../../../credentials/ImapCredentials.credentials';
 import { GreenmailApi } from './GreenmailApi';
 import { createImapClient } from '../../../nodes/Imap/utils/ImapUtils';
+import { createMockLogger } from '../N8nMocks';
 
 export interface GreenMailConfig {
   /** Host to bind GreenMail server to (default: localhost) */
@@ -221,13 +222,13 @@ export class GreenMailServer {
         const portReady = await this.checkPortConnection(this.config.apiPort);
         
         if (portReady) {
-          console.log(`API port ${this.config.apiPort} is accessible.`);
+          //console.log(`API port ${this.config.apiPort} is accessible.`);
           
           // Step 2: Wait for API readiness
           const apiReady = await this.apiClient.waitForReadiness(5000, 500);
           
           if (apiReady) {
-            console.log('GreenMail API reports readiness.');
+            // console.log('GreenMail API reports readiness.');
             
             // Step 3: Try IMAP authentication
             const authReady = await this.tryImapAuth();
@@ -236,13 +237,13 @@ export class GreenMailServer {
               console.log('IMAP authentication successful. GreenMail server is fully ready.');
               return;
             } else {
-              console.log('IMAP authentication failed, retrying...');
+              // console.log('IMAP authentication failed, retrying...');
             }
           } else {
-            console.log('API not ready yet, retrying...');
+            // console.log('API not ready yet, retrying...');
           }
         } else {
-          console.log(`API port ${this.config.apiPort} not accessible yet, retrying...`);
+          // console.log(`API port ${this.config.apiPort} not accessible yet, retrying...`);
         }
       } catch (error) {
         // Continue waiting
@@ -275,7 +276,7 @@ export class GreenMailServer {
           { encoding: 'utf-8' }
         ).trim();
 
-        console.log(`GreenMail container status: ${output}`);
+        // console.log(`GreenMail container status: ${output}`);
 
         if (output.startsWith('Up')) {
           containerIsReady = true;
@@ -437,8 +438,8 @@ export class GreenMailServer {
    */
   async tryImapAuth(): Promise<boolean> {
     const credentials = this.getCredentials("wait-for-auth-test@imap.com");
-    const client = createImapClient(credentials);
-    
+    const mockLoggerSilent = createMockLogger(false, false, false, false);
+    const client = createImapClient(credentials, mockLoggerSilent);
     try {
       await client.connect();
       await client.logout();

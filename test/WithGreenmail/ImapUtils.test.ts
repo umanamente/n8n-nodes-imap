@@ -18,7 +18,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
   // Enable retries for tests that might be flaky due to Greenmail instability
   jest.retryTimes(5, { 
     logErrorsBeforeRetry: true,
-    waitBeforeRetry: 50,
+    waitBeforeRetry: 500,
   });
 
   beforeEach(() => {
