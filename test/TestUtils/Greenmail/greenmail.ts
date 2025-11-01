@@ -13,7 +13,6 @@
 
 import { execSync, spawn, ChildProcess } from 'child_process';
 import * as net from 'net';
-import { ImapCredentialsData } from '../../../credentials/ImapCredentials.credentials';
 import { GreenmailApi } from './GreenmailApi';
 import { createImapClient } from '../../../nodes/Imap/utils/ImapUtils';
 import { createMockLogger } from '../N8nMocks';
@@ -43,12 +42,6 @@ export interface GreenMailConfig {
   startupTimeout?: number;
   /** Enable debug logs from GreenMail container (default: false) */
   enableDebugLogs?: boolean;
-}
-
-export interface TestUser {
-  email: string;
-  username: string;
-  password: string;
 }
 
 export class GreenMailServer {
@@ -357,45 +350,6 @@ export class GreenMailServer {
   }
 
   /**
-   * Create a test user credentials object for IMAP connection
-   * 
-   * GreenMail creates default test users with the pattern: user@domain.com / user@domain.com
-   * You can use any email address as both username and password.
-   */
-  getCredentials(email: string, useTls: boolean = false): ImapCredentialsData {
-    return {
-      host: this.config.host,
-      port: useTls ? this.config.imapsPort : this.config.imapPort,
-      user: email,
-      password: email, // GreenMail default: password same as email
-      tls: useTls,
-      allowUnauthorizedCerts: true, // GreenMail uses self-signed certs
-    };
-  }
-
-  /**
-   * Get a default test user
-   */
-  getDefaultTestUser(): TestUser {
-    return {
-      email: 'test@example.com',
-      username: 'test@example.com',
-      password: 'test@example.com',
-    };
-  }
-
-  /**
-   * Create a test user object
-   */
-  createTestUser(email: string): TestUser {
-    return {
-      email,
-      username: email,
-      password: email, // GreenMail default behavior
-    };
-  }
-
-  /**
    * Get the IMAP port (non-TLS)
    */
   getImapPort(): number {
@@ -437,7 +391,7 @@ export class GreenMailServer {
    * @returns Promise<boolean> - true if authentication succeeds, false otherwise
    */
   async tryImapAuth(): Promise<boolean> {
-    const credentials = this.getCredentials("wait-for-auth-test@imap.com");
+    const credentials = this.apiClient.getCredentials("wait-for-auth-test@imap.com");
     const mockLoggerSilent = createMockLogger(false, false, false, false);
     const client = createImapClient(credentials, mockLoggerSilent);
     try {

@@ -6,10 +6,19 @@
  * before all tests run and stopped after all tests complete.
  */
 
-import { GreenMailServer, shouldSkipGreenMailTests } from '../TestUtils/Greenmail/greenmail';
+import { GreenMailServer, shouldSkipGreenMailTests, GreenMailConfig } from '../TestUtils/Greenmail/greenmail';
+import { GreenmailApi } from '../TestUtils/Greenmail/GreenmailApi';
+
+// Global greenmail config that will be shared across all tests
+const globalGreenmailConfig: GreenMailConfig = {
+  // enableDebugLogs: true, // Uncomment for debugging
+};
 
 // Global greenmail instance that will be shared across all tests
 let globalGreenmail: GreenMailServer | undefined;
+
+// Global greenmail API instance
+let globalGreenmailApi: GreenmailApi | undefined;
 
 /**
  * Get the global GreenMail instance
@@ -20,6 +29,17 @@ export function getGlobalGreenmail(): GreenMailServer {
     throw new Error('GreenMail server not initialized. This should not happen if setup is configured correctly.');
   }
   return globalGreenmail;
+}
+
+/**
+ * Get the global GreenMail API instance
+ * This should be called from test files to access the shared API client
+ */
+export function getGlobalGreenmailApi(): GreenmailApi {
+  if (!globalGreenmailApi) {
+    globalGreenmailApi = new GreenmailApi(globalGreenmailConfig);
+  }
+  return globalGreenmailApi;
 }
 
 /**
@@ -35,9 +55,7 @@ beforeAll(async () => {
   // Extended timeout for Docker startup
   jest.setTimeout(120 * 1000);
 
-  globalGreenmail = new GreenMailServer({
-    // enableDebugLogs: true, // Uncomment for debugging
-  });
+  globalGreenmail = new GreenMailServer(globalGreenmailConfig);
 
   await globalGreenmail.start();
   console.log('Global GreenMail container is ready.');
@@ -52,6 +70,7 @@ afterAll(async () => {
     console.log('Stopping global GreenMail container...');
     await globalGreenmail.stop();
     globalGreenmail = undefined;
+    globalGreenmailApi = undefined;
     console.log('Global GreenMail container stopped.');
   }
 }, 30000); // 30 second timeout for Docker shutdown

@@ -4,6 +4,7 @@
  */
 
 import { GreenMailConfig } from './greenmail';
+import { ImapCredentialsData } from '../../../credentials/ImapCredentials.credentials';
 
 export interface GreenmailConfiguration {
   defaultHostname: string;
@@ -51,14 +52,22 @@ export interface SuccessResponse {
   message: string;
 }
 
+export interface TestUser {
+  email: string;
+  username: string;
+  password: string;
+}
+
 export class GreenmailApi {
   private baseUrl: string;
+  private config: GreenMailConfig;
 
   /**
    * Creates a new Greenmail API client
    * @param config GreenMail configuration object containing host and apiPort
    */
   constructor(config: GreenMailConfig) {
+    this.config = config;
     const host = config.host || 'localhost';
     const apiPort = config.apiPort || 8080;
     this.baseUrl = `http://${host}:${apiPort}`;
@@ -201,5 +210,45 @@ export class GreenmailApi {
       await new Promise((resolve) => setTimeout(resolve, intervalMs));
     }
     return false;
+  }
+
+  /**
+   * Create a test user credentials object for IMAP connection
+   * 
+   * GreenMail creates default test users with the pattern: user@domain.com / user@domain.com
+   * You can use any email address as both username and password.
+   */
+  getCredentials(email: string, useTls: boolean = false): ImapCredentialsData {
+    const config = this.config;
+    return {
+      host: config.host || 'localhost',
+      port: useTls ? (config.imapsPort || 3993) : (config.imapPort || 3143),
+      user: email,
+      password: email, // GreenMail default: password same as email
+      tls: useTls,
+      allowUnauthorizedCerts: true, // GreenMail uses self-signed certs
+    };
+  }
+
+  /**
+   * Get a default test user
+   */
+  getDefaultTestUser(): TestUser {
+    return {
+      email: 'test@example.com',
+      username: 'test@example.com',
+      password: 'test@example.com',
+    };
+  }
+
+  /**
+   * Create a test user object
+   */
+  createTestUser(email: string): TestUser {
+    return {
+      email,
+      username: email,
+      password: email, // GreenMail default behavior
+    };
   }
 }

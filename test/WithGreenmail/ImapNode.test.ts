@@ -9,7 +9,7 @@ import { IExecuteFunctions } from 'n8n-workflow';
 import { Imap } from '../../nodes/Imap/Imap.node';
 import { describeWithGreenMail, GreenMailServer } from '../TestUtils/Greenmail/greenmail';
 import { createNodeParametersCheckerMock } from '../TestUtils/N8nMocks';
-import { getGlobalGreenmail } from './setup.withGreenmail';
+import { getGlobalGreenmail, getGlobalGreenmailApi } from './setup.withGreenmail';
 import { ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
 import { EmailParts } from '../../nodes/Imap/operations/email/functions/EmailGetList';
 import { ImapFlags } from '../../nodes/Imap/operations/email/functions/EmailSetFlags';
@@ -81,7 +81,8 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
     // Reset Greenmail before all tests to ensure clean state
     greenmail = getGlobalGreenmail();
     await greenmail.reset();
-    credentials = greenmail.getCredentials('test@example.com');
+    const greenmailApi = getGlobalGreenmailApi();
+    credentials = greenmailApi.getCredentials('test@example.com');
   });
 
   beforeEach(() => {
