@@ -1,0 +1,61 @@
+name: Coverage Comment
+on:
+  workflow_run:
+    workflows: ["Test"]
+    types:
+      - completed
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  coverage-comment:
+    name: Coverage Comment
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: Download coverage reports
+        uses: actions/github-script@v6
+        with:
+          script: |
+            let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: context.payload.workflow_run.id,
+            });
+            let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "coverage-report"
+            })[0];
+            let download = await github.rest.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            let fs = require('fs');
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/coverage-report.zip`, Buffer.from(download.data));
+
+      - name: Extract coverage reports
+        run: unzip coverage-report.zip
+
+      - name: Get PR number
+        id: pr-number
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const pullRequests = context.payload.workflow_run.pull_requests;
+            if (pullRequests && pullRequests.length > 0) {
+              return pullRequests[0].number;
+            }
+            return null;
+          result-encoding: string
+
+      - name: Jest Coverage Comment
+        if: steps.pr-number.outputs.result != 'null'
+        uses: MishaKav/jest-coverage-comment@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          coverage-path: ./coverage.txt
+          issue-number: ${{ steps.pr-number.outputs.result }}

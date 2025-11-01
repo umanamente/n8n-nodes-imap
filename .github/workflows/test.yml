@@ -2,8 +2,9 @@ name: Test
 on:
   push:
     branches:
-      - '**'
-  pull_request_target:
+      - master
+      - beta
+  pull_request:
 
 permissions:
   contents: read # for checkout
@@ -12,10 +13,6 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
-    permissions:
-      checks: write # for jest-coverage-report
-      contents: write # for jest-coverage-report
-      pull-requests: write # for jest-coverage-report
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -33,8 +30,9 @@ jobs:
         run: npm run prepublishOnly
       - name: Run Jest tests with coverage
         run: npx jest --coverage
-      - name: Jest Coverage Comment
-        uses: MishaKav/jest-coverage-comment@main
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v3
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          coverage-path: ./coverage/coverage.txt
+          name: coverage-report
+          path: coverage/
+          retention-days: 1
