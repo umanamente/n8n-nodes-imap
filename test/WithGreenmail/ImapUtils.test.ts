@@ -4,7 +4,8 @@ import { describeWithGreenMail } from '../TestUtils/Greenmail/greenmail';
 import { createMockLogger } from '../TestUtils/N8nMocks';
 import { Logger as N8nLogger } from 'n8n-workflow';
 import { ImapFlow } from 'imapflow';
-import { getGlobalGreenmailApi, globalGreenmailConfig } from './setup.withGreenmail';
+import { getGlobalGreenmailApi } from './setup.withGreenmail';
+import { globalGreenmailConfig } from './globalSetup';
 
 
 describeWithGreenMail('ImapUtils - createImapClient', () => {

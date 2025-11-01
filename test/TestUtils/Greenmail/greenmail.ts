@@ -15,7 +15,6 @@ import { execSync, spawn, ChildProcess } from 'child_process';
 import * as net from 'net';
 import { GreenmailApi } from './GreenmailApi';
 import { createImapClient } from '../../../nodes/Imap/utils/ImapUtils';
-import { createMockLogger } from '../N8nMocks';
 
 export interface GreenMailConfig {
   /** Host to bind GreenMail server to (default: localhost) */
@@ -397,8 +396,14 @@ export class GreenMailServer {
    */
   async tryImapAuth(): Promise<boolean> {
     const credentials = this.apiClient.getCredentials("wait-for-auth-test@imap.com");
-    const mockLoggerSilent = createMockLogger(false, false, false, false);
-    const client = createImapClient(credentials, mockLoggerSilent);
+    // Create a simple logger that doesn't depend on Jest (for global setup/teardown)
+    const simpleLogger = {
+      info: () => {},
+      warn: () => {},
+      error: () => {},
+      debug: () => {},
+    };
+    const client = createImapClient(credentials, simpleLogger as any);
     try {
       await client.connect();
       await client.logout();

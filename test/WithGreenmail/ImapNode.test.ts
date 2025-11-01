@@ -7,7 +7,7 @@
 
 import { IExecuteFunctions } from 'n8n-workflow';
 import { Imap } from '../../nodes/Imap/Imap.node';
-import { describeWithGreenMail, GreenMailServer } from '../TestUtils/Greenmail/greenmail';
+import { describeWithGreenMail } from '../TestUtils/Greenmail/greenmail';
 import { createNodeParametersCheckerMock } from '../TestUtils/N8nMocks';
 import { getGlobalGreenmailApi } from './setup.withGreenmail';
 import { ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
