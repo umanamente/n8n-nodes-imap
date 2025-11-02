@@ -12,6 +12,7 @@ import { ImapCredentialsData } from '../../credentials/ImapCredentials.credentia
 import * as ImapUtils from '../../nodes/Imap/utils/ImapUtils';
 import { ImapFlowErrorCatcher } from '../../nodes/Imap/utils/ImapUtils';
 import { IResourceOperationDef } from '../../nodes/Imap/utils/CommonDefinitions';
+import { ImapNodeDebugUtils } from '../../nodes/Imap/utils/debug/ImapNodeDebugUtils';
 
 // Mock the createImapClient function
 jest.mock('../../nodes/Imap/utils/ImapUtils', () => ({
@@ -238,6 +239,60 @@ describe('Imap Node - exceptions handling', () => {
       expect(resultData[0]).toHaveLength(0);
     });
 
+    it('should handle operation returning null data gracefully', async () => {
+      // Create a mock parameters checker for testing
+      const paramValues = {
+        authentication: 'imapThisNode',
+        resource: 'mailbox',
+        operation: 'loadMailboxList',
+        includeStatusFields: [],
+      };
+      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);
+      context.getCredentials = jest.fn().mockResolvedValue(defaultCredentials);
+      context.getInputData = jest.fn().mockReturnValue([1]);
+      context.getNode = jest.fn().mockReturnValue({ name: 'Imap Test Node' });
+
+      const mockHandler: IResourceOperationDef = {
+        executeImapAction: async () => {
+          return null;
+        },
+        operation: { name: 'Test Null', value: 'testNull' },
+        parameters: [],
+      };
+
+      // Act 
+      const resultData = await executeWithHandler(context as IExecuteFunctions, mockImapClient, mockHandler);
+      // Assert
+      expect(resultData.length).toBeGreaterThanOrEqual(1);
+      expect(resultData[0]).toHaveLength(0);
+
+    });
+
+    it('should handle operation throwing unknown error gracefully', async () => {
+      // Create a mock parameters checker for testing
+      const paramValues = {
+        authentication: 'imapThisNode',
+        resource: 'mailbox',
+        operation: 'loadMailboxList',
+        includeStatusFields: [],
+      };
+      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);
+      context.getCredentials = jest.fn().mockResolvedValue(defaultCredentials);
+      context.getInputData = jest.fn().mockReturnValue([1]);
+      context.getNode = jest.fn().mockReturnValue({ name: 'Imap Test Node' });
+
+      const mockHandler: IResourceOperationDef = {
+        executeImapAction: async () => {
+          throw Error();
+        },
+        operation: { name: 'Test Null', value: 'testNull' },
+        parameters: [],
+      };
+
+      // Act & Assert
+      await expect(executeWithHandler(context as IExecuteFunctions, mockImapClient, mockHandler))
+        .rejects.toThrow('Unknown error');
+    });
 
     describe('continue on fail handling', () => {
       it('should continue on fail for an operation failure', async () => {
@@ -299,6 +354,43 @@ describe('Imap Node - exceptions handling', () => {
       });
     
     }); // end continue on fail handling
+
+
+    describe('debug mode exception handling', () => {
+
+      it('should not throw error if debug mode is enabled and operation fails', async () => {
+        // Create a mock parameters checker for testing
+        const paramValues = {
+          authentication: 'imapThisNode',
+          resource: 'mailbox',
+          operation: 'loadMailboxList',
+          includeStatusFields: [],
+          debug: true,
+        };
+
+        // mock debug mode enabled
+        jest.spyOn(ImapNodeDebugUtils, 'ImapNodeDebugUtilsEnabled').mockReturnValue(true);
+
+        const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);
+        context.getCredentials = jest.fn().mockResolvedValue(defaultCredentials);
+        context.getInputData = jest.fn().mockReturnValue([1]);
+        context.getNode = jest.fn().mockReturnValue({ name: 'Imap Test Node' });
+
+        // mock operation failure
+        mockImapClient.list.mockImplementation(() => {
+          throw new Error('Operation failed in debug mode');
+        });
+
+        // Act 
+        const resultData = await imap.execute.call(context as IExecuteFunctions);
+        // Assert
+        expect(resultData.length).toBeGreaterThanOrEqual(2);
+        expect(resultData[0]).toHaveLength(0);
+        expect(resultData[1][0]).toHaveProperty('json.error');
+
+      });
+
+    }); // end debug mode exception handling
 
   }); // end exception handling
 
