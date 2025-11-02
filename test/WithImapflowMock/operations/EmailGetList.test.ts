@@ -791,6 +791,59 @@ describe('EmailGetList', () => {
       expect(context.logger!.error).toHaveBeenCalledWith(expect.stringContaining('Error parsing headers:'));
     });
 
+    it('should handle emails with null headers when includeParts includes headers', async () => {
+      // Arrange
+      const paramValues = {
+        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        searchCriteria: 'ALL',
+        includeParts: [EmailParts.Headers],
+        includeAllHeaders: true,
+      };
+      const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
+      
+      const mockEmailData = [
+        {
+          uid: 123,
+          envelope: {
+            subject: 'Test Email 1',
+            from: [{ name: 'John Doe', address: 'john@example.com' }],
+          },
+          headers: null, // null headers
+        },
+      ];
+      
+      const mockFetchAsyncIterator = {
+        [Symbol.asyncIterator]: jest.fn().mockReturnValue({
+          next: jest.fn()
+            .mockResolvedValueOnce({ value: mockEmailData[0], done: false })
+            .mockResolvedValueOnce({ done: true }),
+        }),
+      };
+      
+      mockImapflow.fetch = jest.fn().mockReturnValue(mockFetchAsyncIterator);
+      
+      // Act
+      const result = await getEmailsListOperation.executeImapAction(
+        context as IExecuteFunctions,
+        context.logger!,
+        ITEM_INDEX,
+        mockImapflow
+      );
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result?.length).toBe(1);
+      expect(result![0].json.uid).toBe(123);
+      expect(result![0].json.mailboxPath).toBe('INBOX');
+      // The headers field should remain null since email.headers was null
+      expect(result![0].json.headers).toBeNull();
+      expect(mockImapflow.fetch).toHaveBeenCalledWith({}, {
+        uid: true,
+        envelope: true,
+        headers: true,
+      });
+    });
+
   }); // end executeImapAction - error handling
 
   describe('executeImapAction - partId fallback scenarios', () => {
