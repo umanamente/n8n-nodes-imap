@@ -4,6 +4,11 @@ import { createImapflowMock, MockImapServer } from '../../TestUtils/ImapflowMock
 import { createNodeParametersCheckerMock } from '../../TestUtils/N8nMocks';
 import { getEmailsListOperation, EmailParts } from '../../../nodes/Imap/operations/email/functions/EmailGetList';
 
+// Mock mailparser at the top level
+jest.mock('mailparser', () => ({
+  simpleParser: jest.fn(),
+}));
+
 describe('EmailGetList', () => {
   const ITEM_INDEX = 0;
   let globalImapMock: MockImapServer;
@@ -19,6 +24,10 @@ describe('EmailGetList', () => {
       password: credentials.password,
     });    
     await mockImapflow.connect();
+    
+    // Reset the simpleParser mock
+    const { simpleParser } = require('mailparser');
+    (simpleParser as jest.Mock).mockReset();
   });
 
   describe('executeImapAction - basic functionality', () => {
@@ -245,6 +254,15 @@ describe('EmailGetList', () => {
 
     it('should get emails with headers when includeParts includes headers and includeAllHeaders is true', async () => {
       // Arrange
+      const { simpleParser } = require('mailparser');
+      const mockParsedHeaders = new Map();
+      mockParsedHeaders.set('subject', 'Test Email');
+      mockParsedHeaders.set('from', { value: [{ address: 'john@example.com' }] });
+      
+      (simpleParser as jest.Mock).mockResolvedValueOnce({
+        headers: mockParsedHeaders,
+      });
+      
       const paramValues = {
         mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
         searchCriteria: 'ALL',
@@ -299,6 +317,16 @@ describe('EmailGetList', () => {
 
     it('should get emails with specific headers when includeParts includes headers and includeAllHeaders is false', async () => {
       // Arrange
+      const { simpleParser } = require('mailparser');
+      const mockParsedHeaders = new Map();
+      mockParsedHeaders.set('subject', 'Test Email');
+      mockParsedHeaders.set('from', { value: [{ address: 'john@example.com' }] });
+      mockParsedHeaders.set('date', new Date('2023-01-01T10:00:00Z'));
+      
+      (simpleParser as jest.Mock).mockResolvedValueOnce({
+        headers: mockParsedHeaders,
+      });
+      
       const paramValues = {
         mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
         searchCriteria: 'ALL',
@@ -639,5 +667,301 @@ describe('EmailGetList', () => {
     });
 
   }); // end executeImapAction - basic functionality
+
+  describe('executeImapAction - error handling', () => {
+
+    it('should handle simpleParser error when parsing headers and log the error', async () => {
+      // Arrange
+      const { simpleParser } = require('mailparser');
+      (simpleParser as jest.Mock).mockRejectedValueOnce(new Error('Malformed header data'));
+      
+      const paramValues = {
+        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        searchCriteria: 'ALL',
+        includeParts: [EmailParts.Headers],
+        includeAllHeaders: true,
+      };
+      const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
+      
+      const mockHeaders = Buffer.from('Subject: Test Email\r\nFrom: john@example.com\r\n\r\n');
+      
+      const mockEmailData = [
+        {
+          uid: 123,
+          envelope: {
+            subject: 'Test Email 1',
+            from: [{ name: 'John Doe', address: 'john@example.com' }],
+          },
+          headers: mockHeaders,
+        },
+      ];
+      
+      const mockFetchAsyncIterator = {
+        [Symbol.asyncIterator]: jest.fn().mockReturnValue({
+          next: jest.fn()
+            .mockResolvedValueOnce({ value: mockEmailData[0], done: false })
+            .mockResolvedValueOnce({ done: true }),
+        }),
+      };
+      
+      mockImapflow.fetch = jest.fn().mockReturnValue(mockFetchAsyncIterator);
+      
+      // Act
+      const result = await getEmailsListOperation.executeImapAction(
+        context as IExecuteFunctions,
+        context.logger!,
+        ITEM_INDEX,
+        mockImapflow
+      );
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result?.length).toBe(1);
+      expect(result![0].json.uid).toBe(123);
+      expect(result![0].json.mailboxPath).toBe('INBOX');
+      // The headers field should contain the serialized buffer since parsing failed
+      expect(result![0].json.headers).toEqual({
+        data: Array.from(mockHeaders),
+        type: 'Buffer',
+      });
+      // Verify simpleParser was called
+      expect(simpleParser).toHaveBeenCalledWith('Subject: Test Email\r\nFrom: john@example.com\r\n\r\n');
+      // Verify error was logged
+      expect(context.logger!.error).toHaveBeenCalledWith(expect.stringContaining('Error parsing headers:'));
+    });
+
+  }); // end executeImapAction - error handling
+
+  describe('executeImapAction - partId fallback scenarios', () => {
+
+    it('should use "TEXT" as fallback when partInfo has no partId for text content', async () => {
+      // Arrange
+      const paramValues = {
+        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        searchCriteria: 'ALL',
+        includeParts: [EmailParts.TextContent],
+      };
+      const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
+      
+      // Mock body structure that will result in partInfo without partId (single part email)
+      const mockBodyStructure = {
+        type: 'text/plain',
+        parameters: { charset: 'utf-8' },
+        size: 512,
+        // No 'part' property, so getEmailPartInfoFromBodystructureNode will use 'TEXT' as fallback
+      };
+      
+      const mockEmailData = [
+        {
+          uid: 123,
+          envelope: {
+            subject: 'Test Email 1',
+            from: [{ name: 'John Doe', address: 'john@example.com' }],
+          },
+          bodyStructure: mockBodyStructure,
+        },
+      ];
+      
+      const mockFetchAsyncIterator = {
+        [Symbol.asyncIterator]: jest.fn().mockReturnValue({
+          next: jest.fn()
+            .mockResolvedValueOnce({ value: mockEmailData[0], done: false })
+            .mockResolvedValueOnce({ done: true }),
+        }),
+      };
+      
+      // Mock stream for text content
+      const mockTextStream = {
+        on: jest.fn((event, callback) => {
+          if (event === 'data') {
+            callback(Buffer.from('Hello, this is plain text content'));
+          } else if (event === 'end') {
+            callback();
+          }
+        }),
+      };
+      
+      mockImapflow.fetch = jest.fn().mockReturnValue(mockFetchAsyncIterator);
+      mockImapflow.download = jest.fn().mockResolvedValue({
+        content: mockTextStream,
+      });
+      
+      // Act
+      const result = await getEmailsListOperation.executeImapAction(
+        context as IExecuteFunctions,
+        context.logger!,
+        ITEM_INDEX,
+        mockImapflow
+      );
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result?.length).toBe(1);
+      expect(result![0].json.textContent).toBe('Hello, this is plain text content');
+      // Verify that download was called with 'TEXT' as partId (the fallback)
+      expect(mockImapflow.download).toHaveBeenCalledWith('123', 'TEXT', { uid: true });
+    });
+
+    it('should use "TEXT" as fallback when partInfo has no partId for html content', async () => {
+      // Arrange
+      const paramValues = {
+        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        searchCriteria: 'ALL',
+        includeParts: [EmailParts.HtmlContent],
+      };
+      const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
+      
+      // Mock body structure that will result in partInfo without partId (single part email)
+      const mockBodyStructure = {
+        type: 'text/html',
+        parameters: { charset: 'utf-8' },
+        size: 1024,
+        // No 'part' property, so getEmailPartInfoFromBodystructureNode will use 'TEXT' as fallback
+      };
+      
+      const mockEmailData = [
+        {
+          uid: 123,
+          envelope: {
+            subject: 'Test Email 1',
+            from: [{ name: 'John Doe', address: 'john@example.com' }],
+          },
+          bodyStructure: mockBodyStructure,
+        },
+      ];
+      
+      const mockFetchAsyncIterator = {
+        [Symbol.asyncIterator]: jest.fn().mockReturnValue({
+          next: jest.fn()
+            .mockResolvedValueOnce({ value: mockEmailData[0], done: false })
+            .mockResolvedValueOnce({ done: true }),
+        }),
+      };
+      
+      // Mock stream for HTML content
+      const mockHtmlStream = {
+        on: jest.fn((event, callback) => {
+          if (event === 'data') {
+            callback(Buffer.from('<html><body>Hello HTML content</body></html>'));
+          } else if (event === 'end') {
+            callback();
+          }
+        }),
+      };
+      
+      mockImapflow.fetch = jest.fn().mockReturnValue(mockFetchAsyncIterator);
+      mockImapflow.download = jest.fn().mockResolvedValue({
+        content: mockHtmlStream,
+      });
+      
+      // Act
+      const result = await getEmailsListOperation.executeImapAction(
+        context as IExecuteFunctions,
+        context.logger!,
+        ITEM_INDEX,
+        mockImapflow
+      );
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result?.length).toBe(1);
+      expect(result![0].json.htmlContent).toBe('<html><body>Hello HTML content</body></html>');
+      // Verify that download was called with 'TEXT' as partId (the fallback)
+      expect(mockImapflow.download).toHaveBeenCalledWith('123', 'TEXT', { uid: true });
+    });
+
+    it('should use "TEXT" as fallback for both text and html content when partInfo has no partId', async () => {
+      // Arrange
+      const paramValues = {
+        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        searchCriteria: 'ALL',
+        includeParts: [EmailParts.TextContent, EmailParts.HtmlContent],
+      };
+      const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
+      
+      // Mock multipart body structure where some parts have no partId
+      const mockBodyStructure = {
+        type: 'multipart/alternative',
+        childNodes: [
+          {
+            type: 'text/plain',
+            parameters: { charset: 'utf-8' },
+            size: 512,
+            // No 'part' property for plain text part
+          },
+          {
+            type: 'text/html',
+            parameters: { charset: 'utf-8' },
+            size: 1024,
+            // No 'part' property for HTML part
+          },
+        ],
+      };
+      
+      const mockEmailData = [
+        {
+          uid: 123,
+          envelope: {
+            subject: 'Test Email 1',
+            from: [{ name: 'John Doe', address: 'john@example.com' }],
+          },
+          bodyStructure: mockBodyStructure,
+        },
+      ];
+      
+      const mockFetchAsyncIterator = {
+        [Symbol.asyncIterator]: jest.fn().mockReturnValue({
+          next: jest.fn()
+            .mockResolvedValueOnce({ value: mockEmailData[0], done: false })
+            .mockResolvedValueOnce({ done: true }),
+        }),
+      };
+      
+      // Mock streams for both text and HTML content
+      const mockTextStream = {
+        on: jest.fn((event, callback) => {
+          if (event === 'data') {
+            callback(Buffer.from('Plain text content'));
+          } else if (event === 'end') {
+            callback();
+          }
+        }),
+      };
+      
+      const mockHtmlStream = {
+        on: jest.fn((event, callback) => {
+          if (event === 'data') {
+            callback(Buffer.from('<html><body>HTML content</body></html>'));
+          } else if (event === 'end') {
+            callback();
+          }
+        }),
+      };
+      
+      mockImapflow.fetch = jest.fn().mockReturnValue(mockFetchAsyncIterator);
+      mockImapflow.download = jest.fn()
+        .mockResolvedValueOnce({ content: mockTextStream })  // First call for text content
+        .mockResolvedValueOnce({ content: mockHtmlStream }); // Second call for HTML content
+      
+      // Act
+      const result = await getEmailsListOperation.executeImapAction(
+        context as IExecuteFunctions,
+        context.logger!,
+        ITEM_INDEX,
+        mockImapflow
+      );
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result?.length).toBe(1);
+      expect(result![0].json.textContent).toBe('Plain text content');
+      expect(result![0].json.htmlContent).toBe('<html><body>HTML content</body></html>');
+      // Verify that download was called twice, both times with 'TEXT' as partId (the fallback)
+      expect(mockImapflow.download).toHaveBeenCalledTimes(2);
+      expect(mockImapflow.download).toHaveBeenNthCalledWith(1, '123', 'TEXT', { uid: true });
+      expect(mockImapflow.download).toHaveBeenNthCalledWith(2, '123', 'TEXT', { uid: true });
+    });
+
+  }); // end executeImapAction - partId fallback scenarios
 
 }); // end EmailGetList

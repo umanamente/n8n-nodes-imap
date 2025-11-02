@@ -5,7 +5,7 @@ import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from "../../../utils/SearchFieldParameters";
 import { emailSearchParameters, getEmailSearchParametersFromNode } from "../../../utils/EmailSearchParameters";
 import { simpleParser } from 'mailparser';
-import { getEmailPartsInfoRecursive } from "../../../utils/EmailParts";
+import { EmailPartInfo, getEmailPartsInfoRecursive } from "../../../utils/EmailParts";
 
 
 export enum EmailParts {
@@ -219,7 +219,7 @@ export const getEmailsListOperation: IResourceOperationDef = {
 
         if (bodyStructure) {
 
-          const partsInfo = getEmailPartsInfoRecursive(context, bodyStructure);
+          const partsInfo: EmailPartInfo[] = getEmailPartsInfoRecursive(context, bodyStructure);
 
           // filter attachments and text/html parts
           for (const partInfo of partsInfo) {
@@ -236,10 +236,10 @@ export const getEmailsListOperation: IResourceOperationDef = {
               // if there is only one part, to sometimes it has no partId
               // in that case, ImapFlow uses "TEXT" as partId to download the only part
               if (partInfo.type === 'text/plain') {                
-                textPartId = partInfo.partId || "TEXT";
+                textPartId = partInfo.partId;
               }
               if (partInfo.type === 'text/html') {
-                htmlPartId = partInfo.partId || "TEXT";
+                htmlPartId = partInfo.partId;
               }
             }
           }
