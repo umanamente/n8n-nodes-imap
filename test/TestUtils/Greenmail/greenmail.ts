@@ -11,7 +11,7 @@
  *   await greenmail.stop();
  */
 
-import { execSync, spawn, ChildProcess } from 'child_process';
+import { execSync, exec, spawn, ChildProcess } from 'child_process';
 import * as net from 'net';
 import { GreenmailApi } from './GreenmailApi';
 import { createImapClient } from '../../../nodes/Imap/utils/ImapUtils';
@@ -41,6 +41,8 @@ export interface GreenMailConfig {
   startupTimeout?: number;
   /** Enable debug logs from GreenMail container (default: false) */
   enableDebugLogs?: boolean;
+  /** Whether to wait for container to fully stop on stop() (default: false) */
+  waitContainerStop?: boolean;
 }
 
 /**
@@ -63,6 +65,7 @@ export function getDefaultGreenMailConfig(overrides: GreenMailConfig = {}): Requ
     dockerImage: overrides.dockerImage || 'greenmail/standalone:2.1.7',
     startupTimeout: overrides.startupTimeout || (process.env.GREENMAIL_STARTUP_TIMEOUT ? parseInt(process.env.GREENMAIL_STARTUP_TIMEOUT, 10) : 60000),
     enableDebugLogs: overrides.enableDebugLogs || !!process.env.DEBUG_GREENMAIL,
+    waitContainerStop: overrides.waitContainerStop || false,
   };
 }
 
@@ -167,23 +170,32 @@ export class GreenMailServer {
     ];
 
     // Start Docker container
-    this.dockerProcess = spawn('docker', dockerArgs, {
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
+    if (this.config.enableDebugLogs) {
+      console.log('Starting GreenMail server in Docker container with logs enabled...');
+      this.dockerProcess = spawn('docker', dockerArgs, {
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
 
-    this.dockerProcess.stdout?.on('data', (data) => {
-      const output = data.toString();
-      if (this.config.enableDebugLogs) {
-        console.log(`[GreenMail STDOUT]: ${output}`);
-      }
-    });
+      this.dockerProcess.stdout?.on('data', (data) => {
+        const output = data.toString();
+        if (this.config.enableDebugLogs) {
+          console.log(`[GreenMail STDOUT]: ${output}`);
+        }
+      });
 
-    this.dockerProcess.stderr?.on('data', (data) => {
-      const output = data.toString();
-      if (this.config.enableDebugLogs) {
-        console.error(`[GreenMail STDERR]: ${output}`);
-      }
-    });
+      this.dockerProcess.stderr?.on('data', (data) => {
+        const output = data.toString();
+        if (this.config.enableDebugLogs) {
+          console.error(`[GreenMail STDERR]: ${output}`);
+        }
+      });
+    } else {
+      console.log('Starting GreenMail server in Docker container without logs (detached)...');
+      this.dockerProcess = spawn('docker', dockerArgs, {
+        detached: true,
+        stdio: 'ignore',
+      });
+    }
 
     // Wait for GreenMail to be ready
     await this.waitForContainerReady();
@@ -324,14 +336,34 @@ export class GreenMailServer {
     try {
       console.log('Stopping GreenMail container...');
       const stopStartTime = Date.now();
-      execSync(`docker stop ${this.config.containerName}`, { stdio: 'ignore' });
-      const stopTime = Date.now() - stopStartTime;
-      console.log(`GreenMail container stopped in ${stopTime}ms`);
-      // sleep a bit to allow Docker to fully stop
-      const sleepSeconds = 5;
-      console.log(`Waiting additional ${sleepSeconds} seconds for Docker to fully stop...`);
-      await new Promise((resolve) => setTimeout(resolve, sleepSeconds * 1000));
-      console.log('GreenMail server stopped.');
+      
+      if (this.config.waitContainerStop) {
+        // Wait for container to fully stop using exec with promise wrapper
+        await new Promise<void>((resolve, reject) => {
+          exec(`docker stop ${this.config.containerName}`, (error, stdout, stderr) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve();
+            }
+          });
+        });
+        const stopTime = Date.now() - stopStartTime;
+        console.log(`GreenMail container stopped in ${stopTime}ms`);
+        console.log('GreenMail server stopped.');
+      } else {
+        // kill the container without waiting
+        if (this.dockerProcess) {
+          this.dockerProcess.kill('SIGKILL');
+          console.log('Sent SIGKILL to GreenMail server process.');
+        }
+        // Fire and forget - spawn detached process that won't leave unfinished promises
+        spawn('docker', ['stop', this.config.containerName], {
+          detached: true,
+          stdio: 'ignore'
+        }).unref();
+        console.log('GreenMail server stop initiated. Not waiting for completion.');
+      }
 
     } catch (error) {
       console.warn(`Failed to stop GreenMail container: ${error}`);

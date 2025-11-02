@@ -58,7 +58,6 @@ module.exports = {
         }],
       },
       moduleFileExtensions: ['ts', 'js', 'json'],
-      maxWorkers: 1, // Force serial execution for GreenMail tests
     },
     {
       displayName: 'WithImapflowMock',
