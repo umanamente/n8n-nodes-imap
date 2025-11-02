@@ -20,18 +20,14 @@ export enum EmailParts {
 
 function streamToString(stream: Readable): Promise<string> {
   return new Promise((resolve, reject) => {
-    if (!stream) {
-      resolve('');
-    } else {
-      const chunks: any[] = [];
-      stream.on('data', (chunk) => {
-        chunks.push(chunk);
-      });
-      stream.on('end', () => {
-        resolve(Buffer.concat(chunks).toString('utf8'));
-      });
-      stream.on('error', reject);
-    }
+    const chunks: any[] = [];
+    stream.on('data', (chunk) => {
+      chunks.push(chunk);
+    });
+    stream.on('end', () => {
+      resolve(Buffer.concat(chunks).toString('utf8'));
+    });
+    stream.on('error', reject);
   });
 }
 
@@ -123,7 +119,7 @@ export const getEmailsListOperation: IResourceOperationDef = {
 
     const mailboxPath = getMailboxPathFromNodeParameter(context, itemIndex);
 
-    logger?.info(`Getting emails list from ${mailboxPath}`);
+    logger.info(`Getting emails list from ${mailboxPath}`);
 
     await client.mailboxOpen(mailboxPath);
 
@@ -150,10 +146,10 @@ export const getEmailsListOperation: IResourceOperationDef = {
       const includeAllHeaders = context.getNodeParameter('includeAllHeaders', itemIndex) as boolean;
       if (!includeAllHeaders) {
         const headersToInclude = context.getNodeParameter('headersToInclude', itemIndex) as string;
-        logger?.info(`Including headers: ${headersToInclude}`);
+        logger.info(`Including headers: ${headersToInclude}`);
         if (headersToInclude) {
           fetchQuery.headers = headersToInclude.split(',').map((header) => header.trim());
-          logger?.info(`Including headers: ${fetchQuery.headers}`);
+          logger.info(`Including headers: ${fetchQuery.headers}`);
         }
       }
     }
@@ -172,8 +168,8 @@ export const getEmailsListOperation: IResourceOperationDef = {
     }
 
     // log searchObject and fetchQuery
-    logger?.debug(`Search object: ${JSON.stringify(searchObject)}`);
-    logger?.debug(`Fetch query: ${JSON.stringify(fetchQuery)}`);
+    logger.debug(`Search object: ${JSON.stringify(searchObject)}`);
+    logger.debug(`Fetch query: ${JSON.stringify(fetchQuery)}`);
 
     // wait for all emails to be fetched before processing them
     // because we might need to fetch the body parts for each email,
@@ -182,11 +178,11 @@ export const getEmailsListOperation: IResourceOperationDef = {
     for  await (let email of client.fetch(searchObject, fetchQuery)) {
       emailsList.push(email);
     }
-    logger?.info(`Found ${emailsList.length} emails`);
+    logger.info(`Found ${emailsList.length} emails`);
 
     // process the emails
     for (const email of emailsList) {
-      logger?.info(`  ${email.uid}`);
+      logger.info(`  ${email.uid}`);
       var item_json = JSON.parse(JSON.stringify(email));
 
       // add mailbox path to the item
@@ -200,11 +196,11 @@ export const getEmailsListOperation: IResourceOperationDef = {
             const parsed = await simpleParser(headersString);
             item_json.headers = {};
             parsed.headers.forEach((value, key, map) => {
-              //logger?.info(`    HEADER [${key}] = ${value}`);
+              //logger.info(`    HEADER [${key}] = ${value}`);
               item_json.headers[key] = value;
             });
           } catch (error) {
-            logger?.error(`    Error parsing headers: ${error}`);
+            logger.error(`    Error parsing headers: ${error}`);
           }
         }
       }
