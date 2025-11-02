@@ -95,12 +95,16 @@ export class ImapNodeDebugUtils {
   }
 
   static AddNodeDebugOutputData(
-    parameters: ImapNodeDebugParameters, 
-    outputBranches: INodeExecutionData[][], 
-    loggerWatcher: DebugLoggerWatcher,
-    caughtError: Error | null,
+    parameters?: ImapNodeDebugParameters, 
+    outputBranches?: INodeExecutionData[][], 
+    loggerWatcher?: DebugLoggerWatcher,
+    caughtError?: Error | null,
   ): void {
     if (!ImapNodeDebugUtils.ImapNodeDebugUtilsEnabled()) {
+      return;
+    }
+
+    if (!parameters || !outputBranches) {
       return;
     }
 
@@ -113,11 +117,11 @@ export class ImapNodeDebugUtils {
     debugBranchData.push(debugInfo);
     outputBranches.push(debugBranchData);
 
-    if (parameters.debugOutputFormats.includes('logAsText')) {
-      debugJson['logAsText'] = loggerWatcher.getLogEntriesAsText();
+    if (parameters.debugOutputFormats.includes('logAsText')) {      
+      debugJson['logAsText'] = loggerWatcher?.getLogEntriesAsText() || 'Error: loggerWatcher is undefined';
     }
     if (parameters.debugOutputFormats.includes('logAsJson')) {
-      debugJson['logAsJson'] = loggerWatcher.getLogEntriesAsArray();
+      debugJson['logAsJson'] = loggerWatcher?.getLogEntriesAsArray() || 'Error: loggerWatcher is undefined';
     }
 
     if (caughtError) {

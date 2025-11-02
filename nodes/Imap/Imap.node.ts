@@ -187,126 +187,130 @@ export async function executeWithHandler(
   context: IExecuteFunctions, 
   client: ImapFlow, 
   handler: IResourceOperationDef,
-  nodeLogger: N8nLogger,
-  debugParameters: ImapNodeDebugParameters,
-  loggerWatcher: DebugLoggerWatcher
+  nodeLogger?: N8nLogger,
+  debugParameters?: ImapNodeDebugParameters,
+  loggerWatcher?: DebugLoggerWatcher
 ): Promise<INodeExecutionData[][] > {
 
+  // default parameters
+  if (!nodeLogger) {
+    nodeLogger = context.logger;
+  }
 
 
-    var resultBranches: INodeExecutionData[][] = [];
-    var resultItems: INodeExecutionData[] = [];
-    resultBranches.push(resultItems);
+  var resultBranches: INodeExecutionData[][] = [];
+  var resultItems: INodeExecutionData[] = [];
+  resultBranches.push(resultItems);
 
-    let caughtError: Error | null = null;
+  let caughtError: Error | null = null;
 
-    // catch all errors
+  // catch all errors
+  try {
+
     try {
-
-      try {
-        await client.connect();
-      } catch (error) {
-        nodeLogger.error(`Connection failed: ${error.message}`);
-        throw new NodeApiError(context.getNode(), {}, {
-          message: error.responseText || error.message || 'Unknown error',
-        });
-      }
-
-      // try/catch to close connection in any case
-      try {
-
-        // running operation in a loop for each input item
-        const items = context.getInputData();
-
-        for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
-          try { // catch errors and skip them if "continue on fail" is enabled
-
-            try { // for each item
-              // some errors are not thrown but logged by ImapFlow internally, so we try to catch them
-              ImapFlowErrorCatcher.getInstance().startErrorCatching();
-
-              const result = await handler.executeImapAction(context, nodeLogger, itemIndex, client);
-              if (result?.length) {
-                for (const outputItem of result) {
-                  // add pairedItem 
-                  outputItem.pairedItem = {
-                    item: itemIndex,
-                  };
-                  resultItems.push(outputItem);
-                }
-              } else {
-                nodeLogger.warn(`Operation returned no data`);
-              }
-            } catch (error) {
-              const imapErrorsList = ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
-              const internalImapErrorsMessage = imapErrorsList.toString();
-
-              if (imapErrorsList.caughtEntries.length > 0) {
-                nodeLogger.error(internalImapErrorsMessage);
-              }
-
-              if (error instanceof NodeApiError) {
-                // don't include internal IMAP errors, because the error message is already composed by the handler
-                throw error;
-              }
-
-              // seems to be unknown error, check IMAP internal errors and include them in the error message
-
-              nodeLogger.error(`Caught error: ${JSON.stringify(error)}`);
-
-              var errorMessage = error.responseText || error.message || 'Unknown error';
-
-              nodeLogger.error(`Operation failed`);
-              
-
-              throw new NodeImapError(context.getNode(), errorMessage, imapErrorsList);
-            }
-          } catch (error) {
-            // check if continueOnFail is set
-            if (context.continueOnFail()) {
-              // don't throw error, return error data for the item
-              resultItems.push({
-                json: {
-                  error: error.message,
-                },
-                error: error,
-                pairedItem: {
-                  item: itemIndex,
-                },
-              });
-            } else {
-              throw error;
-            }
-          }
-        } 
-
-        // close connection
-        client.logout();
-        nodeLogger.info('IMAP connection closed');
-
-      } catch (error) {
-        // close connection and rethrow error
-        client.logout();
-        nodeLogger.error(`IMAP connection closed. Error: ${error.message}`);
-        throw error;
-      }
-
+      await client.connect();
     } catch (error) {
-      // if debugging enabled, add debug output data instead of throwing error
-      nodeLogger.error(`Node execution failed: ${error.message}`);
-      if (!ImapNodeDebugUtils.ImapNodeDebugUtilsEnabled()) {
-        throw error;
-      } else {
-        // don't throw error, return debug output with error details
-        caughtError = error;
-      }
+      nodeLogger.error(`Connection failed: ${error.message}`);
+      throw new NodeApiError(context.getNode(), {}, {
+        message: error.responseText || error.message || 'Unknown error',
+      });
     }
 
-    // add debug output data if enabled
-    ImapNodeDebugUtils.AddNodeDebugOutputData(debugParameters, resultBranches, loggerWatcher, caughtError);
+    // try/catch to close connection in any case
+    try {
 
-    return resultBranches;
+      // running operation in a loop for each input item
+      const items = context.getInputData();
+
+      for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
+        try { // catch errors and skip them if "continue on fail" is enabled
+
+          try { // for each item
+            // some errors are not thrown but logged by ImapFlow internally, so we try to catch them
+            ImapFlowErrorCatcher.getInstance().startErrorCatching();
+
+            const result = await handler.executeImapAction(context, nodeLogger, itemIndex, client);
+            if (result?.length) {
+              for (const outputItem of result) {
+                // add pairedItem 
+                outputItem.pairedItem = {
+                  item: itemIndex,
+                };
+                resultItems.push(outputItem);
+              }
+            } else {
+              nodeLogger.warn(`Operation returned no data`);
+            }
+          } catch (error) {
+            const imapErrorsList = ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
+            const internalImapErrorsMessage = imapErrorsList.toString();
+
+            if (imapErrorsList.caughtEntries.length > 0) {
+              nodeLogger.error(internalImapErrorsMessage);
+            }
+
+            if (error instanceof NodeApiError) {
+              // don't include internal IMAP errors, because the error message is already composed by the handler
+              throw error;
+            }
+
+            // seems to be unknown error, check IMAP internal errors and include them in the error message
+
+            nodeLogger.error(`Caught error: ${JSON.stringify(error)}`);
+
+            var errorMessage = error.responseText || error.message || 'Unknown error';
+
+            nodeLogger.error(`Operation failed`);
+            
+
+            throw new NodeImapError(context.getNode(), errorMessage, imapErrorsList);
+          }
+        } catch (error) {
+          // check if continueOnFail is set
+          if (context.continueOnFail()) {
+            // don't throw error, return error data for the item
+            resultItems.push({
+              json: {
+                error: error.message,
+              },
+              error: error,
+              pairedItem: {
+                item: itemIndex,
+              },
+            });
+          } else {
+            throw error;
+          }
+        }
+      } 
+
+      // close connection
+      client.logout();
+      nodeLogger.info('IMAP connection closed');
+
+    } catch (error) {
+      // close connection and rethrow error
+      client.logout();
+      nodeLogger.error(`IMAP connection closed. Error: ${error.message}`);
+      throw error;
+    }
+
+  } catch (error) {
+    // if debugging enabled, add debug output data instead of throwing error
+    nodeLogger.error(`Node execution failed: ${error.message}`);
+    if (!ImapNodeDebugUtils.ImapNodeDebugUtilsEnabled()) {
+      throw error;
+    } else {
+      // don't throw error, return debug output with error details
+      caughtError = error;
+    }
   }
+
+  // add debug output data if enabled
+  ImapNodeDebugUtils.AddNodeDebugOutputData(debugParameters, resultBranches, loggerWatcher, caughtError);
+
+  return resultBranches;
+}
 
 
 

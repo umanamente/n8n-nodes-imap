@@ -6,11 +6,12 @@
  */
 
 import { ICredentialTestFunctions, ICredentialsDecrypted, IExecuteFunctions, NodeApiError } from 'n8n-workflow';
-import { Imap } from '../../nodes/Imap/Imap.node';
+import { executeWithHandler, Imap } from '../../nodes/Imap/Imap.node';
 import { createNodeParametersCheckerMock } from '../TestUtils/N8nMocks';
 import { ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
 import * as ImapUtils from '../../nodes/Imap/utils/ImapUtils';
 import { ImapFlowErrorCatcher } from '../../nodes/Imap/utils/ImapUtils';
+import { IResourceOperationDef } from '../../nodes/Imap/utils/CommonDefinitions';
 
 // Mock the createImapClient function
 jest.mock('../../nodes/Imap/utils/ImapUtils', () => ({
@@ -237,6 +238,67 @@ describe('Imap Node - exceptions handling', () => {
       expect(resultData[0]).toHaveLength(0);
     });
 
+
+    describe('continue on fail handling', () => {
+      it('should continue on fail for an operation failure', async () => {
+        // Create a mock parameters checker for testing
+        const paramValues = {
+          authentication: 'imapThisNode',
+          resource: 'mailbox',
+          operation: 'loadMailboxList',
+          includeStatusFields: [],
+        };
+        const context = createNodeParametersCheckerMock(imap.description.properties, paramValues, true);
+        context.getCredentials = jest.fn().mockResolvedValue(defaultCredentials);
+        context.getInputData = jest.fn().mockReturnValue([1]);
+        context.getNode = jest.fn().mockReturnValue({ name: 'Imap Test Node' });
+
+        const mockHandler: IResourceOperationDef = {
+          executeImapAction: async () => {
+            throw new Error('Simulated operation failure for continue on fail test');
+          },
+          operation: { name: 'Test Error', value: 'testError' },
+          parameters: [],
+        };
+
+        // Act & Assert
+        await expect(executeWithHandler(context as IExecuteFunctions, mockImapClient, mockHandler))
+          .resolves.toEqual([
+            [
+              {
+                error: expect.any(Error),
+                json: { error: 'Simulated operation failure for continue on fail test' },
+                pairedItem: { item: 0 },
+              },
+            ],
+          ]);
+      });
+
+      it('should throw error when continue on fail is disabled', async () => {
+        // Create a mock parameters checker for testing
+        const paramValues = {
+          authentication: 'imapThisNode',
+          resource: 'mailbox',
+          operation: 'loadMailboxList',
+          includeStatusFields: [],
+        };
+        const context = createNodeParametersCheckerMock(imap.description.properties, paramValues, false);
+        context.getCredentials = jest.fn().mockResolvedValue(defaultCredentials);
+        context.getInputData = jest.fn().mockReturnValue([1]);
+        context.getNode = jest.fn().mockReturnValue({ name: 'Imap Test Node' });
+        const mockHandler: IResourceOperationDef = {
+          executeImapAction: async () => {
+            throw new Error('Simulated operation failure for continue on fail disabled test');
+          },
+          operation: { name: 'Test Error', value: 'testError' },
+          parameters: [],
+        };
+        // Act & Assert
+        await expect(executeWithHandler(context as IExecuteFunctions, mockImapClient, mockHandler))
+          .rejects.toThrow('Simulated operation failure for continue on fail disabled test');
+      });
+    
+    }); // end continue on fail handling
 
   }); // end exception handling
 
