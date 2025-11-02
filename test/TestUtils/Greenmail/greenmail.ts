@@ -71,10 +71,23 @@ export class GreenMailServer {
   private containerRunning: boolean = false;
   private dockerProcess?: ChildProcess;
   private apiClient: GreenmailApi;
+  logger: any;
 
   constructor(config: GreenMailConfig = {}) {
     this.config = getDefaultGreenMailConfig(config);
     this.apiClient = new GreenmailApi(this.config);
+
+    if (this.config.enableDebugLogs) {
+      this.logger = console;
+    } else {
+      this.logger = {
+        log: () => {},
+        info: () => {},
+        warn: () => {},
+        error: () => {},
+        debug: () => {},
+      };
+    }
   }
 
   /**
@@ -131,7 +144,8 @@ export class GreenMailServer {
     await this.removeExistingContainer();
 
     const greenmailOpts = [
-      '-Dgreenmail.setup.test.all',
+      '-Dgreenmail.setup.test.imap',
+      '-Dgreenmail.setup.test.api',
       '-Dgreenmail.hostname=0.0.0.0',
       '-Dgreenmail.auth.disabled=false',
       '-Dgreenmail.verbose',
@@ -224,7 +238,7 @@ export class GreenMailServer {
         const portReady = await this.checkPortConnection(this.config.apiPort);
         
         if (portReady) {
-          //console.log(`API port ${this.config.apiPort} is accessible.`);
+          this.logger.log(`API port ${this.config.apiPort} is accessible.`);
           
           // Step 2: Wait for API readiness
           await this.apiClient.waitForReadiness(15000, 500);
@@ -233,18 +247,18 @@ export class GreenMailServer {
           const authReady = await this.tryImapAuth();
           
           if (authReady) {
-            console.log('IMAP authentication successful. GreenMail server is fully ready.');
+            this.logger.log('IMAP authentication successful. GreenMail server is fully ready.');
             return;
           } else {
-            // console.log('IMAP authentication failed, retrying...');
+            this.logger.log('IMAP authentication failed, retrying...');
           }
 
         } else {
-          // console.log(`API port ${this.config.apiPort} not accessible yet, retrying...`);
+          this.logger.log(`API port ${this.config.apiPort} not accessible yet, retrying...`);
         }
       } catch (error) {
         // Continue waiting
-        console.log(`Error during readiness check: ${error}, retrying...`);
+        this.logger.log(`Error during readiness check: ${error}, retrying...`);
       }
 
       await this.sleep(checkInterval);
