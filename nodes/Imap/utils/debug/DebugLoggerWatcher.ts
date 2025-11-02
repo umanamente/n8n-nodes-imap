@@ -6,7 +6,7 @@ import { ImapNodeDebugUtils } from "./ImapNodeDebugUtils";
  * Interface representing a single log entry
  */
 interface LogEntry {
-  type: LogLevel;
+  type: Exclude<LogLevel, 'silent'>;
   message: string;
   origin: string;
   timestamp: Date;
@@ -37,12 +37,11 @@ export class DebugLoggerWatcher {
     }
 
     // log to n8n logger as well
-    const logFunctionsMap: { [key in LogLevel]: (message: string, metadata?: LogMetadata) => void } = {
+    const logFunctionsMap: { [key in Exclude<LogLevel, 'silent'>]: (message: string, metadata?: LogMetadata) => void } = {
       debug: this.logger.debug,
       info: this.logger.info,
       warn: this.logger.warn,
       error: this.logger.error,
-      silent: () => {},
     };
 
     const logFunction = logFunctionsMap[entry.type];
