@@ -165,48 +165,66 @@ export class Imap implements INodeType {
           const items = this.getInputData();
 
           for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
-            try {
-              // some errors are not thrown but logged by ImapFlow internally, so we try to catch them
-              ImapFlowErrorCatcher.getInstance().startErrorCatching();
+            try { // catch errors and skip them if "continue on fail" is enabled
 
-              const result = await handler.executeImapAction(this, nodeLogger, itemIndex, client);
-              if (result) {
-                for (const outputItem of result) {
-                  // add pairedItem 
-                  outputItem.pairedItem = {
-                    item: itemIndex,
-                  };
-                  resultItems.push(outputItem);
+              try { // for each item
+                // some errors are not thrown but logged by ImapFlow internally, so we try to catch them
+                ImapFlowErrorCatcher.getInstance().startErrorCatching();
+
+                const result = await handler.executeImapAction(this, nodeLogger, itemIndex, client);
+                if (result) {
+                  for (const outputItem of result) {
+                    // add pairedItem 
+                    outputItem.pairedItem = {
+                      item: itemIndex,
+                    };
+                    resultItems.push(outputItem);
+                  }
+                } else {
+                  nodeLogger.warn(`Operation "${operation}" for resource "${resource}" returned no data`);
                 }
-              } else {
-                nodeLogger.warn(`Operation "${operation}" for resource "${resource}" returned no data`);
+              } catch (error) {
+                const imapErrorsList = ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
+                const internalImapErrorsMessage = imapErrorsList.toString();
+
+                if (imapErrorsList.caughtEntries.length > 0) {
+                  nodeLogger.error(internalImapErrorsMessage);
+                }
+
+                if (error instanceof NodeApiError) {
+                  // don't include internal IMAP errors, because the error message is already composed by the handler
+                  throw error;
+                }
+
+                // seems to be unknown error, check IMAP internal errors and include them in the error message
+
+                nodeLogger.error(`Caught error: ${JSON.stringify(error)}`);
+
+                var errorMessage = error.responseText || error.message || 'Unknown error';
+
+                nodeLogger.error(`Operation "${operation}" for resource "${resource}" failed`);
+                
+
+                throw new NodeImapError(this.getNode(), errorMessage, imapErrorsList);
               }
             } catch (error) {
-              const imapErrorsList = ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
-              const internalImapErrorsMessage = imapErrorsList.toString();
-
-              if (imapErrorsList.caughtEntries.length > 0) {
-                nodeLogger.error(internalImapErrorsMessage);
-              }
-
-              if (error instanceof NodeApiError) {
-                // don't include internal IMAP errors, because the error message is already composed by the handler
+              // check if continueOnFail is set
+              if (this.continueOnFail()) {
+                // don't throw error, return error data for the item
+                resultItems.push({
+                  json: {
+                    error: error.message,
+                  },
+                  error: error,
+                  pairedItem: {
+                    item: itemIndex,
+                  },
+                });
+              } else {
                 throw error;
               }
-
-              // seems to be unknown error, check IMAP internal errors and include them in the error message
-
-              nodeLogger.error(`Caught error: ${JSON.stringify(error)}`);
-
-              var errorMessage = error.responseText || error.message || 'Unknown error';
-
-              nodeLogger.error(`Operation "${operation}" for resource "${resource}" failed`);
-              
-
-              throw new NodeImapError(this.getNode(), errorMessage, imapErrorsList);
             }
-          }
-
+          } 
         } else {
           nodeLogger.error(`Unknown operation "${operation}" for resource "${resource}"`);
           throw new NodeApiError(this.getNode(), {}, {

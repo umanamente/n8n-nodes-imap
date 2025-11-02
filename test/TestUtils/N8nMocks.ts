@@ -53,7 +53,8 @@ export const createMockLogger = (
  */
 export const createNodeParametersCheckerMock = (
   properties: INodeProperties[],
-  mockValues: Record<string, any> = {}
+  mockValues: Record<string, any> = {},
+  continueOnFail: boolean = false,
 ): Partial<jest.Mocked<IExecuteFunctions>> => {
   // always include debug parameters if debug utils are enabled
   const debugParameterNames = ImapNodeDebugUtils.GetDebugNodeProperties().map(prop => prop.name);
@@ -95,6 +96,7 @@ export const createNodeParametersCheckerMock = (
     getNodeParameter: getNodeParameterMock,
     logger: createMockLogger(false, false, false, false),
     getNode: getNodeMock,
+    continueOnFail: jest.fn(() => continueOnFail),
     helpers: {
         prepareBinaryData: jest.fn().mockImplementation((data: Buffer, filename: string) => {
           return {
