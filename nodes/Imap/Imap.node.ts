@@ -226,7 +226,7 @@ export async function executeWithHandler(
               ImapFlowErrorCatcher.getInstance().startErrorCatching();
 
               const result = await handler.executeImapAction(context, nodeLogger, itemIndex, client);
-              if (result) {
+              if (result?.length) {
                 for (const outputItem of result) {
                   // add pairedItem 
                   outputItem.pairedItem = {

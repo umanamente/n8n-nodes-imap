@@ -236,7 +236,9 @@ describe('Imap Node - exceptions handling', () => {
       expect(resultData.length).toBeGreaterThanOrEqual(1);
       expect(resultData[0]).toHaveLength(0);
     });
-  });
+
+
+  }); // end exception handling
 
   describe('credential testing', () => {
     describe('testImapCredentials', () => {
@@ -318,7 +320,8 @@ describe('Imap Node - exceptions handling', () => {
         expect(mockImapClient.logout).not.toHaveBeenCalled();
       });
     });
-  });
 
-});
+  }); // end credential testing
+
+}); // end Imap Node - exceptions handling
 
