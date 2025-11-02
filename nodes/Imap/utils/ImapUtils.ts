@@ -118,7 +118,7 @@ export class ImapFlowErrorCatcher {
 /* Converts ImapFlow logger entries to n8n logger entries and logs them
 * Only logs info/debug entries if enableDebugLogs is true
 */
-class ImapLoggerToN8nConverter {
+export class ImapLoggerToN8nConverter {
   private n8nLogger?: N8nLogger;
   private enableDebugLogs: boolean;
   constructor(enableDebugLogs: boolean, n8nLogger?: N8nLogger) {
