@@ -140,11 +140,12 @@ export const getEmailsListOperation: IResourceOperationDef = {
     if (includeParts.includes(EmailParts.Size)) {
       fetchQuery.size = true;
     }
-    if (includeParts.includes(EmailParts.Headers)) {
-      fetchQuery.headers = true;
+    if (includeParts.includes(EmailParts.Headers)) {      
       // check if user wants only specific headers
       const includeAllHeaders = context.getNodeParameter('includeAllHeaders', itemIndex) as boolean;
-      if (!includeAllHeaders) {
+      if (includeAllHeaders) {
+        fetchQuery.headers = true;
+      } else {
         const headersToInclude = context.getNodeParameter('headersToInclude', itemIndex) as string;
         logger.info(`Including headers: ${headersToInclude}`);
         if (headersToInclude) {

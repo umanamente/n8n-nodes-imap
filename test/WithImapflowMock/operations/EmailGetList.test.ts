@@ -378,6 +378,67 @@ describe('EmailGetList', () => {
       });
     });
 
+    it('should get emails with no specific headers when includeParts includes headers and headersToInclude is empty', async () => {
+      // Arrange
+      const { simpleParser } = require('mailparser');
+      const mockParsedHeaders = new Map();
+      mockParsedHeaders.set('subject', 'Test Email');
+      mockParsedHeaders.set('from', { value: [{ address: 'john@example.com' }] });
+      
+      (simpleParser as jest.Mock).mockResolvedValueOnce({
+        headers: mockParsedHeaders,
+      });
+      
+      const paramValues = {
+        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        searchCriteria: 'ALL',
+        includeParts: [EmailParts.Headers],
+        includeAllHeaders: false,
+        headersToInclude: '',
+      };
+      const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
+      
+      const mockHeaders = Buffer.from('Subject: Test Email\r\nFrom: john@example.com\r\n\r\n');
+      
+      const mockEmailData = [
+        {
+          uid: 123,
+          envelope: {
+            subject: 'Test Email 1',
+            from: [{ name: 'John Doe', address: 'john@example.com' }],
+          },
+          headers: mockHeaders,
+        },
+      ];
+      
+      const mockFetchAsyncIterator = {
+        [Symbol.asyncIterator]: jest.fn().mockReturnValue({
+          next: jest.fn()
+            .mockResolvedValueOnce({ value: mockEmailData[0], done: false })
+            .mockResolvedValueOnce({ done: true }),
+        }),
+      };
+      
+      mockImapflow.fetch = jest.fn().mockReturnValue(mockFetchAsyncIterator);
+      
+      // Act
+      const result = await getEmailsListOperation.executeImapAction(
+        context as IExecuteFunctions,
+        context.logger!,
+        ITEM_INDEX,
+        mockImapflow
+      );
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result?.length).toBe(1);
+      expect(result![0].json.headers).toBeDefined();
+      expect(mockImapflow.fetch).toHaveBeenCalledWith({}, {
+        uid: true,
+        envelope: true,
+      });
+    });
+
     it('should get emails with text content when includeParts includes textContent', async () => {
       // Arrange
       const paramValues = {
