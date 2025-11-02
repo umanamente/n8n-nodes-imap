@@ -57,8 +57,8 @@ module.exports = {
           tsconfig: 'tsconfig.test.json',
         }],
       },
+      maxWorkers: 1, // Greenmail does not work well with parallel tests
       moduleFileExtensions: ['ts', 'js', 'json'],
-      maxWorkers: 1, // Force serial execution for GreenMail tests
     },
     {
       displayName: 'WithImapflowMock',

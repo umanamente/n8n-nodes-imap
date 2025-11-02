@@ -99,7 +99,7 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
       uid: emailUid,
     };
 
-    logger?.info(`Setting flags "${flagsToSet.join(',')}" and removing flags "${flagsToRemove.join(',')}" on email "${emailUid}"`);
+    logger.info(`Setting flags "${flagsToSet.join(',')}" and removing flags "${flagsToRemove.join(',')}" on email "${emailUid}"`);
 
     await client.mailboxOpen(mailboxPath, { readOnly: false });
 

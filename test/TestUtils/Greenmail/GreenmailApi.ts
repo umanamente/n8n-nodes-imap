@@ -61,6 +61,7 @@ export interface TestUser {
 export class GreenmailApi {
   private baseUrl: string;
   private config: GreenMailConfig;
+  logger: any;
 
   /**
    * Creates a new Greenmail API client
@@ -71,6 +72,12 @@ export class GreenmailApi {
     const host = config.host || 'localhost';
     const apiPort = config.apiPort || 8080;
     this.baseUrl = `http://${host}:${apiPort}`;
+
+    if (this.config.enableDebugLogs) {
+      this.logger = console;
+    } else {
+      this.logger = { log: () => {} };
+    }
   }
 
   /**
@@ -158,7 +165,14 @@ export class GreenmailApi {
    */
   async checkReadiness(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/service/readiness`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+      
+      const response = await fetch(`${this.baseUrl}/api/service/readiness`, {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
       return response.status === 200;
     } catch (error) {
       return false;
@@ -208,6 +222,7 @@ export class GreenmailApi {
   async waitForReadiness(timeoutMs: number = 30000, intervalMs: number = 500): Promise<void> {
     const startTime = Date.now();
     while (Date.now() - startTime < timeoutMs) {
+      this.logger.log('Checking GreenMail readiness...');
       if (await this.checkReadiness()) {
         return;
       }

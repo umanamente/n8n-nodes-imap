@@ -1,4 +1,4 @@
-import { QuotaResponse } from "imapflow";
+import { ImapFlow, QuotaResponse } from "imapflow";
 import { ImapCredentialsData } from "../../../credentials/ImapCredentials.credentials";
 
 /**
@@ -322,7 +322,7 @@ class MockImapServer {
 export function createImapflowMock(
   server: MockImapServer,
   credentials: { user: string; password: string }
-): any {
+): jest.Mocked<ImapFlow> {
   let authenticated = false;
   let currentUser: MockImapServerUser | undefined;
   let currentMailbox: string | undefined;
@@ -616,9 +616,229 @@ export function createImapflowMock(
         },
       };
     }),
+
+    /**
+     * Open a mailbox for operations
+     */
+    mailboxOpen: jest.fn().mockImplementation(async (mailboxPath: string, options?: any) => {
+      if (!authenticated || !currentUser) {
+        throw new Error('Not authenticated');
+      }
+      const mailbox = currentUser.getMailbox(mailboxPath);
+      if (!mailbox) {
+        throw new Error(`Mailbox '${mailboxPath}' not found`);
+      }
+      currentMailbox = mailboxPath;
+      
+      // Return mailbox object with status
+      const status = currentUser.getMailboxStatus(mailboxPath);
+      return {
+        path: mailboxPath,
+        name: mailbox.name,
+        exists: status?.messages || 0,
+        flags: mailbox.flags,
+        permanentFlags: ['\\Answered', '\\Flagged', '\\Deleted', '\\Seen', '\\Draft'],
+        uidNext: status?.uidNext || 1,
+        uidValidity: status?.uidValidity || 1,
+        readOnly: options?.readOnly || false,
+      };
+    }),
+
+    /**
+     * Close currently opened mailbox
+     */
+    mailboxClose: jest.fn().mockImplementation(async () => {
+      if (!authenticated || !currentUser) {
+        throw new Error('Not authenticated');
+      }
+      currentMailbox = undefined;
+      return true;
+    }),
+
+    /**
+     * Create a new mailbox
+     */
+    mailboxCreate: jest.fn().mockImplementation(async (mailboxPath: string | string[]) => {
+      if (!authenticated || !currentUser) {
+        throw new Error('Not authenticated');
+      }
+      const path = Array.isArray(mailboxPath) ? mailboxPath.join('/') : mailboxPath;
+      
+      try {
+        const mailbox = currentUser.createMailbox(path);
+        return {
+          path: path,
+          name: mailbox.name,
+          created: true,
+        };
+      } catch (error) {
+        throw new Error(`Failed to create mailbox '${path}': ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }),
+
+    /**
+     * Rename a mailbox
+     */
+    mailboxRename: jest.fn().mockImplementation(async (oldPath: string, newPath: string) => {
+      if (!authenticated || !currentUser) {
+        throw new Error('Not authenticated');
+      }
+      const mailbox = currentUser.getMailbox(oldPath);
+      if (!mailbox) {
+        throw new Error(`Mailbox '${oldPath}' not found`);
+      }
+      
+      // Create new mailbox with new name
+      const newMailbox = currentUser.createMailbox(newPath, {
+        delimiter: mailbox.delimiter,
+        flags: mailbox.flags,
+        specialUse: mailbox.specialUse,
+      });
+      
+      // Copy all emails from old to new mailbox
+      const emails = currentUser.getEmails(oldPath);
+      if (emails) {
+        for (const email of emails) {
+          currentUser.createEmail(newPath, email.rfc822Data, {
+            flags: email.flags,
+            internalDate: email.internalDate,
+          });
+        }
+      }
+      
+      // Delete old mailbox
+      currentUser.deleteMailbox(oldPath);
+      
+      return {
+        path: newPath,
+        name: newMailbox.name,
+        renamed: true,
+        oldPath: oldPath,
+      };
+    }),
+
+    /**
+     * Delete a mailbox
+     */
+    mailboxDelete: jest.fn().mockImplementation(async (mailboxPath: string) => {
+      if (!authenticated || !currentUser) {
+        throw new Error('Not authenticated');
+      }
+      const deleted = currentUser.deleteMailbox(mailboxPath);
+      if (!deleted) {
+        throw new Error(`Mailbox '${mailboxPath}' not found`);
+      }
+      return {
+        path: mailboxPath,
+        deleted: true,
+      };
+    }),
+
+    /**
+     * Fetch multiple emails with async generator
+     */
+    fetch: jest.fn().mockImplementation(async function* (searchQuery: any, fetchQuery?: any, options?: any) {
+      if (!authenticated || !currentUser || !currentMailbox) {
+        throw new Error('Not authenticated or no mailbox selected');
+      }
+      const emails = currentUser.getEmails(currentMailbox);
+      if (!emails) {
+        return;
+      }
+      
+      // Simple implementation - return all emails that match the search query
+      // In a real implementation, this would filter based on searchQuery
+      for (const email of emails) {
+        const emailData: any = {
+          uid: email.uid,
+          flags: [...email.flags],
+          internalDate: email.internalDate,
+        };
+        
+        // Add requested fields based on fetchQuery
+        if (fetchQuery?.source) {
+          emailData.source = typeof email.rfc822Data === 'string' 
+            ? Buffer.from(email.rfc822Data) 
+            : email.rfc822Data;
+        }
+        if (fetchQuery?.envelope) {
+          // Mock envelope data
+          emailData.envelope = {
+            date: email.internalDate,
+            subject: 'Mock Subject',
+            from: [{ name: 'Mock Sender', address: 'sender@example.com' }],
+            to: [{ name: 'Mock Recipient', address: 'recipient@example.com' }],
+            messageId: `<${email.uid}@example.com>`,
+          };
+        }
+        if (fetchQuery?.bodyStructure) {
+          // Mock body structure
+          emailData.bodyStructure = {
+            type: 'text',
+            subtype: 'plain',
+            parameters: { charset: 'utf-8' },
+            id: null,
+            description: null,
+            encoding: '7bit',
+            size: typeof email.rfc822Data === 'string' ? email.rfc822Data.length : email.rfc822Data.length,
+          };
+        }
+        if (fetchQuery?.size) {
+          emailData.size = typeof email.rfc822Data === 'string' ? email.rfc822Data.length : email.rfc822Data.length;
+        }
+        if (fetchQuery?.headers) {
+          // Mock headers
+          emailData.headers = Buffer.from('Subject: Mock Subject\r\nFrom: sender@example.com\r\n');
+        }
+        
+        yield emailData;
+      }
+    }),
+
+    /**
+     * Add flags to a message
+     */
+    messageFlagsAdd: jest.fn().mockImplementation(async (uid: number | string, flags: string[], options?: any) => {
+      if (!authenticated || !currentUser || !currentMailbox) {
+        throw new Error('Not authenticated or no mailbox selected');
+      }
+      const uidNum = typeof uid === 'string' ? parseInt(uid, 10) : uid;
+      const email = currentUser.getEmail(currentMailbox, uidNum);
+      if (!email) {
+        return false;
+      }
+      
+      // Add flags to existing flags (avoid duplicates)
+      const currentFlags = new Set(email.flags);
+      flags.forEach(flag => currentFlags.add(flag));
+      
+      const updated = currentUser.setEmailFlags(currentMailbox, uidNum, Array.from(currentFlags));
+      return updated;
+    }),
+
+    /**
+     * Remove flags from a message
+     */
+    messageFlagsRemove: jest.fn().mockImplementation(async (uid: number | string, flags: string[], options?: any) => {
+      if (!authenticated || !currentUser || !currentMailbox) {
+        throw new Error('Not authenticated or no mailbox selected');
+      }
+      const uidNum = typeof uid === 'string' ? parseInt(uid, 10) : uid;
+      const email = currentUser.getEmail(currentMailbox, uidNum);
+      if (!email) {
+        return false;
+      }
+      
+      // Remove flags from existing flags
+      const currentFlags = new Set(email.flags);
+      flags.forEach(flag => currentFlags.delete(flag));
+      
+      const updated = currentUser.setEmailFlags(currentMailbox, uidNum, Array.from(currentFlags));
+      return updated;
+    }),
   };
 
-  return mockClient;
+  return mockClient as unknown as jest.Mocked<ImapFlow>;
 }
 
 export { MockImapServer, MockImapServerUser, MockEmail, MockMailbox };

@@ -1,6 +1,6 @@
 import { ImapFlow } from "imapflow";
 import { ImapCredentialsData } from "../../../credentials/ImapCredentials.credentials";
-import { INode, JsonValue, Logger as N8nLogger, NodeApiError } from "n8n-workflow";
+import { INode, JsonValue, Logger as N8nLogger, NodeOperationError } from "n8n-workflow";
 
 
 // interfaces for debug/info entries that ImapFlow logger provides
@@ -43,13 +43,12 @@ export class ImapErrorsList {
 
 
 /* An error class that represents an error from the IMAP server
-* It extends NodeApiError and adds a description with the list of IMAP errors
+* It extends NodeOperationError and adds a description with the list of IMAP errors
 * that were caught while executing the command that caused the error.
 */
-export class NodeImapError extends NodeApiError {
+export class NodeImapError extends NodeOperationError {
   constructor(node: INode, message: string, imapErrorsList: ImapErrorsList) {
-    super(node, {}, {
-      message: message,
+    super(node, message, {
       description: imapErrorsList.toString(),
     });
   }
@@ -118,7 +117,7 @@ export class ImapFlowErrorCatcher {
 /* Converts ImapFlow logger entries to n8n logger entries and logs them
 * Only logs info/debug entries if enableDebugLogs is true
 */
-class ImapLoggerToN8nConverter {
+export class ImapLoggerToN8nConverter {
   private n8nLogger?: N8nLogger;
   private enableDebugLogs: boolean;
   constructor(enableDebugLogs: boolean, n8nLogger?: N8nLogger) {
