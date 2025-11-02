@@ -44,7 +44,7 @@ export const moveEmailOperation: IResourceOperationDef = {
 
     const emailUid = context.getNodeParameter('emailUid', itemIndex) as string;
 
-    logger?.info(`Moving email "${emailUid}" from "${sourceMailboxPath}" to "${destinationMailboxPath}"`);
+    logger.info(`Moving email "${emailUid}" from "${sourceMailboxPath}" to "${destinationMailboxPath}"`);
 
     await client.mailboxOpen(sourceMailboxPath, { readOnly: false });
 
