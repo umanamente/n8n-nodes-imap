@@ -171,7 +171,13 @@ export class Imap implements INodeType {
 
               const result = await handler.executeImapAction(this, nodeLogger, itemIndex, client);
               if (result) {
-                resultItems.push(...result);
+                for (const outputItem of result) {
+                  // add pairedItem 
+                  outputItem.pairedItem = {
+                    item: itemIndex,
+                  };
+                  resultItems.push(outputItem);
+                }
               } else {
                 nodeLogger.warn(`Operation "${operation}" for resource "${resource}" returned no data`);
               }
