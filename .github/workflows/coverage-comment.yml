@@ -55,6 +55,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           coverage-path: ./coverage.txt
+          coverage-summary-path: ./coverage-summary.json
           issue-number: ${{ steps.pr-number.outputs.result }}
 
       - name: Create Coverage Badge
