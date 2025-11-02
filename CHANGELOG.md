@@ -1,3 +1,9 @@
+## [2.13.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.12.0...v2.13.0) (2025-11-02)
+
+### Features
+
+* improve error handling and data recovery in nodes ([#99](https://github.com/umanamente/n8n-nodes-imap/issues/99)) ([06925e2](https://github.com/umanamente/n8n-nodes-imap/commit/06925e2bab3ff43ed88e698d0f79b4e89de0ad54))
+
 ## [2.12.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.11.0...v2.12.0) (2025-10-28)
 
 ### Features
