@@ -1,9 +1,8 @@
-import { ICredentialTestFunctions, ICredentialsDecrypted, IExecuteFunctions, INodeCredentialTestResult, INodeExecutionData, INodeType, INodeTypeDescription, Logger as N8nLogger, NodeConnectionTypes } from 'n8n-workflow';
+import { ICredentialTestFunctions, ICredentialsDecrypted, IExecuteFunctions, INodeCredentialTestResult, INodeExecutionData, INodeType, INodeTypeDescription, Logger as N8nLogger, NodeConnectionTypes, NodeError, NodeOperationError } from 'n8n-workflow';
 import { allResourceDefinitions } from './operations/ResourcesList';
 import { getAllResourceNodeParameters, IResourceOperationDef } from './utils/CommonDefinitions';
 import { ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
 import { ImapFlowErrorCatcher, NodeImapError, createImapClient } from './utils/ImapUtils';
-import { NodeApiError } from 'n8n-workflow';
 import { loadMailboxList } from './utils/SearchFieldParameters';
 import { CREDENTIALS_TYPE_CORE_IMAP_ACCOUNT, CREDENTIALS_TYPE_THIS_NODE, credentialNames, getImapCredentials } from './utils/CredentialsSelector';
 import { ImapNodeDebugParameters, ImapNodeDebugUtils } from './utils/debug/ImapNodeDebugUtils';
@@ -137,9 +136,7 @@ export class Imap implements INodeType {
 
     if (!handler) {
       nodeLogger.error(`Unknown operation "${operation}" for resource "${resource}"`);
-      throw new NodeApiError(this.getNode(), {}, {
-        message: `Unknown operation "${operation}" for resource "${resource}"`,
-      });
+      throw new NodeOperationError(this.getNode(), `Unknown operation "${operation}" for resource "${resource}"`);
     }
 
     nodeLogger.info(`Executing operation "${operation}" for resource "${resource}"`);
@@ -211,9 +208,7 @@ export async function executeWithHandler(
       await client.connect();
     } catch (error) {
       nodeLogger.error(`Connection failed: ${error.message}`);
-      throw new NodeApiError(context.getNode(), {}, {
-        message: error.responseText || error.message || 'Unknown error',
-      });
+      throw new NodeOperationError(context.getNode(), error);
     }
 
     // try/catch to close connection in any case
@@ -249,7 +244,7 @@ export async function executeWithHandler(
               nodeLogger.error(internalImapErrorsMessage);
             }
 
-            if (error instanceof NodeApiError) {
+            if (error instanceof NodeError) {
               // don't include internal IMAP errors, because the error message is already composed by the handler
               throw error;
             }

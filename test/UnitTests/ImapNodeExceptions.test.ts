@@ -5,7 +5,7 @@
  * using mocked dependencies.
  */
 
-import { ICredentialTestFunctions, ICredentialsDecrypted, IExecuteFunctions, NodeApiError } from 'n8n-workflow';
+import { ICredentialTestFunctions, ICredentialsDecrypted, IExecuteFunctions, NodeOperationError } from 'n8n-workflow';
 import { executeWithHandler, Imap } from '../../nodes/Imap/Imap.node';
 import { createNodeParametersCheckerMock } from '../TestUtils/N8nMocks';
 import { ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
@@ -161,18 +161,18 @@ describe('Imap Node - exceptions handling', () => {
         fail('Expected error was not thrown');
       } catch (error) {
         expect(error).toBeInstanceOf(ImapUtils.NodeImapError);
-        expect(error).toBeInstanceOf(NodeApiError);
+        expect(error).toBeInstanceOf(NodeOperationError);
         expect(error).toHaveProperty('description');
-        expect((error as NodeApiError).description).toContain('The following errors were reported by the IMAP server:');
-        expect((error as NodeApiError).description).toContain('IMAP error 1');
-        expect((error as NodeApiError).description).toContain('IMAP warning 1');
-        expect((error as NodeApiError).description).not.toContain('IMAP error - not captured');
-        expect((error as NodeApiError).description).not.toContain('IMAP warning - not captured');
-        expect((error as NodeApiError).message).toContain('Operation failed with IMAP errors');
+        expect((error as NodeOperationError).description).toContain('The following errors were reported by the IMAP server:');
+        expect((error as NodeOperationError).description).toContain('IMAP error 1');
+        expect((error as NodeOperationError).description).toContain('IMAP warning 1');
+        expect((error as NodeOperationError).description).not.toContain('IMAP error - not captured');
+        expect((error as NodeOperationError).description).not.toContain('IMAP warning - not captured');
+        expect((error as NodeOperationError).message).toContain('Operation failed with IMAP errors');
       }
     });
 
-    it('should handle operation failure with a NodeApiError gracefully', async () => {
+    it('should handle operation failure with a NodeOperationError gracefully', async () => {
       // Create a mock parameters checker for testing
       const paramValues = {
         authentication: 'imapThisNode',
@@ -185,9 +185,9 @@ describe('Imap Node - exceptions handling', () => {
       context.getInputData = jest.fn().mockReturnValue([1]);
       context.getNode = jest.fn().mockReturnValue({ name: 'Imap Test Node' });
 
-      // mock operation failure with NodeApiError
+      // mock operation failure with NodeOperationError
       mockImapClient.list.mockImplementation(() => {
-        throw new NodeApiError(
+        throw new NodeOperationError(
           { 
             id: 'test-node-id',
             name: 'Imap Test Node',
@@ -209,7 +209,7 @@ describe('Imap Node - exceptions handling', () => {
         await imap.execute.call(context as IExecuteFunctions);
         fail('Expected error was not thrown');
       } catch (error) {
-        expect(error).toBeInstanceOf(NodeApiError);
+        expect(error).toBeInstanceOf(NodeOperationError);
         expect(error).toHaveProperty('message', 'Node API error occurred');
         expect(error).toHaveProperty('errorResponse', { jsonParam: "test" });
       }

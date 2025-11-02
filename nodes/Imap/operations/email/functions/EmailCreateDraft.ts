@@ -1,6 +1,6 @@
 import { ImapFlow } from 'imapflow';
 import * as nodemailer from 'nodemailer';
-import { IExecuteFunctions, INodeExecutionData, NodeApiError, Logger as N8nLogger } from "n8n-workflow";
+import { IExecuteFunctions, INodeExecutionData, Logger as N8nLogger, NodeOperationError } from "n8n-workflow";
 import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from '../../../utils/SearchFieldParameters';
 import { ImapFlowErrorCatcher, NodeImapError } from '../../../utils/ImapUtils';
@@ -212,9 +212,7 @@ export const createDraftOperation: IResourceOperationDef = {
 
       // check errors
       if (result.error) {
-        throw new NodeApiError(context.getNode(), {}, {
-          message: `Error composing the email: ${result.error}`,
-        });
+        throw new NodeOperationError(context.getNode(), `Error composing the email: ${result.error}`);
       }
 
       // convert the email to rfc822 format
