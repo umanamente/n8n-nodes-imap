@@ -1,3 +1,9 @@
+## [2.14.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.13.0...v2.14.0) (2025-11-09)
+
+### Features
+
+* add support for STARTTLS option in IMAP credentials and related components ([#100](https://github.com/umanamente/n8n-nodes-imap/issues/100)) ([8c71b7e](https://github.com/umanamente/n8n-nodes-imap/commit/8c71b7ef910d194b7eedac96196a1e81340f068d)), closes [#90](https://github.com/umanamente/n8n-nodes-imap/issues/90)
+
 ## [2.13.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.12.0...v2.13.0) (2025-11-02)
 
 ### Features
