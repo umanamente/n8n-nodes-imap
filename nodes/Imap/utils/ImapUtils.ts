@@ -1,4 +1,4 @@
-import { ImapFlow } from "imapflow";
+import { ImapFlow, ImapFlowOptions } from "imapflow";
 import { ImapCredentialsData } from "../../../credentials/ImapCredentials.credentials";
 import { INode, JsonValue, Logger as N8nLogger, NodeOperationError } from "n8n-workflow";
 
@@ -170,19 +170,28 @@ export class ImapLoggerToN8nConverter {
 export function createImapClient(credentials: ImapCredentialsData, logger?: N8nLogger, enableDebugLogs: boolean = false): ImapFlow {
   const loggerConverter = new ImapLoggerToN8nConverter(enableDebugLogs, logger);
 
-  const client = new ImapFlow({
-    host: credentials!.host as string,
-    port: credentials!.port as number,
-    secure: credentials!.tls as boolean,
+  let imapflowOptions: ImapFlowOptions = {
+    host: credentials.host as string,
+    port: credentials.port as number,
+    secure: credentials.tls as boolean,
     tls: {
-      rejectUnauthorized: !credentials!.allowUnauthorizedCerts as boolean,
+      rejectUnauthorized: !credentials.allowUnauthorizedCerts as boolean,
     },
     auth: {
-      user: credentials!.user as string,
-      pass: credentials!.password as string,
+      user: credentials.user as string,
+      pass: credentials.password as string,
     },
     logger: loggerConverter,
-  });
+  };
+
+  if (!credentials.tls) {
+    imapflowOptions = {
+      ...imapflowOptions,
+      doSTARTTLS: credentials.allowStartTLS,
+    };
+  }
+
+  const client = new ImapFlow(imapflowOptions);
   return client;
 }
 

@@ -246,6 +246,7 @@ export class GreenmailApi {
       password: email, // GreenMail default: password same as email
       tls: useTls,
       allowUnauthorizedCerts: true, // GreenMail uses self-signed certs
+      allowStartTLS: false, // GreenMail does not support STARTTLS
     };
   }
 

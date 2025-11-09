@@ -30,7 +30,8 @@ describe('Imap Node - exceptions handling', () => {
     host: 'imap.example.com',
     port: 993,
     tls: true,
-    allowUnauthorizedCerts: false
+    allowUnauthorizedCerts: false,
+    allowStartTLS: false
   };
 
   afterAll(() => {
@@ -409,6 +410,7 @@ describe('Imap Node - exceptions handling', () => {
             port: 993,
             tls: true,
             allowUnauthorizedCerts: false,
+            allowStartTLS: false,
           },
         };
 
@@ -448,6 +450,7 @@ describe('Imap Node - exceptions handling', () => {
             port: 993,
             tls: true,
             allowUnauthorizedCerts: false,
+            allowStartTLS: false,
           },
         };
 

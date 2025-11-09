@@ -29,7 +29,8 @@ describe('Imap Node - mocked ImapFlow', () => {
       host: 'imap.example.com',
       port: 993,
       tls: true,
-      allowUnauthorizedCerts: false
+      allowUnauthorizedCerts: false,
+      allowStartTLS: false,
     };
 
   });

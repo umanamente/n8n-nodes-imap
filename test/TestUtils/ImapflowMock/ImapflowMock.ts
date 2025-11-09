@@ -309,6 +309,7 @@ class MockImapServer {
       port: 993,
       tls: true,
       allowUnauthorizedCerts: false,
+      allowStartTLS: false,
     };
   }
 }
