@@ -16,6 +16,7 @@ describe('ImapCredentials', () => {
       password: '',
       tls: false,
       allowUnauthorizedCerts: false,
+      allowStartTLS: false,
     };
     
     expectedFields = Object.keys(sampleData) as (keyof ImapCredentialsData)[];    

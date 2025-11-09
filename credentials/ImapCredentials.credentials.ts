@@ -42,6 +42,18 @@ export class ImapCredentials implements ICredentialType {
       description: "Whether to use SSL/TLS or not",
     },
     {
+      displayName: "Allow STARTTLS",
+      name: "allowStartTLS",
+      type: "boolean",
+      default: true,
+      description: "Whether to allow the use of STARTTLS to upgrade the connection to a secure one",
+      displayOptions: {
+        show: {
+          tls: [false],
+        },
+      },
+    },
+    {
       displayName: "Allow Self-Signed Certificates",
       name: "allowUnauthorizedCerts",
       type: "boolean",
@@ -56,6 +68,7 @@ export interface ImapCredentialsData {
   user: string;
   password: string;
   tls: boolean;
+  allowStartTLS: boolean;
   allowUnauthorizedCerts: boolean;
 }
 

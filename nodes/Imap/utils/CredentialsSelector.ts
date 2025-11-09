@@ -40,6 +40,7 @@ const credentialsProviders: ImapCredentialsProvider[] = [
         password: credentials.password as string,
         tls: credentials.secure as boolean,
         allowUnauthorizedCerts: credentials.allowUnauthorizedCerts as boolean,
+        allowStartTLS: true,
       };
       return returnCredentials;
     }

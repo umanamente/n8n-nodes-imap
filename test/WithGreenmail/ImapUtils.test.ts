@@ -116,6 +116,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
         password: 'password',
         tls: false,
         allowUnauthorizedCerts: false,
+        allowStartTLS: false,
       };
       const client = createImapClient(credentials, mockLoggerSilent, false);
 
@@ -252,6 +253,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
         password: 'password',
         tls: false,
         allowUnauthorizedCerts: false,
+        allowStartTLS: false,
       };
       const client = createImapClient(credentials, mockLoggerSilent, false);
 
@@ -303,6 +305,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
         password: '',
         tls: false,
         allowUnauthorizedCerts: true,
+        allowStartTLS: false,
       };
 
       // Act & Assert - Should create client even with empty credentials
@@ -319,6 +322,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
         password: 'password',
         tls: false,
         allowUnauthorizedCerts: true,
+        allowStartTLS: false,
       };
 
       // Act - Should create client but likely fail on connect
@@ -336,6 +340,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
         password: 'password',
         tls: false,
         allowUnauthorizedCerts: true,
+        allowStartTLS: false,
       };
 
       // Act
@@ -365,6 +370,7 @@ describe('ImapUtils - createImapClient (without GreenMail)', () => {
         password: 'password',
         tls: true,
         allowUnauthorizedCerts: false,
+        allowStartTLS: false,
       };
 
       // Act
@@ -384,6 +390,7 @@ describe('ImapUtils - createImapClient (without GreenMail)', () => {
         password: 'secure-password-123',
         tls: true,
         allowUnauthorizedCerts: true,
+        allowStartTLS: true,
       };
 
       // Act
@@ -402,7 +409,8 @@ describe('ImapUtils - createImapClient (without GreenMail)', () => {
         user: 'user@test.com',
         password: 'pass123',
         tls: false,
-        allowUnauthorizedCerts: false,
+        allowUnauthorizedCerts: false,        
+        allowStartTLS: false,
       };
 
       // Act
