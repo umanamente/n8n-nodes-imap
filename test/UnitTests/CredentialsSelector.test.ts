@@ -5,7 +5,7 @@ import {
   CREDENTIALS_TYPE_CORE_IMAP_ACCOUNT,
   credentialNames,
 } from '../../nodes/Imap/utils/CredentialsSelector';
-import { ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
+import { DEFAULT_STARTTLS_USAGE, ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
 
 describe('CredentialsSelector', () => {
   describe('getImapCredentials', () => {
@@ -40,7 +40,7 @@ describe('CredentialsSelector', () => {
           password: 'testpassword',
           tls: true,
           allowUnauthorizedCerts: false,
-          allowStartTLS: false,
+          startTLSUsage: DEFAULT_STARTTLS_USAGE,
         };
 
         mockContext.getNodeParameter.mockReturnValue(CREDENTIALS_TYPE_THIS_NODE);
@@ -69,7 +69,7 @@ describe('CredentialsSelector', () => {
           password: 'testpassword',
           tls: true,
           allowUnauthorizedCerts: true,
-          allowStartTLS: false,
+          startTLSUsage: DEFAULT_STARTTLS_USAGE,
         };
 
         mockContext.getNodeParameter.mockReturnValue(CREDENTIALS_TYPE_THIS_NODE);
@@ -93,8 +93,7 @@ describe('CredentialsSelector', () => {
           user: 'user@gmail.com',
           password: 'gmailpassword',
           secure: true,
-          allowUnauthorizedCerts: false,
-          allowStartTLS: false
+          allowUnauthorizedCerts: false,          
         };
 
         const expectedCredentials: ImapCredentialsData = {
@@ -104,7 +103,7 @@ describe('CredentialsSelector', () => {
           password: 'gmailpassword',
           tls: true,
           allowUnauthorizedCerts: false,
-          allowStartTLS: true, // is always allowed for core IMAP credentials
+          startTLSUsage: DEFAULT_STARTTLS_USAGE,
         };
 
         mockContext.getNodeParameter.mockReturnValue(CREDENTIALS_TYPE_CORE_IMAP_ACCOUNT);
@@ -129,7 +128,6 @@ describe('CredentialsSelector', () => {
           password: 'password',
           secure: false,
           allowUnauthorizedCerts: true,
-          allowStartTLS: false
         };
 
         mockContext.getNodeParameter.mockReturnValue(CREDENTIALS_TYPE_CORE_IMAP_ACCOUNT);
@@ -194,7 +192,7 @@ describe('CredentialsSelector', () => {
           password: 'loadpassword',
           tls: true,
           allowUnauthorizedCerts: false,
-          allowStartTLS: false,
+          startTLSUsage: DEFAULT_STARTTLS_USAGE,
         };
 
         mockLoadOptionsContext.getNodeParameter.mockReturnValue(CREDENTIALS_TYPE_THIS_NODE);
@@ -219,7 +217,7 @@ describe('CredentialsSelector', () => {
           password: 'secretpassword123',
           tls: true,
           allowUnauthorizedCerts: false,
-          allowStartTLS: false,
+          startTLSUsage: DEFAULT_STARTTLS_USAGE,
         };
 
         mockContext.getNodeParameter.mockReturnValue(CREDENTIALS_TYPE_THIS_NODE);
@@ -247,7 +245,7 @@ describe('CredentialsSelector', () => {
           password: 'password',
           tls: true,
           allowUnauthorizedCerts: false,
-          allowStartTLS: false,
+          startTLSUsage: DEFAULT_STARTTLS_USAGE,
         };
 
         mockContext.getNodeParameter.mockReturnValue(CREDENTIALS_TYPE_THIS_NODE);
@@ -270,7 +268,7 @@ describe('CredentialsSelector', () => {
           password: 'password',
           tls: false,
           allowUnauthorizedCerts: false,
-          allowStartTLS: false,
+          startTLSUsage: DEFAULT_STARTTLS_USAGE,
         };
 
         mockContext.getNodeParameter.mockReturnValue(CREDENTIALS_TYPE_THIS_NODE);
@@ -293,7 +291,7 @@ describe('CredentialsSelector', () => {
           password: 'password',
           tls: true,
           allowUnauthorizedCerts: false,
-          allowStartTLS: true, // is always allowed for core IMAP credentials
+          startTLSUsage: DEFAULT_STARTTLS_USAGE,
         };
 
         mockContext.getNodeParameter.mockReturnValue(CREDENTIALS_TYPE_THIS_NODE);

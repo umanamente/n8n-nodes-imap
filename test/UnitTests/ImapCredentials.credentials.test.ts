@@ -1,4 +1,4 @@
-import { ImapCredentials, ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
+import { DEFAULT_STARTTLS_USAGE, ImapCredentials, ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
 
 describe('ImapCredentials', () => {
   let credentials: ImapCredentials;
@@ -16,7 +16,7 @@ describe('ImapCredentials', () => {
       password: '',
       tls: false,
       allowUnauthorizedCerts: false,
-      allowStartTLS: false,
+      startTLSUsage: DEFAULT_STARTTLS_USAGE,
     };
     
     expectedFields = Object.keys(sampleData) as (keyof ImapCredentialsData)[];    

@@ -8,7 +8,7 @@
 import { IExecuteFunctions, ILoadOptionsFunctions } from 'n8n-workflow';
 import { Imap } from '../../nodes/Imap/Imap.node';
 import { createNodeParametersCheckerMock } from '../TestUtils/N8nMocks';
-import { ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
+import { DEFAULT_STARTTLS_USAGE, ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
 import { MockImapServer } from '../TestUtils/ImapflowMock';
 import { getGlobalImapMock } from './setup';
 import { CREDENTIALS_TYPE_THIS_NODE } from '../../nodes/Imap/utils/CredentialsSelector';
@@ -30,7 +30,7 @@ describe('Imap Node - mocked ImapFlow', () => {
       port: 993,
       tls: true,
       allowUnauthorizedCerts: false,
-      allowStartTLS: false,
+      startTLSUsage: DEFAULT_STARTTLS_USAGE,
     };
 
   });

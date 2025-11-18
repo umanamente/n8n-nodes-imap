@@ -1,5 +1,5 @@
 import { ImapFlow, ImapFlowOptions } from "imapflow";
-import { ImapCredentialsData } from "../../../credentials/ImapCredentials.credentials";
+import { ImapCredentialsData, STARTTLS_USAGE } from "../../../credentials/ImapCredentials.credentials";
 import { INode, JsonValue, Logger as N8nLogger, NodeOperationError } from "n8n-workflow";
 
 
@@ -185,9 +185,14 @@ export function createImapClient(credentials: ImapCredentialsData, logger?: N8nL
   };
 
   if (!credentials.tls) {
-    imapflowOptions = {
-      ...imapflowOptions,
-      doSTARTTLS: credentials.allowStartTLS,
+    if (credentials.startTLSUsage === STARTTLS_USAGE.IF_SUPPORTED) {
+      // don't set doSTARTTLS, ImapFlow will use it if the server supports it
+    } else {
+      const doSTARTTLS : boolean = credentials.startTLSUsage === STARTTLS_USAGE.ALWAYS;
+      imapflowOptions = {
+        ...imapflowOptions,
+        doSTARTTLS: doSTARTTLS,
+      };
     };
   }
 

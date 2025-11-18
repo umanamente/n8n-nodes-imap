@@ -1,5 +1,5 @@
 import { ImapFlow, QuotaResponse } from "imapflow";
-import { ImapCredentialsData } from "../../../credentials/ImapCredentials.credentials";
+import { DEFAULT_STARTTLS_USAGE, ImapCredentialsData } from "../../../credentials/ImapCredentials.credentials";
 
 /**
  * Represents an email stored in a mailbox
@@ -309,7 +309,7 @@ class MockImapServer {
       port: 993,
       tls: true,
       allowUnauthorizedCerts: false,
-      allowStartTLS: false,
+      startTLSUsage: DEFAULT_STARTTLS_USAGE,
     };
   }
 }

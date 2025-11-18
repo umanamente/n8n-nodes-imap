@@ -2,6 +2,14 @@ import { ICredentialType, INodeProperties } from "n8n-workflow";
 
 export const IMAP_CREDENTIALS_NAME = "imapApi";
 
+export enum STARTTLS_USAGE {
+  NEVER = "never",
+  IF_SUPPORTED = "if_supported",
+  ALWAYS = "always",
+}
+
+export const DEFAULT_STARTTLS_USAGE = STARTTLS_USAGE.IF_SUPPORTED;
+
 export class ImapCredentials implements ICredentialType {
   name = IMAP_CREDENTIALS_NAME;
   displayName = "IMAP Credentials";
@@ -42,11 +50,26 @@ export class ImapCredentials implements ICredentialType {
       description: "Whether to use SSL/TLS or not",
     },
     {
-      displayName: "Allow STARTTLS",
-      name: "allowStartTLS",
-      type: "boolean",
-      default: true,
+      displayName: "Use STARTTLS",
+      name: "startTLSUsage",
+      type: "options",
+      default: STARTTLS_USAGE.IF_SUPPORTED,
       description: "Whether to allow the use of STARTTLS to upgrade the connection to a secure one",
+      hint: "If the server supports STARTTLS, the connection will be upgraded to a secure one before any sensitive data is sent. If the server does not support STARTTLS, the connection will remain unencrypted.",
+      options: [
+        {
+          name: "If Supported (default)",
+          value: STARTTLS_USAGE.IF_SUPPORTED,
+        },
+        {
+          name: "Never (not recommended)",
+          value: STARTTLS_USAGE.NEVER,
+        },
+        {
+          name: "Always",
+          value: STARTTLS_USAGE.ALWAYS,
+        },
+      ],
       displayOptions: {
         show: {
           tls: [false],
@@ -68,7 +91,7 @@ export interface ImapCredentialsData {
   user: string;
   password: string;
   tls: boolean;
-  allowStartTLS: boolean;
+  startTLSUsage: STARTTLS_USAGE;
   allowUnauthorizedCerts: boolean;
 }
 

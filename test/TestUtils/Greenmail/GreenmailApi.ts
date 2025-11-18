@@ -4,7 +4,7 @@
  */
 
 import { GreenMailConfig } from './greenmail';
-import { ImapCredentialsData } from '../../../credentials/ImapCredentials.credentials';
+import { DEFAULT_STARTTLS_USAGE, ImapCredentialsData } from '../../../credentials/ImapCredentials.credentials';
 
 export interface GreenmailConfiguration {
   defaultHostname: string;
@@ -246,7 +246,7 @@ export class GreenmailApi {
       password: email, // GreenMail default: password same as email
       tls: useTls,
       allowUnauthorizedCerts: true, // GreenMail uses self-signed certs
-      allowStartTLS: false, // GreenMail does not support STARTTLS
+      startTLSUsage: DEFAULT_STARTTLS_USAGE, // GreenMail does not support STARTTLS
     };
   }
 

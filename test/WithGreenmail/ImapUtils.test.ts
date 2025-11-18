@@ -1,5 +1,5 @@
 import { createImapClient } from '../../nodes/Imap/utils/ImapUtils';
-import { ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
+import { DEFAULT_STARTTLS_USAGE, ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
 import { describeWithGreenMail } from '../TestUtils/Greenmail/greenmail';
 import { createMockLogger } from '../TestUtils/N8nMocks';
 import { Logger as N8nLogger } from 'n8n-workflow';
@@ -116,7 +116,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
         password: 'password',
         tls: false,
         allowUnauthorizedCerts: false,
-        allowStartTLS: false,
+        startTLSUsage: DEFAULT_STARTTLS_USAGE,
       };
       const client = createImapClient(credentials, mockLoggerSilent, false);
 
@@ -253,7 +253,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
         password: 'password',
         tls: false,
         allowUnauthorizedCerts: false,
-        allowStartTLS: false,
+        startTLSUsage: DEFAULT_STARTTLS_USAGE,
       };
       const client = createImapClient(credentials, mockLoggerSilent, false);
 
@@ -305,7 +305,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
         password: '',
         tls: false,
         allowUnauthorizedCerts: true,
-        allowStartTLS: false,
+        startTLSUsage: DEFAULT_STARTTLS_USAGE,
       };
 
       // Act & Assert - Should create client even with empty credentials
@@ -322,7 +322,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
         password: 'password',
         tls: false,
         allowUnauthorizedCerts: true,
-        allowStartTLS: false,
+        startTLSUsage: DEFAULT_STARTTLS_USAGE,
       };
 
       // Act - Should create client but likely fail on connect
@@ -340,7 +340,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
         password: 'password',
         tls: false,
         allowUnauthorizedCerts: true,
-        allowStartTLS: false,
+        startTLSUsage: DEFAULT_STARTTLS_USAGE,
       };
 
       // Act
@@ -370,7 +370,7 @@ describe('ImapUtils - createImapClient (without GreenMail)', () => {
         password: 'password',
         tls: true,
         allowUnauthorizedCerts: false,
-        allowStartTLS: false,
+        startTLSUsage: DEFAULT_STARTTLS_USAGE,
       };
 
       // Act
@@ -390,7 +390,7 @@ describe('ImapUtils - createImapClient (without GreenMail)', () => {
         password: 'secure-password-123',
         tls: true,
         allowUnauthorizedCerts: true,
-        allowStartTLS: true,
+        startTLSUsage: DEFAULT_STARTTLS_USAGE,
       };
 
       // Act
@@ -410,7 +410,7 @@ describe('ImapUtils - createImapClient (without GreenMail)', () => {
         password: 'pass123',
         tls: false,
         allowUnauthorizedCerts: false,        
-        allowStartTLS: false,
+        startTLSUsage: DEFAULT_STARTTLS_USAGE,
       };
 
       // Act

@@ -1,5 +1,5 @@
 import { FunctionsBase, IExecuteFunctions, ILoadOptionsFunctions } from "n8n-workflow";
-import { IMAP_CREDENTIALS_NAME, ImapCredentialsData } from "../../../credentials/ImapCredentials.credentials";
+import { DEFAULT_STARTTLS_USAGE, IMAP_CREDENTIALS_NAME, ImapCredentialsData } from "../../../credentials/ImapCredentials.credentials";
 
 
 interface ImapCredentialsProvider {
@@ -40,7 +40,7 @@ const credentialsProviders: ImapCredentialsProvider[] = [
         password: credentials.password as string,
         tls: credentials.secure as boolean,
         allowUnauthorizedCerts: credentials.allowUnauthorizedCerts as boolean,
-        allowStartTLS: true,
+        startTLSUsage: DEFAULT_STARTTLS_USAGE,
       };
       return returnCredentials;
     }

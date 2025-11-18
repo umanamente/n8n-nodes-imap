@@ -8,7 +8,7 @@
 import { ICredentialTestFunctions, ICredentialsDecrypted, IExecuteFunctions, NodeOperationError } from 'n8n-workflow';
 import { executeWithHandler, Imap } from '../../nodes/Imap/Imap.node';
 import { createNodeParametersCheckerMock } from '../TestUtils/N8nMocks';
-import { ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
+import { DEFAULT_STARTTLS_USAGE, ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
 import * as ImapUtils from '../../nodes/Imap/utils/ImapUtils';
 import { ImapFlowErrorCatcher } from '../../nodes/Imap/utils/ImapUtils';
 import { IResourceOperationDef } from '../../nodes/Imap/utils/CommonDefinitions';
@@ -31,7 +31,7 @@ describe('Imap Node - exceptions handling', () => {
     port: 993,
     tls: true,
     allowUnauthorizedCerts: false,
-    allowStartTLS: false
+    startTLSUsage: DEFAULT_STARTTLS_USAGE,
   };
 
   afterAll(() => {
@@ -410,7 +410,7 @@ describe('Imap Node - exceptions handling', () => {
             port: 993,
             tls: true,
             allowUnauthorizedCerts: false,
-            allowStartTLS: false,
+            startTLSUsage: DEFAULT_STARTTLS_USAGE,
           },
         };
 
@@ -450,7 +450,7 @@ describe('Imap Node - exceptions handling', () => {
             port: 993,
             tls: true,
             allowUnauthorizedCerts: false,
-            allowStartTLS: false,
+            startTLSUsage: DEFAULT_STARTTLS_USAGE,
           },
         };
 
