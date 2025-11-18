@@ -1,3 +1,9 @@
+## [2.14.1](https://github.com/umanamente/n8n-nodes-imap/compare/v2.14.0...v2.14.1) (2025-11-18)
+
+### Bug Fixes
+
+* **credentials:** prevent "Server does not support STARTTLS" error when using N8N IMAP credentials without SSL if server doesn't support STARTTLS. ([586435a](https://github.com/umanamente/n8n-nodes-imap/commit/586435ad2259be65470d8e1cd381465856d2168b))
+
 ## [2.14.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.13.0...v2.14.0) (2025-11-09)
 
 ### Features
