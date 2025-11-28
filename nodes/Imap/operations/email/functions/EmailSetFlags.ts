@@ -75,6 +75,13 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
           default: false,
           description: 'Whether email is seen',
         },
+        {
+          displayName: 'Custom Flag',
+          name: 'customFlag',
+          type: 'string',
+          default: '',
+          description: 'Define a custom flag like $Label1',
+        },
       ],
     },
   ],
@@ -83,15 +90,23 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
 
     const mailboxPath = getMailboxPathFromNodeParameter(context, itemIndex);
     const emailUid = context.getNodeParameter('emailUid', itemIndex) as string;
-    const flags = context.getNodeParameter('flags', itemIndex) as unknown as { [key: string]: boolean };
+    const flags = context.getNodeParameter('flags', itemIndex) as IDataObject;
 
     var flagsToSet : string[] = [];
     var flagsToRemove : string[] = [];
-    for (const flagName in flags) {
-        if (flags[flagName]) {
-          flagsToSet.push(flagName);
+    for (const key in flags) {
+        if (key === 'customFlag') {
+            const customVal = flags[key] as string;
+            if (customVal && customVal.trim() !== '') {
+                const customList = customVal.split(',').map(f => f.trim());
+                flagsToSet.push(...customList);
+            }
         } else {
-          flagsToRemove.push(flagName);
+            if (flags[key] === true) {
+              flagsToSet.push(key);
+            } else {
+              flagsToRemove.push(key);
+            }
         }
     }
 
