@@ -76,11 +76,20 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
           description: 'Whether email is seen',
         },
         {
-          displayName: 'Custom Flag',
-          name: 'customFlag',
+          displayName: 'Set Flags',
+          name: 'setFlags',
           type: 'string',
+          placeholder: '$Label1, $Label2',
           default: '',
-          description: 'Define a custom flag like $Label1',
+          description: 'Define flags to set',
+        },
+        {
+          displayName: 'Remove Flags',
+          name: 'removeFlags',
+          type: 'string',
+          placeholder: '$Label1, $Label2',
+          default: '',
+          description: 'Define flags to remove',
         },
       ],
     },
@@ -95,11 +104,17 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
     var flagsToSet : string[] = [];
     var flagsToRemove : string[] = [];
     for (const key in flags) {
-        if (key === 'customFlag') {
+        if (key === 'setFlags') {
             const customVal = flags[key] as string;
             if (customVal && customVal.trim() !== '') {
                 const customList = customVal.split(',').map(f => f.trim());
                 flagsToSet.push(...customList);
+            }
+        } else if (key === 'removeFlags') {
+            const customVal = flags[key] as string;
+            if (customVal && customVal.trim() !== '') {
+                const customList = customVal.split(',').map(f => f.trim());
+                flagsToRemove.push(...customList);
             }
         } else {
             if (flags[key] === true) {
