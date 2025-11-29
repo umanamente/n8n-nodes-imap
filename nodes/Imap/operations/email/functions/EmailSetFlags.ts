@@ -72,9 +72,9 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
           displayName: 'Remove Flags',
           name: 'removeFlags',
           type: 'string',
-          placeholder: '$Label1, $Label2',
+          placeholder: '$label1 $label2',
           default: '',
-          description: 'Define flags to remove',
+          description: 'Define flags to remove, space-separated',
         },
         {
           displayName: 'Seen',
@@ -87,9 +87,9 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
           displayName: 'Set Flags',
           name: 'setFlags',
           type: 'string',
-          placeholder: '$Label1, $Label2',
+          placeholder: '$label1 $label2',
           default: '',
-          description: 'Define flags to set',
+          description: 'Define flags to set, space-separated',
         },
       ],
     },
@@ -107,13 +107,13 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
         if (key === 'setFlags') {
             const customVal = flags[key] as string;
             if (customVal && customVal.trim() !== '') {
-                const customList = customVal.split(',').map(f => f.trim());
+                const customList = customVal.split(/\s+/).map(f => f.trim()).filter(f => f !== '');
                 flagsToSet.push(...customList);
             }
         } else if (key === 'removeFlags') {
             const customVal = flags[key] as string;
             if (customVal && customVal.trim() !== '') {
-                const customList = customVal.split(',').map(f => f.trim());
+                const customList = customVal.split(/\s+/).map(f => f.trim()).filter(f => f !== '');
                 flagsToRemove.push(...customList);
             }
         } else {
