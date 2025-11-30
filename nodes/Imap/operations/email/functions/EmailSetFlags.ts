@@ -109,8 +109,8 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
     const emailUid = context.getNodeParameter('emailUid', itemIndex) as string;
     const flags = context.getNodeParameter('flags', itemIndex) as IDataObject;
 
-    var flagsToSet : string[] = [];
-    var flagsToRemove : string[] = [];
+    let flagsToSet : string[] = [];
+    let flagsToRemove : string[] = [];
     for (const key in flags) {
         if (key === KEY_SET_CUSTOM_FLAGS) {
             const customVal = flags[key] as string;
@@ -121,7 +121,7 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
             const customFlagsList: string[] = splitSpaceSeparatedString(customVal);
             flagsToRemove.push(...customFlagsList);
         } else {
-            if (flags[key] === true) {
+            if (flags[key]) {
               flagsToSet.push(key);
             } else {
               flagsToRemove.push(key);

@@ -578,54 +578,58 @@ describe('EmailSetFlags operation', () => {
         },
       ]);
     });
-  });
-  
-  it('should handle mixed standard and custom flags for setting and removal', async () => {
-    const flags = {
-      [ImapFlags.Seen]: true,
-      [ImapFlags.Flagged]: false,
-      setFlags: '$label1 $label2',
-      removeFlags: '$oldlabel1 $oldlabel2',
-    };
 
-    (mockContext.getNodeParameter as jest.Mock).mockImplementation((paramName: string) => {
-      if (paramName === 'mailboxPath') return { value: MAILBOX_PATH };
-      if (paramName === 'emailUid') return EMAIL_UID;
-      if (paramName === 'flags') return flags;
-      return undefined;
-    });
 
-    mockClient.mailboxOpen.mockResolvedValue({ path: MAILBOX_PATH } as MailboxObject);
-    mockClient.messageFlagsAdd.mockResolvedValue(true as any);
-    mockClient.messageFlagsRemove.mockResolvedValue(true as any);
+    it('should handle mixed standard and custom flags for setting and removal', async () => {
+      const flags = {
+        [ImapFlags.Seen]: true,
+        [ImapFlags.Flagged]: false,
+        setFlags: '$label1 $label2',
+        removeFlags: '$oldlabel1 $oldlabel2',
+      };
 
-    const result = await setEmailFlagsOperation.executeImapAction(mockContext, mockContext.logger, ITEM_INDEX, mockClient);
+      (mockContext.getNodeParameter as jest.Mock).mockImplementation((paramName: string) => {
+        if (paramName === 'mailboxPath') return { value: MAILBOX_PATH };
+        if (paramName === 'emailUid') return EMAIL_UID;
+        if (paramName === 'flags') return flags;
+        return undefined;
+      });
 
-    expect(mockClient.mailboxOpen).toHaveBeenCalledWith(MAILBOX_PATH, { readOnly: false });
-    
-    // Should add both standard and custom flags
-    expect(mockClient.messageFlagsAdd).toHaveBeenCalledWith(
-      EMAIL_UID,
-      [ImapFlags.Seen, '$label1', '$label2'],
-      { uid: true }
-    );
-    
-    // Should remove both standard and custom flags
-    expect(mockClient.messageFlagsRemove).toHaveBeenCalledWith(
-      EMAIL_UID,
-      [ImapFlags.Flagged, '$oldlabel1', '$oldlabel2'],
-      { uid: true }
-    );
-    
-    expect(result).toEqual([
-      {
-        json: {
-          uid: EMAIL_UID,
+      mockClient.mailboxOpen.mockResolvedValue({ path: MAILBOX_PATH } as MailboxObject);
+      mockClient.messageFlagsAdd.mockResolvedValue(true as any);
+      mockClient.messageFlagsRemove.mockResolvedValue(true as any);
+
+      const result = await setEmailFlagsOperation.executeImapAction(mockContext, mockContext.logger, ITEM_INDEX, mockClient);
+
+      expect(mockClient.mailboxOpen).toHaveBeenCalledWith(MAILBOX_PATH, { readOnly: false });
+      
+      // Should add both standard and custom flags
+      expect(mockClient.messageFlagsAdd).toHaveBeenCalledWith(
+        EMAIL_UID,
+        [ImapFlags.Seen, '$label1', '$label2'],
+        { uid: true }
+      );
+      
+      // Should remove both standard and custom flags
+      expect(mockClient.messageFlagsRemove).toHaveBeenCalledWith(
+        EMAIL_UID,
+        [ImapFlags.Flagged, '$oldlabel1', '$oldlabel2'],
+        { uid: true }
+      );
+      
+      expect(result).toEqual([
+        {
+          json: {
+            uid: EMAIL_UID,
+          },
         },
-      },
-    ]);
-  }); // should handle mixed standard and custom flags for setting and removal
+      ]);
+    }); // should handle mixed standard and custom flags for setting and removal
 
+
+
+  }); // Custom Flags
+  
 
   describe('Error handling', () => {
     it('should throw NodeImapError when messageFlagsAdd fails', async () => {
