@@ -82,8 +82,9 @@ jobs:
           coverage-summary-path: ./coverage-summary.json
           issue-number: ${{ steps.pr-number.outputs.result }}
 
+      # Only create coverage badge for pushes to master branch in the main repository (not forks)
       - name: Create Coverage Badge
-        if: github.event.workflow_run.head_branch == 'master'
+        if: github.event.workflow_run.head_branch == 'master' && github.repository == github.event.workflow_run.head_repository.full_name && github.event.workflow_run.event == 'push'
         uses: schneegans/dynamic-badges-action@v1.7.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
