@@ -17,7 +17,7 @@ const KEY_SET_CUSTOM_FLAGS = 'setFlags';
 const KEY_REMOVE_CUSTOM_FLAGS = 'removeFlags';
 
 function splitSpaceSeparatedString(input: string): string[] {
-  return input.trim().split(/\s+/).map(f => f.trim()).filter(f => f !== '');
+  return input.trim().split(/\s+/).filter(f => f !== '');
 }
 
 export const setEmailFlagsOperation: IResourceOperationDef = {
@@ -129,6 +129,14 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
         }
     }
 
+    // remove duplicates
+    flagsToSet = Array.from(new Set(flagsToSet));
+    flagsToRemove = Array.from(new Set(flagsToRemove));
+
+    // in case a flag is both in set and remove, remove it from remove
+    flagsToRemove = flagsToRemove.filter(f => !flagsToSet.includes(f));
+
+    // prepare return data
     let jsonData: IDataObject = {
       uid: emailUid,
     };
