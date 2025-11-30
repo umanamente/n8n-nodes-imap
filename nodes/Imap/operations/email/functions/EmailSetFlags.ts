@@ -46,6 +46,7 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
       default: [],
       required: true,
       placeholder: 'Add Flag',
+      //  -- Custom flag options must appear after standard boolean flags for better UX
       // eslint-disable-next-line n8n-nodes-base/node-param-collection-type-unsorted-items
       options: [
         {
@@ -89,7 +90,7 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
           type: 'string',
           placeholder: '$label1 $label2',
           default: '',
-          description: 'Define flags to set, space-separated',
+          description: 'Custom IMAP flags to set, space-separated',
         },
         {
           displayName: 'Remove Custom Flags',
@@ -97,7 +98,7 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
           type: 'string',
           placeholder: '$label1 $label2',
           default: '',
-          description: 'Define flags to remove, space-separated',
+          description: 'Custom IMAP flags to remove, space-separated',
         },
       ],
     },
@@ -109,8 +110,8 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
     const emailUid = context.getNodeParameter('emailUid', itemIndex) as string;
     const flags = context.getNodeParameter('flags', itemIndex) as IDataObject;
 
-    let flagsToSet : string[] = [];
-    let flagsToRemove : string[] = [];
+    let flagsToSet: string[] = [];
+    let flagsToRemove: string[] = [];
     for (const key in flags) {
         if (key === KEY_SET_CUSTOM_FLAGS) {
             const customVal = flags[key] as string;
