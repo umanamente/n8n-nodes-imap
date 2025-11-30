@@ -45,10 +45,34 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const pullRequests = context.payload.workflow_run.pull_requests;
-            return pullRequests && pullRequests.length > 0 ? pullRequests[0].number : '';
+            let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: context.payload.workflow_run.id,
+            });
+            let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "pr-number"
+            })[0];
+            
+            if (!matchArtifact) {
+              return '';
+            }
+            
+            let download = await github.rest.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            let fs = require('fs');
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/pr-number.zip`, Buffer.from(download.data));
+            
+            const { execSync } = require('child_process');
+            execSync('unzip -o pr-number.zip');
+            
+            const prNumber = fs.readFileSync('pr_number.txt', 'utf8').trim();
+            return prNumber;
           result-encoding: string
-
       - name: Jest Coverage Comment
         id: coverage
         uses: MishaKav/jest-coverage-comment@main
