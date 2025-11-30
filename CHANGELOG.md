@@ -1,3 +1,9 @@
+## [2.15.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.14.1...v2.15.0) (2025-11-30)
+
+### Features
+
+* added support for custom imap flags like '$Label1' ([#104](https://github.com/umanamente/n8n-nodes-imap/issues/104)) ([30821f7](https://github.com/umanamente/n8n-nodes-imap/commit/30821f78c5a244e9792b7066cc5573df4ee3bf4b))
+
 ## [2.14.1](https://github.com/umanamente/n8n-nodes-imap/compare/v2.14.0...v2.14.1) (2025-11-18)
 
 ### Bug Fixes
