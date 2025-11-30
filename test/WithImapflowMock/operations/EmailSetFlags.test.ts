@@ -477,6 +477,107 @@ describe('EmailSetFlags operation', () => {
         },
       ]);
     });
+
+    it('should handle empty custom flag strings', async () => {
+      const flags = {
+        [ImapFlags.Seen]: true,
+        setFlags: '',
+        removeFlags: '   ',
+      };
+
+      (mockContext.getNodeParameter as jest.Mock).mockImplementation((paramName: string) => {
+        if (paramName === 'mailboxPath') return { value: MAILBOX_PATH };
+        if (paramName === 'emailUid') return EMAIL_UID;
+        if (paramName === 'flags') return flags;
+        return undefined;
+      });
+
+      mockClient.mailboxOpen.mockResolvedValue({ path: MAILBOX_PATH } as MailboxObject);
+      mockClient.messageFlagsAdd.mockResolvedValue(true as any);
+
+      const result = await setEmailFlagsOperation.executeImapAction(mockContext, mockContext.logger, ITEM_INDEX, mockClient);
+
+      expect(mockClient.mailboxOpen).toHaveBeenCalledWith(MAILBOX_PATH, { readOnly: false });
+      
+      // Should only set the standard flag, ignoring empty custom flags
+      expect(mockClient.messageFlagsAdd).toHaveBeenCalledWith(EMAIL_UID, [ImapFlags.Seen], { uid: true });
+      expect(mockClient.messageFlagsRemove).not.toHaveBeenCalled();
+      
+      expect(result).toEqual([
+        {
+          json: {
+            uid: EMAIL_UID,
+          },
+        },
+      ]);
+    });
+
+    it('should handle whitespace-only custom flag strings', async () => {
+      const flags = {
+        setFlags: '     ',
+        removeFlags: '\t\n  \r ',
+      };
+
+      (mockContext.getNodeParameter as jest.Mock).mockImplementation((paramName: string) => {
+        if (paramName === 'mailboxPath') return { value: MAILBOX_PATH };
+        if (paramName === 'emailUid') return EMAIL_UID;
+        if (paramName === 'flags') return flags;
+        return undefined;
+      });
+
+      mockClient.mailboxOpen.mockResolvedValue({ path: MAILBOX_PATH } as MailboxObject);
+
+      const result = await setEmailFlagsOperation.executeImapAction(mockContext, mockContext.logger, ITEM_INDEX, mockClient);
+
+      expect(mockClient.mailboxOpen).toHaveBeenCalledWith(MAILBOX_PATH, { readOnly: false });
+      
+      // Should not call any flag operations since all custom flags are whitespace
+      expect(mockClient.messageFlagsAdd).not.toHaveBeenCalled();
+      expect(mockClient.messageFlagsRemove).not.toHaveBeenCalled();
+      
+      expect(result).toEqual([
+        {
+          json: {
+            uid: EMAIL_UID,
+          },
+        },
+      ]);
+    });
+
+    it('should handle mixed empty and valid custom flags', async () => {
+      const flags = {
+        [ImapFlags.Flagged]: false,
+        setFlags: '  $valid1   $valid2  ',
+        removeFlags: '',
+      };
+
+      (mockContext.getNodeParameter as jest.Mock).mockImplementation((paramName: string) => {
+        if (paramName === 'mailboxPath') return { value: MAILBOX_PATH };
+        if (paramName === 'emailUid') return EMAIL_UID;
+        if (paramName === 'flags') return flags;
+        return undefined;
+      });
+
+      mockClient.mailboxOpen.mockResolvedValue({ path: MAILBOX_PATH } as MailboxObject);
+      mockClient.messageFlagsAdd.mockResolvedValue(true as any);
+      mockClient.messageFlagsRemove.mockResolvedValue(true as any);
+
+      const result = await setEmailFlagsOperation.executeImapAction(mockContext, mockContext.logger, ITEM_INDEX, mockClient);
+
+      expect(mockClient.mailboxOpen).toHaveBeenCalledWith(MAILBOX_PATH, { readOnly: false });
+      
+      // Should add valid custom flags and remove standard flag
+      expect(mockClient.messageFlagsAdd).toHaveBeenCalledWith(EMAIL_UID, ['$valid1', '$valid2'], { uid: true });
+      expect(mockClient.messageFlagsRemove).toHaveBeenCalledWith(EMAIL_UID, [ImapFlags.Flagged], { uid: true });
+      
+      expect(result).toEqual([
+        {
+          json: {
+            uid: EMAIL_UID,
+          },
+        },
+      ]);
+    });
   });
   
   it('should handle mixed standard and custom flags for setting and removal', async () => {
