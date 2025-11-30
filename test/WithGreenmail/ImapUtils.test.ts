@@ -1,5 +1,5 @@
 import { createImapClient } from '../../nodes/Imap/utils/ImapUtils';
-import { DEFAULT_STARTTLS_USAGE, ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
+import { DEFAULT_STARTTLS_USAGE, ImapCredentialsData, STARTTLS_USAGE } from '../../credentials/ImapCredentials.credentials';
 import { describeWithGreenMail } from '../TestUtils/Greenmail/greenmail';
 import { createMockLogger } from '../TestUtils/N8nMocks';
 import { Logger as N8nLogger } from 'n8n-workflow';
@@ -137,6 +137,25 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
       // Assert - Verify client is created
       expect(client).toBeDefined();
       expect(client).toBeInstanceOf(ImapFlow);
+    });
+
+    it('should create client with TLS disabled and STARTTLS always enabled', () => {
+      // Arrange
+      const greenmailApi = getGlobalGreenmailApi();
+      const credentials = greenmailApi.getCredentials('test@example.com', false);
+      credentials.startTLSUsage = STARTTLS_USAGE.ALWAYS;
+
+      // Act
+      const client = createImapClient(credentials, mockLogger, false);
+
+      // Assert - Verify client is created
+      expect(client).toBeDefined();
+      expect(client).toBeInstanceOf(ImapFlow);
+
+      // check options
+      const imapflowOptions = (client as any).options;
+      expect(imapflowOptions.doSTARTTLS).toBe(true);      
+
     });
 
     it('should create client with TLS credentials', () => {
