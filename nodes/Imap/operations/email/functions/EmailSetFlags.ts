@@ -13,6 +13,13 @@ export enum ImapFlags {
   Draft = '\\Draft',
 }
 
+const KEY_SET_CUSTOM_FLAGS = 'setFlags';
+const KEY_REMOVE_CUSTOM_FLAGS = 'removeFlags';
+
+function splitSpaceSeparatedString(input: string): string[] {
+  return input.trim().split(/\s+/).map(f => f.trim()).filter(f => f !== '');
+}
+
 export const setEmailFlagsOperation: IResourceOperationDef = {
   operation: {
     name: 'Set Flags',
@@ -39,6 +46,7 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
       default: [],
       required: true,
       placeholder: 'Add Flag',
+      // eslint-disable-next-line n8n-nodes-base/node-param-collection-type-unsorted-items
       options: [
         {
           displayName: 'Answered',
@@ -69,14 +77,6 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
           description: 'Whether email is flagged',
         },
         {
-          displayName: 'Remove Flags',
-          name: 'removeFlags',
-          type: 'string',
-          placeholder: '$label1 $label2',
-          default: '',
-          description: 'Define flags to remove, space-separated',
-        },
-        {
           displayName: 'Seen',
           name: ImapFlags.Seen,
           type: 'boolean',
@@ -84,12 +84,20 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
           description: 'Whether email is seen',
         },
         {
-          displayName: 'Set Flags',
-          name: 'setFlags',
+          displayName: 'Set Custom Flags',
+          name: KEY_SET_CUSTOM_FLAGS,
           type: 'string',
           placeholder: '$label1 $label2',
           default: '',
           description: 'Define flags to set, space-separated',
+        },
+        {
+          displayName: 'Remove Custom Flags',
+          name: KEY_REMOVE_CUSTOM_FLAGS,
+          type: 'string',
+          placeholder: '$label1 $label2',
+          default: '',
+          description: 'Define flags to remove, space-separated',
         },
       ],
     },
@@ -104,18 +112,14 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
     var flagsToSet : string[] = [];
     var flagsToRemove : string[] = [];
     for (const key in flags) {
-        if (key === 'setFlags') {
+        if (key === KEY_SET_CUSTOM_FLAGS) {
             const customVal = flags[key] as string;
-            if (customVal && customVal.trim() !== '') {
-                const customList = customVal.split(/\s+/).map(f => f.trim()).filter(f => f !== '');
-                flagsToSet.push(...customList);
-            }
-        } else if (key === 'removeFlags') {
+            const customFlagsList: string[] = splitSpaceSeparatedString(customVal);
+            flagsToSet.push(...customFlagsList);
+        } else if (key === KEY_REMOVE_CUSTOM_FLAGS) {
             const customVal = flags[key] as string;
-            if (customVal && customVal.trim() !== '') {
-                const customList = customVal.split(/\s+/).map(f => f.trim()).filter(f => f !== '');
-                flagsToRemove.push(...customList);
-            }
+            const customFlagsList: string[] = splitSpaceSeparatedString(customVal);
+            flagsToRemove.push(...customFlagsList);
         } else {
             if (flags[key] === true) {
               flagsToSet.push(key);
