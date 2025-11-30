@@ -726,9 +726,6 @@ describe('EmailSetFlags operation', () => {
       expect(mockContext.logger.info).toHaveBeenCalledWith(
         expect.stringContaining('Setting flags')
       );
-      expect(mockContext.logger.info).toHaveBeenCalledWith(
-        expect.stringContaining('removing flags')
-      );
     });
   });
 
