@@ -13,6 +13,13 @@ export enum ImapFlags {
   Draft = '\\Draft',
 }
 
+const KEY_SET_CUSTOM_FLAGS = 'setFlags';
+const KEY_REMOVE_CUSTOM_FLAGS = 'removeFlags';
+
+function splitSpaceSeparatedString(input: string): string[] {
+  return input.trim().split(/\s+/).filter(f => f !== '');
+}
+
 export const setEmailFlagsOperation: IResourceOperationDef = {
   operation: {
     name: 'Set Flags',
@@ -39,6 +46,8 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
       default: [],
       required: true,
       placeholder: 'Add Flag',
+      //  -- Custom flag options must appear after standard boolean flags for better UX
+      // eslint-disable-next-line n8n-nodes-base/node-param-collection-type-unsorted-items
       options: [
         {
           displayName: 'Answered',
@@ -75,6 +84,22 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
           default: false,
           description: 'Whether email is seen',
         },
+        {
+          displayName: 'Set Custom Flags',
+          name: KEY_SET_CUSTOM_FLAGS,
+          type: 'string',
+          placeholder: '$label1 $label2',
+          default: '',
+          description: 'Custom IMAP flags to set, space-separated',
+        },
+        {
+          displayName: 'Remove Custom Flags',
+          name: KEY_REMOVE_CUSTOM_FLAGS,
+          type: 'string',
+          placeholder: '$label1 $label2',
+          default: '',
+          description: 'Custom IMAP flags to remove, space-separated',
+        },
       ],
     },
   ],
@@ -83,18 +108,36 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
 
     const mailboxPath = getMailboxPathFromNodeParameter(context, itemIndex);
     const emailUid = context.getNodeParameter('emailUid', itemIndex) as string;
-    const flags = context.getNodeParameter('flags', itemIndex) as unknown as { [key: string]: boolean };
+    const flags = context.getNodeParameter('flags', itemIndex) as IDataObject;
 
-    var flagsToSet : string[] = [];
-    var flagsToRemove : string[] = [];
-    for (const flagName in flags) {
-        if (flags[flagName]) {
-          flagsToSet.push(flagName);
+    let flagsToSet: string[] = [];
+    let flagsToRemove: string[] = [];
+    for (const key in flags) {
+        if (key === KEY_SET_CUSTOM_FLAGS) {
+            const customVal = flags[key] as string;
+            const customFlagsList: string[] = splitSpaceSeparatedString(customVal);
+            flagsToSet.push(...customFlagsList);
+        } else if (key === KEY_REMOVE_CUSTOM_FLAGS) {
+            const customVal = flags[key] as string;
+            const customFlagsList: string[] = splitSpaceSeparatedString(customVal);
+            flagsToRemove.push(...customFlagsList);
         } else {
-          flagsToRemove.push(flagName);
+            if (flags[key]) {
+              flagsToSet.push(key);
+            } else {
+              flagsToRemove.push(key);
+            }
         }
     }
 
+    // remove duplicates
+    flagsToSet = Array.from(new Set(flagsToSet));
+    flagsToRemove = Array.from(new Set(flagsToRemove));
+
+    // in case a flag is both in set and remove, remove it from remove
+    flagsToRemove = flagsToRemove.filter(f => !flagsToSet.includes(f));
+
+    // prepare return data
     let jsonData: IDataObject = {
       uid: emailUid,
     };
