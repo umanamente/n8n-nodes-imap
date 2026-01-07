@@ -546,6 +546,7 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
         emailDateRange: {},
         emailFlags: {},
         emailSearchFilters: {},
+        limit: 50,
         includeParts: ["textContent"]
       };
       const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);
@@ -572,6 +573,7 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
         emailDateRange: {},
         emailFlags: {},
         emailSearchFilters: {},
+        limit: 50,
         includeParts: ["textContent"]
       };
       const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);
@@ -701,6 +703,7 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
         emailDateRange: {},
         emailFlags: {},
         emailSearchFilters: {},
+        limit: 50,
         includeParts: [
           EmailParts.BodyStructure,
           EmailParts.Flags,
@@ -857,5 +860,105 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
     });
 
   }); // describe sequence test (read and write operations)
+
+  describe('email limit functionality', () => {
+    beforeAll(async () => {
+      // Create multiple emails for limit testing
+      const imap = new Imap();
+      
+      for (let i = 1; i <= 10; i++) {
+        const paramValues = {
+          authentication: 'imapThisNode',
+          resource: 'email',
+          operation: 'createDraft',
+          destinationMailbox: {"value": 'INBOX'},
+          inputFormat: 'fields',
+          subject: `Test Email ${i}`,
+          from: 'test@example.com',
+          to: 'recipient@example.com',
+          text: `This is test email number ${i}`,
+        };
+        const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);
+        context.getCredentials = jest.fn().mockResolvedValue(credentials);
+        context.getInputData = jest.fn().mockReturnValue([1]);
+        
+        await imap.execute.call(context as IExecuteFunctions);
+      }
+    });
+
+    it('should respect the limit parameter when fetching emails', async () => {
+      const imap = new Imap();
+      const limit = 5;
+      
+      const paramValues = {
+        authentication: 'imapThisNode',
+        resource: 'email',
+        operation: 'getEmailsList',
+        mailboxPath: {"value": 'INBOX'},
+        emailDateRange: {},
+        emailFlags: {},
+        emailSearchFilters: {},
+        limit,
+        includeParts: [],
+      };
+      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);
+      context.getCredentials = jest.fn().mockResolvedValue(credentials);
+      context.getInputData = jest.fn().mockReturnValue([1]);
+      
+      const resultData = await imap.execute.call(context as IExecuteFunctions);
+      
+      expect(resultData).toHaveLength(1);
+      expect(resultData[0]).toHaveLength(limit);
+    });
+
+    it('should fetch all emails when limit is greater than available emails', async () => {
+      const imap = new Imap();
+      const limit = 100;
+      
+      const paramValues = {
+        authentication: 'imapThisNode',
+        resource: 'email',
+        operation: 'getEmailsList',
+        mailboxPath: {"value": 'INBOX'},
+        emailDateRange: {},
+        emailFlags: {},
+        emailSearchFilters: {},
+        limit,
+        includeParts: [],
+      };
+      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);
+      context.getCredentials = jest.fn().mockResolvedValue(credentials);
+      context.getInputData = jest.fn().mockReturnValue([1]);
+      
+      const resultData = await imap.execute.call(context as IExecuteFunctions);
+      
+      expect(resultData).toHaveLength(1);
+      expect(resultData[0].length).toBeLessThanOrEqual(limit);
+      expect(resultData[0].length).toBeGreaterThan(0);
+    });
+
+    it('should use default limit of 50 when not specified', async () => {
+      const imap = new Imap();
+      
+      const paramValues = {
+        authentication: 'imapThisNode',
+        resource: 'email',
+        operation: 'getEmailsList',
+        mailboxPath: {"value": 'INBOX'},
+        emailDateRange: {},
+        emailFlags: {},
+        emailSearchFilters: {},
+        includeParts: [],
+      };
+      const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);
+      context.getCredentials = jest.fn().mockResolvedValue(credentials);
+      context.getInputData = jest.fn().mockReturnValue([1]);
+      
+      const resultData = await imap.execute.call(context as IExecuteFunctions);
+      
+      expect(resultData).toHaveLength(1);
+      expect(resultData[0].length).toBeLessThanOrEqual(50);
+    });
+  });
 }); // describe Imap Node with GreenMail
 
