@@ -948,6 +948,7 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
         emailDateRange: {},
         emailFlags: {},
         emailSearchFilters: {},
+        limit: 50,  // Default value when not specified by user
         includeParts: [],
       };
       const context = createNodeParametersCheckerMock(imap.description.properties, paramValues);
