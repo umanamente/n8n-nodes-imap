@@ -1,3 +1,9 @@
+## [2.16.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.15.0...v2.16.0) (2026-01-08)
+
+### Features
+
+* **email:** add limit parameter to prevent memory issues with large mailboxes ([#108](https://github.com/umanamente/n8n-nodes-imap/issues/108)) ([636e0bf](https://github.com/umanamente/n8n-nodes-imap/commit/636e0bf64d9c167bf01b8ec0393425da7999847b))
+
 ## [2.15.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.14.1...v2.15.0) (2025-11-30)
 
 ### Features
