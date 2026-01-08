@@ -37,6 +37,7 @@ describe('EmailGetList', () => {
       const paramValues = {
         mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
         searchCriteria: 'ALL',
+        limit: 50,
         includeParts: [],
       };
       const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
@@ -104,6 +105,7 @@ describe('EmailGetList', () => {
       const paramValues = {
         mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
         searchCriteria: 'ALL',
+        limit: 50,
         includeParts: [EmailParts.Flags],
       };
       const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
@@ -153,6 +155,7 @@ describe('EmailGetList', () => {
       const paramValues = {
         mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
         searchCriteria: 'ALL',
+        limit: 50,
         includeParts: [EmailParts.Size],
       };
       const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
@@ -202,6 +205,7 @@ describe('EmailGetList', () => {
       const paramValues = {
         mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
         searchCriteria: 'ALL',
+        limit: 50,
         includeParts: [EmailParts.BodyStructure],
       };
       const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
@@ -266,6 +270,7 @@ describe('EmailGetList', () => {
       const paramValues = {
         mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
         searchCriteria: 'ALL',
+        limit: 50,
         includeParts: [EmailParts.Headers],
         includeAllHeaders: true,
       };
@@ -330,6 +335,7 @@ describe('EmailGetList', () => {
       const paramValues = {
         mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
         searchCriteria: 'ALL',
+        limit: 50,
         includeParts: [EmailParts.Headers],
         includeAllHeaders: false,
         headersToInclude: 'subject,from,date',
@@ -392,6 +398,7 @@ describe('EmailGetList', () => {
       const paramValues = {
         mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
         searchCriteria: 'ALL',
+        limit: 50,
         includeParts: [EmailParts.Headers],
         includeAllHeaders: false,
         headersToInclude: '',
@@ -444,6 +451,7 @@ describe('EmailGetList', () => {
       const paramValues = {
         mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
         searchCriteria: 'ALL',
+        limit: 50,
         includeParts: [EmailParts.TextContent],
       };
       const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
@@ -514,6 +522,7 @@ describe('EmailGetList', () => {
       const paramValues = {
         mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
         searchCriteria: 'ALL',
+        limit: 50,
         includeParts: [EmailParts.HtmlContent],
       };
       const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
@@ -584,6 +593,7 @@ describe('EmailGetList', () => {
       const paramValues = {
         mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
         searchCriteria: 'ALL',
+        limit: 50,
         includeParts: [EmailParts.TextContent, EmailParts.HtmlContent],
       };
       const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
@@ -635,6 +645,7 @@ describe('EmailGetList', () => {
       const paramValues = {
         mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
         searchCriteria: 'ALL',
+        limit: 50,
         includeParts: [EmailParts.TextContent, EmailParts.HtmlContent],
       };
       const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
@@ -688,6 +699,7 @@ describe('EmailGetList', () => {
       const paramValues = {
         mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
         searchCriteria: 'ALL',
+        limit: 50,
         includeParts: [EmailParts.AttachmentsInfo],
       };
       const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
@@ -740,6 +752,7 @@ describe('EmailGetList', () => {
       const paramValues = {
         mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
         searchCriteria: 'ALL',
+        limit: 50,
         includeParts: [],
       };
       const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
@@ -776,6 +789,7 @@ describe('EmailGetList', () => {
       const paramValues = {
         mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
         searchCriteria: 'ALL',
+        limit: 50,
         includeParts: [EmailParts.Flags, EmailParts.Size, EmailParts.BodyStructure],
       };
       const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
@@ -837,6 +851,7 @@ describe('EmailGetList', () => {
       const paramValues = {
         mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
         searchCriteria: 'ALL',
+        limit: 50,
         includeParts: [EmailParts.AttachmentsInfo],
       };
       const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
@@ -935,6 +950,7 @@ describe('EmailGetList', () => {
       const paramValues = {
         mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
         searchCriteria: 'ALL',
+        limit: 50,
         includeParts: [EmailParts.TextContent],
       };
       const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
@@ -990,6 +1006,7 @@ describe('EmailGetList', () => {
       const paramValues = {
         mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
         searchCriteria: 'ALL',
+        limit: 50,
         includeParts: [EmailParts.HtmlContent],
       };
       const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
@@ -1019,11 +1036,12 @@ describe('EmailGetList', () => {
         }),
       };
       
-      mockImapflow.fetch = jest.fn().mockReturnValue(mockFetchAsyncIterator);
       // Mock download to return null content
       mockImapflow.download = jest.fn().mockResolvedValue({
         content: null,
       });
+      
+      mockImapflow.fetch = jest.fn().mockReturnValue(mockFetchAsyncIterator);
       
       // Act
       const result = await getEmailsListOperation.executeImapAction(
@@ -1052,6 +1070,7 @@ describe('EmailGetList', () => {
       const paramValues = {
         mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
         searchCriteria: 'ALL',
+        limit: 50,
         includeParts: [EmailParts.Headers],
         includeAllHeaders: true,
       };
@@ -1109,6 +1128,7 @@ describe('EmailGetList', () => {
       const paramValues = {
         mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
         searchCriteria: 'ALL',
+        limit: 50,
         includeParts: [EmailParts.Headers],
         includeAllHeaders: true,
       };
@@ -1166,6 +1186,7 @@ describe('EmailGetList', () => {
       const paramValues = {
         mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
         searchCriteria: 'ALL',
+        limit: 50,
         includeParts: [EmailParts.TextContent],
       };
       const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
@@ -1234,6 +1255,7 @@ describe('EmailGetList', () => {
       const paramValues = {
         mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
         searchCriteria: 'ALL',
+        limit: 50,
         includeParts: [EmailParts.HtmlContent],
       };
       const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
@@ -1302,6 +1324,7 @@ describe('EmailGetList', () => {
       const paramValues = {
         mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
         searchCriteria: 'ALL',
+        limit: 50,
         includeParts: [EmailParts.TextContent, EmailParts.HtmlContent],
       };
       const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
@@ -1390,5 +1413,116 @@ describe('EmailGetList', () => {
     });
 
   }); // end executeImapAction - partId fallback scenarios
+
+  describe('executeImapAction - limit functionality', () => {
+
+    it('should respect the limit parameter when fetching emails', async () => {
+      // Arrange
+      const limit = 3;
+      const paramValues = {
+        mailboxPath: { value: 'INBOX' }, 
+        emailDateRange: {}, 
+        emailFlags: {}, 
+        emailSearchFilters: {},
+        searchCriteria: 'ALL',
+        limit,
+        includeParts: [],
+      };
+      const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
+      
+      // Mock 10 emails but only 3 should be fetched due to limit
+      const mockEmails = Array.from({ length: 10 }, (_, i) => ({
+        uid: i + 1,
+        envelope: {
+          subject: `Test Email ${i + 1}`,
+          from: [{ name: 'John Doe', address: 'john@example.com' }],
+        },
+      }));
+      
+      let fetchCallCount = 0;
+      const mockFetchAsyncIterator = {
+        [Symbol.asyncIterator]: jest.fn().mockReturnValue({
+          next: jest.fn().mockImplementation(async () => {
+            if (fetchCallCount < mockEmails.length) {
+              return { value: mockEmails[fetchCallCount++], done: false };
+            }
+            return { done: true };
+          }),
+        }),
+      };
+      
+      mockImapflow.fetch = jest.fn().mockReturnValue(mockFetchAsyncIterator);
+      
+      // Act
+      const result = await getEmailsListOperation.executeImapAction(
+        context as IExecuteFunctions,
+        context.logger!,
+        ITEM_INDEX,
+        mockImapflow
+      );
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result?.length).toBe(limit);
+      expect(result![0].json.uid).toBe(1);
+      expect(result![1].json.uid).toBe(2);
+      expect(result![2].json.uid).toBe(3);
+      // Should only fetch 3 emails, not all 10
+      expect(fetchCallCount).toBe(3);
+    });
+
+    it('should fetch all emails when limit is greater than available emails', async () => {
+      // Arrange
+      const limit = 100;
+      const paramValues = {
+        mailboxPath: { value: 'INBOX' }, 
+        emailDateRange: {}, 
+        emailFlags: {}, 
+        emailSearchFilters: {},
+        searchCriteria: 'ALL',
+        limit,
+        includeParts: [],
+      };
+      const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
+      
+      // Mock only 5 emails
+      const mockEmails = Array.from({ length: 5 }, (_, i) => ({
+        uid: i + 1,
+        envelope: {
+          subject: `Test Email ${i + 1}`,
+          from: [{ name: 'John Doe', address: 'john@example.com' }],
+        },
+      }));
+      
+      let fetchCallCount = 0;
+      const mockFetchAsyncIterator = {
+        [Symbol.asyncIterator]: jest.fn().mockReturnValue({
+          next: jest.fn().mockImplementation(async () => {
+            if (fetchCallCount < mockEmails.length) {
+              return { value: mockEmails[fetchCallCount++], done: false };
+            }
+            return { done: true };
+          }),
+        }),
+      };
+      
+      mockImapflow.fetch = jest.fn().mockReturnValue(mockFetchAsyncIterator);
+      
+      // Act
+      const result = await getEmailsListOperation.executeImapAction(
+        context as IExecuteFunctions,
+        context.logger!,
+        ITEM_INDEX,
+        mockImapflow
+      );
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result?.length).toBe(5);
+      // Should fetch all 5 emails
+      expect(fetchCallCount).toBe(5);
+    });
+
+  }); // end executeImapAction - limit functionality
 
 }); // end EmailGetList

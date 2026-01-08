@@ -43,6 +43,17 @@ export const getEmailsListOperation: IResourceOperationDef = {
       description: 'Select the mailbox',
     },
     ...emailSearchParameters,
+    {
+      displayName: 'Limit',
+      name: 'limit',
+      type: 'number',
+      typeOptions: {
+        minValue: 1,
+      },
+      default: 50,
+      description: 'Max number of results to return',
+      hint: 'Limiting the number of emails helps prevent memory issues and long execution times',
+    },
     //
     {
       displayName: 'Include Message Parts',
@@ -118,8 +129,9 @@ export const getEmailsListOperation: IResourceOperationDef = {
     var returnData: INodeExecutionData[] = [];
 
     const mailboxPath = getMailboxPathFromNodeParameter(context, itemIndex);
+    const limit = context.getNodeParameter('limit', itemIndex) as number;
 
-    logger.info(`Getting emails list from ${mailboxPath}`);
+    logger.info(`Getting emails list from ${mailboxPath} (limit: ${limit})`);
 
     await client.mailboxOpen(mailboxPath);
 
@@ -176,8 +188,13 @@ export const getEmailsListOperation: IResourceOperationDef = {
     // because we might need to fetch the body parts for each email,
     // and this will freeze the client if we do it in parallel
     const emailsList: FetchMessageObject[] = [];
+    let count = 0;
     for  await (let email of client.fetch(searchObject, fetchQuery)) {
       emailsList.push(email);
+      count++;
+      if (limit && count >= limit) {
+        break;
+      }
     }
     logger.info(`Found ${emailsList.length} emails`);
 

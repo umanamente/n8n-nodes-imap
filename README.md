@@ -29,7 +29,7 @@ NPMJS: [n8n-nodes-imap](https://www.npmjs.com/package/n8n-nodes-imap)
   * Rename a mailbox
   * ~Delete a mailbox~ (disabled due to danger of accidental data loss and no apparent use case)
 * Email
-  * Get list of emails in a mailbox
+  * Get list of emails in a mailbox (with configurable limit to prevent memory issues)
   * Download attachments from an email
   * Permanently delete an email from a mailbox
   * Move an email to another mailbox
