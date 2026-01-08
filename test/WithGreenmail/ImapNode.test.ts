@@ -900,7 +900,7 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
         
         await imap.execute.call(context as IExecuteFunctions);
       }
-    });
+    }, 30000); // 30 second timeout for creating 20 emails
 
     it('should return exactly 10 emails when limit is set to 10 (out of 20 total)', async () => {
       const imap = new Imap();
