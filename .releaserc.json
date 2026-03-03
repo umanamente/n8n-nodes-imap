@@ -52,7 +52,7 @@
     [
       "@semantic-release/exec",
       {
-        "publishCmd": "npm publish --provenance"
+        "publishCmd": "npm run publish:ci"
       }
     ]
   ]

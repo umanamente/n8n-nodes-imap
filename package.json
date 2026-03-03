@@ -29,7 +29,8 @@
     "test:coverage": "jest --coverage",
     "verify:package": "npm run build && node scripts/verify-package.js",
     "prepublishOnly": "npm run verify:package && npm run lint -c .eslintrc.prepublish.js nodes credentials package.json",
-    "semantic-release": "semantic-release"
+    "semantic-release": "semantic-release",
+    "publish:ci": "node scripts/publish-ci.js"
   },
   "files": [
     "dist"

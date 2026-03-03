@@ -21,6 +21,8 @@ jobs:
       issues: write # to be able to comment on released issues
       pull-requests: write # to be able to comment on released pull requests
       id-token: write # to enable use of OIDC for trusted publishing and npm provenance
+    env:
+      PUBLISH_BRANCH: ${{ github.event.workflow_run.head_branch }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -48,6 +50,8 @@ jobs:
       issues: write # to be able to comment on released issues
       pull-requests: write # to be able to comment on released pull requests
       id-token: write # to enable use of OIDC for trusted publishing and npm provenance
+    env:
+      PUBLISH_BRANCH: ${{ github.event.workflow_run.head_branch }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -67,4 +71,4 @@ jobs:
       - name: Set version
         run: npm version $NEXT_VERSION --no-git-tag-version
       - name: Publish to npm
-        run: npm publish --provenance --tag beta
+        run: npm run publish:ci

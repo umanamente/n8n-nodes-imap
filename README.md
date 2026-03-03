@@ -3,6 +3,7 @@
 This is an n8n community node that adds support for [IMAP](https://en.wikipedia.org/wiki/Internet_Message_Access_Protocol) email servers.
 
 * [Installation](#installation)  
+* [Publishing](#publishing)
 * [Operations](#operations)  
 * [Credentials](#credentials)
 * [Troubleshooting & Debug](#troubleshooting--debug)
@@ -15,9 +16,19 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 
 Use `n8n-nodes-imap` in N8N settings to install the stable version.
 
-To install beta version, use `n8n-nodes-imap@beta`.
+To install beta version, use `n8n-nodes-imap-beta`.
 
 NPMJS: [n8n-nodes-imap](https://www.npmjs.com/package/n8n-nodes-imap)
+
+## Publishing
+
+Stable releases are published from the `master` branch using the package name `n8n-nodes-imap`.
+
+Beta releases are published from the `beta` branch using the package name `n8n-nodes-imap-beta`.
+
+You can override the beta publish name in CI:
+- `NPM_PUBLISH_NAME` to set the full beta package name (for example, `n8n-nodes-imap-preview`).
+- `NPM_BETA_SUFFIX` to set the suffix appended to the stable name (default `beta`).
 
 
 ## Operations
