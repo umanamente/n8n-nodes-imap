@@ -15,7 +15,7 @@
     "type": "git",
     "url": "https://github.com/umanamente/n8n-nodes-imap.git"
   },
-  "main": "index.js",
+  "main": "dist/nodes/Imap/Imap.node.js",
   "scripts": {
     "build": "tsc && gulp build:icons",
     "dev": "tsc --watch",
@@ -27,7 +27,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "prepublishOnly": "npm run build && npm run lint -c .eslintrc.prepublish.js nodes credentials package.json",
+    "verify:package": "npm run build && node scripts/verify-package.js",
+    "prepublishOnly": "npm run verify:package && npm run lint -c .eslintrc.prepublish.js nodes credentials package.json",
     "semantic-release": "semantic-release"
   },
   "files": [
