@@ -187,15 +187,23 @@ export const getEmailsListOperation: IResourceOperationDef = {
     // wait for all emails to be fetched before processing them
     // because we might need to fetch the body parts for each email,
     // and this will freeze the client if we do it in parallel
-    const emailsList: FetchMessageObject[] = [];
-    let count = 0;
-    for  await (let email of client.fetch(searchObject, fetchQuery)) {
-      emailsList.push(email);
-      count++;
-      if (limit && count >= limit) {
-        break;
-      }
-    }
+		const emailsList: FetchMessageObject[] = [];
+		let count = 0;
+		
+		// Get mailbox status to know total message count
+		const status = await client.status(mailboxPath, { messages: true });
+		const totalMessages = status.messages || 0;
+		
+		// If limit >= total messages, don't break early — let the loop finish naturally
+		const shouldBreakEarly = limit < totalMessages;
+		
+		for await (let email of client.fetch(searchObject, fetchQuery)) {
+		  emailsList.push(email);
+		  count++;
+		  if (shouldBreakEarly && count >= limit) {
+		    break;
+		  }
+		}
     logger.info(`Found ${emailsList.length} emails`);
 
     // process the emails
