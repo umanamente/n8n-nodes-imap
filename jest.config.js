@@ -33,7 +33,6 @@ module.exports = {
   modulePathIgnorePatterns: [
     '<rootDir>/dist/'
   ],
-  moduleFileExtensions: ['ts', 'js', 'json'],
   coverageDirectory: 'coverage',
   coverageReporters: [
     'json-summary', 
@@ -58,7 +57,6 @@ module.exports = {
         }],
       },
       maxWorkers: 1, // Greenmail does not work well with parallel tests
-      moduleFileExtensions: ['ts', 'js', 'json'],
     },
     {
       displayName: 'WithImapflowMock',
@@ -71,7 +69,6 @@ module.exports = {
           tsconfig: 'tsconfig.test.json',
         }],
       },
-      moduleFileExtensions: ['ts', 'js', 'json'],
     },
     {
       displayName: 'UnitTests',
@@ -86,7 +83,6 @@ module.exports = {
           tsconfig: 'tsconfig.test.json',
         }],
       },
-      moduleFileExtensions: ['ts', 'js', 'json'],
     },
     {
       displayName: 'DebugMode',
@@ -109,7 +105,6 @@ module.exports = {
           tsconfig: 'tsconfig.test.json',
         }],
       },
-      moduleFileExtensions: ['ts', 'js', 'json'],
     }
   ],
 };
