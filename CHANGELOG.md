@@ -1,3 +1,9 @@
+## [2.16.1](https://github.com/umanamente/n8n-nodes-imap/compare/v2.16.0...v2.16.1) (2026-03-10)
+
+### Bug Fixes
+
+* **email:** limit fetched emails by UID search before fetch ([#120](https://github.com/umanamente/n8n-nodes-imap/issues/120)) ([c33a857](https://github.com/umanamente/n8n-nodes-imap/commit/c33a857c1f982b833e9de058b269ba136395b0a7)), closes [#114](https://github.com/umanamente/n8n-nodes-imap/issues/114) [#113](https://github.com/umanamente/n8n-nodes-imap/issues/113)
+
 ## [2.16.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.15.0...v2.16.0) (2026-01-08)
 
 ### Features
