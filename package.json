@@ -48,7 +48,7 @@
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/exec": "^7.1.0",
     "@semantic-release/git": "^10.0.1",
-    "@semantic-release/npm": "^12.0.1",
+    "@semantic-release/npm": "^13.1.5",
     "@semantic-release/release-notes-generator": "^14.0.3",
     "@types/imapflow": "^1.0.22",
     "@types/jest": "^30.0.0",
