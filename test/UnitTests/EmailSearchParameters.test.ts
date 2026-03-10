@@ -27,7 +27,7 @@ describe('EmailSearchParameters', () => {
       const flagsParam = emailSearchParameters.find(p => p.name === 'emailFlags');
       expect(flagsParam).toBeDefined();
       expect(flagsParam?.type).toBe('collection');
-      expect(flagsParam?.options).toHaveLength(6);
+      expect(flagsParam?.options).toHaveLength(8);
     });
 
     it('should have emailSearchFilters parameter', () => {
@@ -282,6 +282,70 @@ describe('EmailSearchParameters', () => {
 
         // Assert
         expect(result.seen).toBe(true);
+      });
+
+      it('should map customFlagSet to keyword and trim surrounding whitespace', () => {
+        // Arrange
+        mockContext.getNodeParameter.mockImplementation((paramName: string) => {
+          if (paramName === 'emailFlags') {
+            return { customFlagSet: '  $myFlag  ' };
+          }
+          return {};
+        });
+
+        // Act
+        const result = getEmailSearchParametersFromNode(mockContext, ITEM_INDEX);
+
+        // Assert
+        expect(result.keyword).toBe('$myFlag');
+      });
+
+      it('should not set keyword when customFlagSet is empty or whitespace', () => {
+        // Arrange
+        mockContext.getNodeParameter.mockImplementation((paramName: string) => {
+          if (paramName === 'emailFlags') {
+            return { customFlagSet: '   ' };
+          }
+          return {};
+        });
+
+        // Act
+        const result = getEmailSearchParametersFromNode(mockContext, ITEM_INDEX);
+
+        // Assert
+        expect(result.keyword).toBeUndefined();
+      });
+
+      it('should map customFlagNotSet to unKeyword and trim surrounding whitespace', () => {
+        // Arrange
+        mockContext.getNodeParameter.mockImplementation((paramName: string) => {
+          if (paramName === 'emailFlags') {
+            return { customFlagNotSet: '  $myOtherFlag  ' };
+          }
+          return {};
+        });
+
+        // Act
+        const result = getEmailSearchParametersFromNode(mockContext, ITEM_INDEX);
+
+        // Assert
+        expect(result.unKeyword).toBe('$myOtherFlag');
+      });
+
+      it('should not set unKeyword when customFlagNotSet is empty or whitespace', () => {
+        // Arrange
+        mockContext.getNodeParameter.mockImplementation((paramName: string) => {
+          if (paramName === 'emailFlags') {
+            return { customFlagNotSet: '\t \n' };
+          }
+          return {};
+        });
+
+        // Act
+        const result = getEmailSearchParametersFromNode(mockContext, ITEM_INDEX);
+
+        // Assert
+        expect(result.unKeyword).toBeUndefined();
       });
 
       it('should handle multiple flags at once', () => {
