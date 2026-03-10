@@ -184,17 +184,17 @@ export const getEmailsListOperation: IResourceOperationDef = {
     logger.debug(`Search object: ${JSON.stringify(searchObject)}`);
     logger.debug(`Fetch query: ${JSON.stringify(fetchQuery)}`);
 
+    // get UIDs first and apply limit before fetching message data
+    const foundUids = await client.search(searchObject, { uid: true });
+    const uids = Array.isArray(foundUids) ? foundUids : [];
+    const limitedUids = limit ? uids.slice(0, limit) : uids;
+
     // wait for all emails to be fetched before processing them
     // because we might need to fetch the body parts for each email,
     // and this will freeze the client if we do it in parallel
     const emailsList: FetchMessageObject[] = [];
-    let count = 0;
-    for  await (let email of client.fetch(searchObject, fetchQuery)) {
+    for  await (let email of client.fetch(limitedUids, fetchQuery, { uid: true })) {
       emailsList.push(email);
-      count++;
-      if (limit && count >= limit) {
-        break;
-      }
     }
     logger.info(`Found ${emailsList.length} emails`);
 
