@@ -29,7 +29,7 @@
     "test:coverage": "jest --coverage",
     "verify:package": "npm run build && node scripts/verify-package.js",
     "prepublishOnly": "npm run verify:package && npm run lint -c .eslintrc.prepublish.js nodes credentials package.json",
-    "semantic-release": "semantic-release"
+    "semantic-release": "npx semantic-release"
   },
   "files": [
     "dist"
@@ -50,7 +50,6 @@
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/npm": "^13.1.5",
     "@semantic-release/release-notes-generator": "^14.0.3",
-    "@types/imapflow": "^1.0.22",
     "@types/jest": "^30.0.0",
     "@types/mailparser": "^3.4.6",
     "@types/nodemailer": "^7.0.11",
@@ -62,7 +61,6 @@
     "jest": "^30.3.0",
     "n8n-workflow": "*",
     "prettier": "^3.8.1",
-    "semantic-release": "^25.0.3",
     "ts-jest": "^29.4.6",
     "typescript": "~5.9.3"
   },
