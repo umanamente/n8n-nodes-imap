@@ -24,6 +24,9 @@ describe('EmailGetList', () => {
       password: credentials.password,
     });    
     await mockImapflow.connect();
+
+    // executeImapAction now resolves UIDs via search() before fetch()
+    mockImapflow.search = jest.fn().mockResolvedValue([123]);
     
     // Reset the simpleParser mock
     const { simpleParser } = require('mailparser');
@@ -94,10 +97,10 @@ describe('EmailGetList', () => {
       expect((result![1].json.envelope as any).subject).toBe('Test Email 2');
       expect(result![1].json.mailboxPath).toBe('INBOX');
       expect(mockImapflow.mailboxOpen).toHaveBeenCalledWith('INBOX');
-      expect(mockImapflow.fetch).toHaveBeenCalledWith({}, {
+      expect(mockImapflow.fetch).toHaveBeenCalledWith(expect.any(Array), {
         uid: true,
         envelope: true,
-      });
+      }, { uid: true });
     });
 
     it('should get emails with flags when includeParts includes flags', async () => {
@@ -143,11 +146,11 @@ describe('EmailGetList', () => {
       expect(result).toBeDefined();
       expect(result?.length).toBe(1);
       expect(result![0].json.flags).toEqual(['\\Seen', '\\Flagged']);
-      expect(mockImapflow.fetch).toHaveBeenCalledWith({}, {
+      expect(mockImapflow.fetch).toHaveBeenCalledWith(expect.any(Array), {
         uid: true,
         envelope: true,
         flags: true,
-      });
+      }, { uid: true });
     });
 
     it('should get emails with size when includeParts includes size', async () => {
@@ -193,11 +196,11 @@ describe('EmailGetList', () => {
       expect(result).toBeDefined();
       expect(result?.length).toBe(1);
       expect(result![0].json.size).toBe(1024);
-      expect(mockImapflow.fetch).toHaveBeenCalledWith({}, {
+      expect(mockImapflow.fetch).toHaveBeenCalledWith(expect.any(Array), {
         uid: true,
         envelope: true,
         size: true,
-      });
+      }, { uid: true });
     });
 
     it('should get emails with body structure when includeParts includes bodyStructure', async () => {
@@ -249,11 +252,11 @@ describe('EmailGetList', () => {
       expect(result).toBeDefined();
       expect(result?.length).toBe(1);
       expect(result![0].json.bodyStructure).toEqual(mockBodyStructure);
-      expect(mockImapflow.fetch).toHaveBeenCalledWith({}, {
+      expect(mockImapflow.fetch).toHaveBeenCalledWith(expect.any(Array), {
         uid: true,
         envelope: true,
         bodyStructure: true,
-      });
+      }, { uid: true });
     });
 
     it('should get emails with headers when includeParts includes headers and includeAllHeaders is true', async () => {
@@ -313,11 +316,11 @@ describe('EmailGetList', () => {
       expect(result![0].json.headers).toBeDefined();
       expect((result![0].json.headers as any).subject).toBe('Test Email');
       expect((result![0].json.headers as any).from.value[0].address).toBe('john@example.com');
-      expect(mockImapflow.fetch).toHaveBeenCalledWith({}, {
+      expect(mockImapflow.fetch).toHaveBeenCalledWith(expect.any(Array), {
         uid: true,
         envelope: true,
         headers: true,
-      });
+      }, { uid: true });
     });
 
     it('should get emails with specific headers when includeParts includes headers and includeAllHeaders is false', async () => {
@@ -377,11 +380,11 @@ describe('EmailGetList', () => {
       expect(result).toBeDefined();
       expect(result?.length).toBe(1);
       expect(result![0].json.headers).toBeDefined();
-      expect(mockImapflow.fetch).toHaveBeenCalledWith({}, {
+      expect(mockImapflow.fetch).toHaveBeenCalledWith(expect.any(Array), {
         uid: true,
         envelope: true,
         headers: ['subject', 'from', 'date'],
-      });
+      }, { uid: true });
     });
 
     it('should get emails with no specific headers when includeParts includes headers and headersToInclude is empty', async () => {
@@ -440,10 +443,10 @@ describe('EmailGetList', () => {
       expect(result).toBeDefined();
       expect(result?.length).toBe(1);
       expect(result![0].json.headers).toBeDefined();
-      expect(mockImapflow.fetch).toHaveBeenCalledWith({}, {
+      expect(mockImapflow.fetch).toHaveBeenCalledWith(expect.any(Array), {
         uid: true,
         envelope: true,
-      });
+      }, { uid: true });
     });
 
     it('should get emails with text content when includeParts includes textContent', async () => {
@@ -509,11 +512,11 @@ describe('EmailGetList', () => {
       expect(result).toBeDefined();
       expect(result?.length).toBe(1);
       expect(result![0].json.textContent).toBe('Hello, this is the text content');
-      expect(mockImapflow.fetch).toHaveBeenCalledWith({}, {
+      expect(mockImapflow.fetch).toHaveBeenCalledWith(expect.any(Array), {
         uid: true,
         envelope: true,
         bodyStructure: true,
-      });
+      }, { uid: true });
       expect(mockImapflow.download).toHaveBeenCalledWith('123', 'TEXT', { uid: true });
     });
 
@@ -580,11 +583,11 @@ describe('EmailGetList', () => {
       expect(result).toBeDefined();
       expect(result?.length).toBe(1);
       expect(result![0].json.htmlContent).toBe('<html><body>Hello HTML</body></html>');
-      expect(mockImapflow.fetch).toHaveBeenCalledWith({}, {
+      expect(mockImapflow.fetch).toHaveBeenCalledWith(expect.any(Array), {
         uid: true,
         envelope: true,
         bodyStructure: true,
-      });
+      }, { uid: true });
       expect(mockImapflow.download).toHaveBeenCalledWith('123', 'TEXT', { uid: true });
     });
 
@@ -687,11 +690,11 @@ describe('EmailGetList', () => {
       // When bodyStructure is null, textContent and htmlContent should be null
       expect(result![0].json.textContent).toBeNull();
       expect(result![0].json.htmlContent).toBeNull();
-      expect(mockImapflow.fetch).toHaveBeenCalledWith({}, {
+      expect(mockImapflow.fetch).toHaveBeenCalledWith(expect.any(Array), {
         uid: true,
         envelope: true,
         bodyStructure: true,
-      });
+      }, { uid: true });
     });
 
     it('should handle emails with null bodyStructure when includeParts includes attachmentsInfo', async () => {
@@ -740,11 +743,11 @@ describe('EmailGetList', () => {
       expect(result![0].json.mailboxPath).toBe('INBOX');
       // When bodyStructure is null, attachmentsInfo should be an empty array
       expect(result![0].json.attachmentsInfo).toEqual([]);
-      expect(mockImapflow.fetch).toHaveBeenCalledWith({}, {
+      expect(mockImapflow.fetch).toHaveBeenCalledWith(expect.any(Array), {
         uid: true,
         envelope: true,
         bodyStructure: true,
-      });
+      }, { uid: true });
     });
 
     it('should handle empty email list', async () => {
@@ -778,10 +781,10 @@ describe('EmailGetList', () => {
       expect(result).toBeDefined();
       expect(result?.length).toBe(0);
       expect(mockImapflow.mailboxOpen).toHaveBeenCalledWith('INBOX');
-      expect(mockImapflow.fetch).toHaveBeenCalledWith({}, {
+      expect(mockImapflow.fetch).toHaveBeenCalledWith(expect.any(Array), {
         uid: true,
         envelope: true,
-      });
+      }, { uid: true });
     });
 
     it('should get emails with multiple parts included', async () => {
@@ -837,13 +840,13 @@ describe('EmailGetList', () => {
       expect(result![0].json.flags).toEqual(['\\Seen']);
       expect(result![0].json.size).toBe(1024);
       expect(result![0].json.bodyStructure).toEqual(mockBodyStructure);
-      expect(mockImapflow.fetch).toHaveBeenCalledWith({}, {
+      expect(mockImapflow.fetch).toHaveBeenCalledWith(expect.any(Array), {
         uid: true,
         envelope: true,
         flags: true,
         size: true,
         bodyStructure: true,
-      });
+      }, { uid: true });
     });
 
     it('should get emails with attachments when includeParts includes attachmentsInfo', async () => {
@@ -938,11 +941,11 @@ describe('EmailGetList', () => {
           size: 1024,
         },
       ]);
-      expect(mockImapflow.fetch).toHaveBeenCalledWith({}, {
+      expect(mockImapflow.fetch).toHaveBeenCalledWith(expect.any(Array), {
         uid: true,
         envelope: true,
         bodyStructure: true,
-      });
+      }, { uid: true });
     });
 
     it('should handle emails where textContent download returns null content', async () => {
@@ -1170,11 +1173,11 @@ describe('EmailGetList', () => {
       expect(result![0].json.mailboxPath).toBe('INBOX');
       // The headers field should remain null since email.headers was null
       expect(result![0].json.headers).toBeNull();
-      expect(mockImapflow.fetch).toHaveBeenCalledWith({}, {
+      expect(mockImapflow.fetch).toHaveBeenCalledWith(expect.any(Array), {
         uid: true,
         envelope: true,
         headers: true,
-      });
+      }, { uid: true });
     });
 
   }); // end executeImapAction - error handling
@@ -1416,6 +1419,68 @@ describe('EmailGetList', () => {
 
   describe('executeImapAction - limit functionality', () => {
 
+    it('should not call fetch when search returns no results', async () => {
+      // Arrange
+      const paramValues = {
+        mailboxPath: { value: 'INBOX' },
+        emailDateRange: {},
+        emailFlags: {},
+        emailSearchFilters: {},
+        searchCriteria: 'ALL',
+        limit: 50,
+        includeParts: [],
+      };
+      const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
+
+      mockImapflow.search = jest.fn().mockResolvedValue([]);
+      mockImapflow.fetch = jest.fn();
+
+      // Act
+      const result = await getEmailsListOperation.executeImapAction(
+        context as IExecuteFunctions,
+        context.logger!,
+        ITEM_INDEX,
+        mockImapflow
+      );
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result?.length).toBe(0);
+      expect(mockImapflow.search).toHaveBeenCalledWith(expect.any(Object), { uid: true });
+      expect(mockImapflow.fetch).not.toHaveBeenCalled();
+    });
+
+    it('should not call fetch when search returns false', async () => {
+      // Arrange
+      const paramValues = {
+        mailboxPath: { value: 'INBOX' },
+        emailDateRange: {},
+        emailFlags: {},
+        emailSearchFilters: {},
+        searchCriteria: 'ALL',
+        limit: 50,
+        includeParts: [],
+      };
+      const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
+
+      mockImapflow.search = jest.fn().mockResolvedValue(false);
+      mockImapflow.fetch = jest.fn();
+
+      // Act
+      const result = await getEmailsListOperation.executeImapAction(
+        context as IExecuteFunctions,
+        context.logger!,
+        ITEM_INDEX,
+        mockImapflow
+      );
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result?.length).toBe(0);
+      expect(mockImapflow.search).toHaveBeenCalledWith(expect.any(Object), { uid: true });
+      expect(mockImapflow.fetch).not.toHaveBeenCalled();
+    });
+
     it('should respect the limit parameter when fetching emails', async () => {
       // Arrange
       const limit = 3;
@@ -1438,20 +1503,19 @@ describe('EmailGetList', () => {
           from: [{ name: 'John Doe', address: 'john@example.com' }],
         },
       }));
-      
+
+      mockImapflow.search = jest.fn().mockResolvedValue(Array.from({ length: 10 }, (_, i) => i + 1));
+
       let fetchCallCount = 0;
-      const mockFetchAsyncIterator = {
-        [Symbol.asyncIterator]: jest.fn().mockReturnValue({
-          next: jest.fn().mockImplementation(async () => {
-            if (fetchCallCount < mockEmails.length) {
-              return { value: mockEmails[fetchCallCount++], done: false };
-            }
-            return { done: true };
-          }),
-        }),
-      };
-      
-      mockImapflow.fetch = jest.fn().mockReturnValue(mockFetchAsyncIterator);
+      mockImapflow.fetch = jest.fn().mockImplementation(async function* (uids: number[]) {
+        for (const uid of uids) {
+          const email = mockEmails.find((item) => item.uid === uid);
+          if (email) {
+            fetchCallCount++;
+            yield email;
+          }
+        }
+      });
       
       // Act
       const result = await getEmailsListOperation.executeImapAction(
@@ -1467,8 +1531,12 @@ describe('EmailGetList', () => {
       expect(result![0].json.uid).toBe(1);
       expect(result![1].json.uid).toBe(2);
       expect(result![2].json.uid).toBe(3);
-      // Should only fetch 3 emails, not all 10
+      // Should only fetch 3 emails after UID limit is applied
       expect(fetchCallCount).toBe(3);
+      expect(mockImapflow.fetch).toHaveBeenCalledWith([1, 2, 3], {
+        uid: true,
+        envelope: true,
+      }, { uid: true });
     });
 
     it('should fetch all emails when limit is greater than available emails', async () => {
@@ -1493,20 +1561,19 @@ describe('EmailGetList', () => {
           from: [{ name: 'John Doe', address: 'john@example.com' }],
         },
       }));
-      
+
+      mockImapflow.search = jest.fn().mockResolvedValue(Array.from({ length: 5 }, (_, i) => i + 1));
+
       let fetchCallCount = 0;
-      const mockFetchAsyncIterator = {
-        [Symbol.asyncIterator]: jest.fn().mockReturnValue({
-          next: jest.fn().mockImplementation(async () => {
-            if (fetchCallCount < mockEmails.length) {
-              return { value: mockEmails[fetchCallCount++], done: false };
-            }
-            return { done: true };
-          }),
-        }),
-      };
-      
-      mockImapflow.fetch = jest.fn().mockReturnValue(mockFetchAsyncIterator);
+      mockImapflow.fetch = jest.fn().mockImplementation(async function* (uids: number[]) {
+        for (const uid of uids) {
+          const email = mockEmails.find((item) => item.uid === uid);
+          if (email) {
+            fetchCallCount++;
+            yield email;
+          }
+        }
+      });
       
       // Act
       const result = await getEmailsListOperation.executeImapAction(
@@ -1521,6 +1588,64 @@ describe('EmailGetList', () => {
       expect(result?.length).toBe(5);
       // Should fetch all 5 emails
       expect(fetchCallCount).toBe(5);
+      expect(mockImapflow.fetch).toHaveBeenCalledWith([1, 2, 3, 4, 5], {
+        uid: true,
+        envelope: true,
+      }, { uid: true });
+    });
+
+    it('should fetch all emails when limit is 0 (no limit)', async () => {
+      // Arrange
+      const limit = 0;
+      const paramValues = {
+        mailboxPath: { value: 'INBOX' },
+        emailDateRange: {},
+        emailFlags: {},
+        emailSearchFilters: {},
+        searchCriteria: 'ALL',
+        limit,
+        includeParts: [],
+      };
+      const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
+
+      const mockEmails = Array.from({ length: 5 }, (_, i) => ({
+        uid: i + 1,
+        envelope: {
+          subject: `Test Email ${i + 1}`,
+          from: [{ name: 'John Doe', address: 'john@example.com' }],
+        },
+      }));
+
+      const allUids = Array.from({ length: 5 }, (_, i) => i + 1);
+      mockImapflow.search = jest.fn().mockResolvedValue(allUids);
+
+      let fetchCallCount = 0;
+      mockImapflow.fetch = jest.fn().mockImplementation(async function* (uids: number[]) {
+        for (const uid of uids) {
+          const email = mockEmails.find((item) => item.uid === uid);
+          if (email) {
+            fetchCallCount++;
+            yield email;
+          }
+        }
+      });
+
+      // Act
+      const result = await getEmailsListOperation.executeImapAction(
+        context as IExecuteFunctions,
+        context.logger!,
+        ITEM_INDEX,
+        mockImapflow
+      );
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result?.length).toBe(5);
+      expect(fetchCallCount).toBe(5);
+      expect(mockImapflow.fetch).toHaveBeenCalledWith(allUids, {
+        uid: true,
+        envelope: true,
+      }, { uid: true });
     });
 
   }); // end executeImapAction - limit functionality
