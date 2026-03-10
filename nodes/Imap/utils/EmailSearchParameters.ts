@@ -8,6 +8,8 @@ enum EmailFlags {
   Flagged = 'flagged',
   Recent = 'recent',
   Seen = 'seen',
+  CustomFlagSet = 'customFlagSet',
+  CustomFlagNotSet = 'customFlagNotSet',
 }
 
 enum EmailSearchFilters {
@@ -53,6 +55,7 @@ export const emailSearchParameters : INodeProperties[] = [
     type: "collection",
     placeholder: "Add Flag",
     default: {},
+    // eslint-disable-next-line n8n-nodes-base/node-param-collection-type-unsorted-items
     options: [
       {
         displayName: "Is Answered",
@@ -96,6 +99,22 @@ export const emailSearchParameters : INodeProperties[] = [
         default: false,
         description: "Whether email is seen",
         hint: "If true, only seen emails will be returned. If false, only unseen emails will be returned.",
+      },
+      {
+        displayName: 'Custom Flag (Set)',
+        name: 'customFlagSet',
+        type: "string",
+        default: "",
+        description: "Custom flag that is set",
+        placeholder: "$myFlag",
+      },
+      {
+        displayName: 'Custom Flag (Not Set)',
+        name: 'customFlagNotSet',
+        type: "string",
+        default: "",
+        description: "Custom flag that is not set",
+        placeholder: "$myFlag",
       },
     ],
   },
@@ -201,6 +220,19 @@ export function getEmailSearchParametersFromNode(context: IExecuteFunctions, ite
   }
   if (EmailFlags.Seen in emailFlagsObj) {
     searchObject.seen = emailFlagsObj[EmailFlags.Seen] as boolean;
+  }
+  // custom flags
+  if (EmailFlags.CustomFlagSet in emailFlagsObj) {
+    const customFlagSet = (emailFlagsObj[EmailFlags.CustomFlagSet] as string).trim();
+    if (customFlagSet) {
+      searchObject.keyword = customFlagSet;
+    }
+  }
+  if (EmailFlags.CustomFlagNotSet in emailFlagsObj) {
+    const customFlagNotSet = (emailFlagsObj[EmailFlags.CustomFlagNotSet] as string).trim();
+    if (customFlagNotSet) {
+      searchObject.unKeyword = customFlagNotSet;
+    }
   }
 
   // search filters
