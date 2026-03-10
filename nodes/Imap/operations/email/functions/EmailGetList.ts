@@ -189,14 +189,18 @@ export const getEmailsListOperation: IResourceOperationDef = {
     const uids = Array.isArray(foundUids) ? foundUids : [];
     const limitedUids = limit ? uids.slice(0, limit) : uids;
 
+    logger.info(`Found ${uids.length} emails, fetching data for ${limitedUids.length} emails...`);
+
     // wait for all emails to be fetched before processing them
     // because we might need to fetch the body parts for each email,
     // and this will freeze the client if we do it in parallel
     const emailsList: FetchMessageObject[] = [];
-    for  await (let email of client.fetch(limitedUids, fetchQuery, { uid: true })) {
-      emailsList.push(email);
+    if (limitedUids.length > 0) {
+      for  await (let email of client.fetch(limitedUids, fetchQuery, { uid: true })) {
+        emailsList.push(email);
+      }
     }
-    logger.info(`Found ${emailsList.length} emails`);
+    logger.info(`Fetched ${emailsList.length} emails`);
 
     // process the emails
     for (const email of emailsList) {

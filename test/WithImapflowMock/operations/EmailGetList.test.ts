@@ -24,6 +24,9 @@ describe('EmailGetList', () => {
       password: credentials.password,
     });    
     await mockImapflow.connect();
+
+    // executeImapAction now resolves UIDs via search() before fetch()
+    mockImapflow.search = jest.fn().mockResolvedValue([123]);
     
     // Reset the simpleParser mock
     const { simpleParser } = require('mailparser');
@@ -1416,6 +1419,68 @@ describe('EmailGetList', () => {
 
   describe('executeImapAction - limit functionality', () => {
 
+    it('should not call fetch when search returns no results', async () => {
+      // Arrange
+      const paramValues = {
+        mailboxPath: { value: 'INBOX' },
+        emailDateRange: {},
+        emailFlags: {},
+        emailSearchFilters: {},
+        searchCriteria: 'ALL',
+        limit: 50,
+        includeParts: [],
+      };
+      const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
+
+      mockImapflow.search = jest.fn().mockResolvedValue([]);
+      mockImapflow.fetch = jest.fn();
+
+      // Act
+      const result = await getEmailsListOperation.executeImapAction(
+        context as IExecuteFunctions,
+        context.logger!,
+        ITEM_INDEX,
+        mockImapflow
+      );
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result?.length).toBe(0);
+      expect(mockImapflow.search).toHaveBeenCalledWith(expect.any(Object), { uid: true });
+      expect(mockImapflow.fetch).not.toHaveBeenCalled();
+    });
+
+    it('should not call fetch when search returns false', async () => {
+      // Arrange
+      const paramValues = {
+        mailboxPath: { value: 'INBOX' },
+        emailDateRange: {},
+        emailFlags: {},
+        emailSearchFilters: {},
+        searchCriteria: 'ALL',
+        limit: 50,
+        includeParts: [],
+      };
+      const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
+
+      mockImapflow.search = jest.fn().mockResolvedValue(false);
+      mockImapflow.fetch = jest.fn();
+
+      // Act
+      const result = await getEmailsListOperation.executeImapAction(
+        context as IExecuteFunctions,
+        context.logger!,
+        ITEM_INDEX,
+        mockImapflow
+      );
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result?.length).toBe(0);
+      expect(mockImapflow.search).toHaveBeenCalledWith(expect.any(Object), { uid: true });
+      expect(mockImapflow.fetch).not.toHaveBeenCalled();
+    });
+
     it('should respect the limit parameter when fetching emails', async () => {
       // Arrange
       const limit = 3;
@@ -1524,6 +1589,60 @@ describe('EmailGetList', () => {
       // Should fetch all 5 emails
       expect(fetchCallCount).toBe(5);
       expect(mockImapflow.fetch).toHaveBeenCalledWith([1, 2, 3, 4, 5], {
+        uid: true,
+        envelope: true,
+      }, { uid: true });
+    });
+
+    it('should fetch all emails when limit is 0 (no limit)', async () => {
+      // Arrange
+      const limit = 0;
+      const paramValues = {
+        mailboxPath: { value: 'INBOX' },
+        emailDateRange: {},
+        emailFlags: {},
+        emailSearchFilters: {},
+        searchCriteria: 'ALL',
+        limit,
+        includeParts: [],
+      };
+      const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
+
+      const mockEmails = Array.from({ length: 5 }, (_, i) => ({
+        uid: i + 1,
+        envelope: {
+          subject: `Test Email ${i + 1}`,
+          from: [{ name: 'John Doe', address: 'john@example.com' }],
+        },
+      }));
+
+      const allUids = Array.from({ length: 5 }, (_, i) => i + 1);
+      mockImapflow.search = jest.fn().mockResolvedValue(allUids);
+
+      let fetchCallCount = 0;
+      mockImapflow.fetch = jest.fn().mockImplementation(async function* (uids: number[]) {
+        for (const uid of uids) {
+          const email = mockEmails.find((item) => item.uid === uid);
+          if (email) {
+            fetchCallCount++;
+            yield email;
+          }
+        }
+      });
+
+      // Act
+      const result = await getEmailsListOperation.executeImapAction(
+        context as IExecuteFunctions,
+        context.logger!,
+        ITEM_INDEX,
+        mockImapflow
+      );
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result?.length).toBe(5);
+      expect(fetchCallCount).toBe(5);
+      expect(mockImapflow.fetch).toHaveBeenCalledWith(allUids, {
         uid: true,
         envelope: true,
       }, { uid: true });
