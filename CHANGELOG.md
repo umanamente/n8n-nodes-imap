@@ -1,3 +1,9 @@
+## [2.16.2](https://github.com/umanamente/n8n-nodes-imap/compare/v2.16.1...v2.16.2) (2026-03-10)
+
+### Bug Fixes
+
+* **deps:** Package updates ([#121](https://github.com/umanamente/n8n-nodes-imap/issues/121)) ([9204721](https://github.com/umanamente/n8n-nodes-imap/commit/92047212376b4a4773a7e874ed90738700970dbd))
+
 ## [2.16.1](https://github.com/umanamente/n8n-nodes-imap/compare/v2.16.0...v2.16.1) (2026-03-10)
 
 ### Bug Fixes
