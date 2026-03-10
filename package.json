@@ -48,30 +48,30 @@
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/exec": "^7.1.0",
     "@semantic-release/git": "^10.0.1",
-    "@semantic-release/npm": "^12.0.1",
+    "@semantic-release/npm": "^13.1.5",
     "@semantic-release/release-notes-generator": "^14.0.3",
     "@types/imapflow": "^1.0.22",
     "@types/jest": "^30.0.0",
     "@types/mailparser": "^3.4.6",
-    "@types/nodemailer": "^6.4.17",
-    "@typescript-eslint/parser": "~7.18",
-    "conventional-changelog-conventionalcommits": "^8.0.0",
-    "cross-env": "^7.0.3",
-    "eslint-plugin-n8n-nodes-base": "^1.16.3",
+    "@types/nodemailer": "^7.0.11",
+    "@typescript-eslint/parser": "~8.57.0",
+    "conventional-changelog-conventionalcommits": "^9.3.0",
+    "cross-env": "^10.1.0",
+    "eslint-plugin-n8n-nodes-base": "^1.16.6",
     "gulp": "^5.0.1",
-    "jest": "^30.2.0",
+    "jest": "^30.3.0",
     "n8n-workflow": "*",
-    "prettier": "^3.5.3",
-    "semantic-release": "^24.2.5",
-    "ts-jest": "^29.4.5",
-    "typescript": "~5.5.4"
+    "prettier": "^3.8.1",
+    "semantic-release": "^25.0.3",
+    "ts-jest": "^29.4.6",
+    "typescript": "~5.9.3"
   },
   "peerDependencies": {
     "n8n-workflow": "*"
   },
   "dependencies": {
-    "imapflow": "^1.0.188",
-    "mailparser": "^3.7.3",
-    "nodemailer": "^6.10.1"
+    "imapflow": "^1.2.13",
+    "mailparser": "^3.9.4",
+    "nodemailer": "^8.0.2"
   }
 }
