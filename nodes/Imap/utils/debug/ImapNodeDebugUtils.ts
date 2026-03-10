@@ -1,4 +1,4 @@
-import { IExecuteFunctions, INodeExecutionData, INodeOutputConfiguration, INodeProperties, NodeConnectionTypes } from "n8n-workflow";
+import { IExecuteFunctions, INodeExecutionData, INodeOutputConfiguration, INodeProperties } from "n8n-workflow";
 import { DebugLoggerWatcher } from "./DebugLoggerWatcher";
 
 export interface ImapNodeDebugParameters {
@@ -72,7 +72,7 @@ export class ImapNodeDebugUtils {
     return [
       {        
         displayName: 'Debug Output',
-        type: NodeConnectionTypes.Main,        
+        type: 'main',
       },
     ];
   }

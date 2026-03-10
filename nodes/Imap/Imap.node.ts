@@ -1,4 +1,4 @@
-import { ICredentialTestFunctions, ICredentialsDecrypted, IExecuteFunctions, INodeCredentialTestResult, INodeExecutionData, INodeType, INodeTypeDescription, Logger as N8nLogger, NodeConnectionTypes, NodeError, NodeOperationError } from 'n8n-workflow';
+import { ICredentialTestFunctions, ICredentialsDecrypted, IExecuteFunctions, INodeCredentialTestResult, INodeExecutionData, INodeType, INodeTypeDescription, Logger as N8nLogger, NodeError, NodeOperationError } from 'n8n-workflow';
 import { allResourceDefinitions } from './operations/ResourcesList';
 import { getAllResourceNodeParameters, IResourceOperationDef } from './utils/CommonDefinitions';
 import { ImapCredentialsData } from '../../credentials/ImapCredentials.credentials';
@@ -22,10 +22,10 @@ export class Imap implements INodeType {
     defaults: {
       name: 'IMAP',
     },
-    inputs: [NodeConnectionTypes.Main],
+    inputs: ["main"],
     // eslint-disable-next-line n8n-nodes-base/node-class-description-outputs-wrong
     outputs: [
-      NodeConnectionTypes.Main,
+      "main",
       // add debug output if enabled
       ...ImapNodeDebugUtils.GetDebugNodeOutputProperties(),
     ],
