@@ -1,3 +1,9 @@
+## [2.17.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.16.2...v2.17.0) (2026-03-10)
+
+### Features
+
+* add custom flag parameters in Get Emails ([8fbf19c](https://github.com/umanamente/n8n-nodes-imap/commit/8fbf19cf52640dc3044beb7aa5f82ef19f3c7905))
+
 ## [2.16.2](https://github.com/umanamente/n8n-nodes-imap/compare/v2.16.1...v2.16.2) (2026-03-10)
 
 ### Bug Fixes
