@@ -15,7 +15,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/master'
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'master'
     permissions:
       contents: write # to be able to publish a GitHub release
       issues: write # to be able to comment on released issues
@@ -25,6 +25,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
+          ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -42,7 +43,7 @@ jobs:
   release-beta:
     name: Publish Beta
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/beta'
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'beta'
     permissions:
       contents: write # to be able to publish a GitHub release
       issues: write # to be able to comment on released issues
@@ -52,6 +53,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
+          ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -62,9 +64,15 @@ jobs:
         run: npm clean-install
       - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
         run: npm audit signatures
+      - name: Fetch master branch for beta diff
+        run: git fetch origin master beta --tags
       - name: Set version env
-        run: echo "NEXT_VERSION=$(git describe --tags --always --abbrev=7 | sed 's/$/-beta/')" >> $GITHUB_ENV
+        run: echo "NEXT_VERSION=$(git describe --tags --always --abbrev=7 | sed 's/^v//; s/$/-beta/')" >> $GITHUB_ENV
       - name: Set version
-        run: npm version $NEXT_VERSION --no-git-tag-version
+        run: npm version $NEXT_VERSION --no-git-tag-version --allow-same-version
       - name: Publish to npm
-        run: npm publish --provenance --tag beta
+        env:
+          BETA_BASE_REF: origin/master
+          BETA_HEAD_REF: HEAD
+          BETA_BUG_REPORT_URL: https://github.com/umanamente/n8n-nodes-imap/issues/new/choose
+        run: npm run publish:beta:ci

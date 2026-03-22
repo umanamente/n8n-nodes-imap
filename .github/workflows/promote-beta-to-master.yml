@@ -1,9 +1,6 @@
-name: Sync beta from master
+name: Promote beta to master
 
 on:
-  push:
-    branches:
-      - master
   workflow_dispatch:
 
 permissions:
@@ -11,7 +8,7 @@ permissions:
   actions: write
 
 jobs:
-  sync-beta:
+  promote:
     runs-on: ubuntu-latest
 
     steps:
@@ -29,51 +26,38 @@ jobs:
       - name: Fetch beta branch
         run: git fetch origin master beta --tags
 
-      - name: Sync beta with master
-        id: sync
+      - name: Promote beta to master
+        id: promote
         shell: bash
         run: |
           set -euo pipefail
 
-          git checkout -B beta origin/beta
+          git checkout -B master origin/master
 
           read master_only beta_only < <(git rev-list --left-right --count origin/master...origin/beta)
 
           echo "master_only=$master_only" >> "$GITHUB_OUTPUT"
           echo "beta_only=$beta_only" >> "$GITHUB_OUTPUT"
 
-          if [ "$master_only" -eq 0 ]; then
-            echo "mode=up-to-date" >> "$GITHUB_OUTPUT"
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "Beta already contains all commits from master."
-            exit 0
-          fi
-
           if [ "$beta_only" -eq 0 ]; then
-            git merge --ff-only origin/master
-            git push origin HEAD:beta
-
-            echo "mode=fast-forward" >> "$GITHUB_OUTPUT"
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "Fast-forwarded beta to master."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Master already contains beta."
             exit 0
           fi
 
-          if git rebase origin/master; then
-            git push --force-with-lease origin HEAD:beta
-
-            echo "mode=rebase" >> "$GITHUB_OUTPUT"
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "Rebased beta onto master and force-pushed the result."
-            exit 0
+          if [ "$master_only" -ne 0 ]; then
+            echo "Master and beta have diverged. A fast-forward promotion is not possible." >&2
+            exit 1
           fi
 
-          git rebase --abort || true
-          echo "Automatic rebase failed because of conflicts." >&2
-          exit 1
+          git merge --ff-only origin/beta
+          git push origin HEAD:master
 
-      - name: Trigger Test workflow for beta
-        if: steps.sync.outputs.changed == 'true'
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "Promoted beta to master with a fast-forward merge."
+
+      - name: Trigger Test workflow for master
+        if: steps.promote.outputs.changed == 'true'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -82,5 +66,5 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: 'test.yml',
-              ref: 'beta',
+              ref: 'master',
             });

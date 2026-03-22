@@ -21,6 +21,8 @@
     "dev": "tsc --watch",
     "run-dev": "npm run build && cross-env N8N_NODES_DEBUG_ENABLED=true N8N_LOG_LEVEL=debug n8n start",
     "run-dev-tunnel": "npm run build && cross-env N8N_NODES_DEBUG_ENABLED=true N8N_LOG_LEVEL=debug n8n start --tunnel",
+    "prepare:beta-release": "node scripts/prepare-beta-release.js",
+    "publish:beta:ci": "npm run prepare:beta-release && npm publish --provenance --tag beta",
     "format": "prettier nodes credentials --write",
     "lint": "eslint nodes credentials package.json",
     "lintfix": "eslint nodes credentials package.json --fix",

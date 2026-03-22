@@ -7,6 +7,7 @@ import { loadMailboxList } from './utils/SearchFieldParameters';
 import { CREDENTIALS_TYPE_CORE_IMAP_ACCOUNT, CREDENTIALS_TYPE_THIS_NODE, credentialNames, getImapCredentials } from './utils/CredentialsSelector';
 import { ImapNodeDebugParameters, ImapNodeDebugUtils } from './utils/debug/ImapNodeDebugUtils';
 import { DebugLoggerWatcher } from './utils/debug/DebugLoggerWatcher';
+import { getBetaNoticeProperties } from './utils/BetaReleaseNotice';
 import { ImapFlow } from 'imapflow';
 
 
@@ -96,6 +97,8 @@ export class Imap implements INodeType {
           },*/
         ],
       },
+
+      ...getBetaNoticeProperties(),
 
       // add debug options if enabled
       ...ImapNodeDebugUtils.GetDebugNodeProperties(),
