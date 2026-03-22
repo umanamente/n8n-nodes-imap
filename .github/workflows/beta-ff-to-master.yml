@@ -31,46 +31,7 @@ jobs:
 
       - name: Sync beta with master
         id: sync
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          git checkout -B beta origin/beta
-
-          read master_only beta_only < <(git rev-list --left-right --count origin/master...origin/beta)
-
-          echo "master_only=$master_only" >> "$GITHUB_OUTPUT"
-          echo "beta_only=$beta_only" >> "$GITHUB_OUTPUT"
-
-          if [ "$master_only" -eq 0 ]; then
-            echo "mode=up-to-date" >> "$GITHUB_OUTPUT"
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "Beta already contains all commits from master."
-            exit 0
-          fi
-
-          if [ "$beta_only" -eq 0 ]; then
-            git merge --ff-only origin/master
-            git push origin HEAD:beta
-
-            echo "mode=fast-forward" >> "$GITHUB_OUTPUT"
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "Fast-forwarded beta to master."
-            exit 0
-          fi
-
-          if git rebase origin/master; then
-            git push --force-with-lease origin HEAD:beta
-
-            echo "mode=rebase" >> "$GITHUB_OUTPUT"
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "Rebased beta onto master and force-pushed the result."
-            exit 0
-          fi
-
-          git rebase --abort || true
-          echo "Automatic rebase failed because of conflicts." >&2
-          exit 1
+        run: node scripts/branch-sync.js sync-beta
 
       - name: Trigger Test workflow for beta
         if: steps.sync.outputs.changed == 'true'

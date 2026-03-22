@@ -28,33 +28,7 @@ jobs:
 
       - name: Promote beta to master
         id: promote
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          git checkout -B master origin/master
-
-          read master_only beta_only < <(git rev-list --left-right --count origin/master...origin/beta)
-
-          echo "master_only=$master_only" >> "$GITHUB_OUTPUT"
-          echo "beta_only=$beta_only" >> "$GITHUB_OUTPUT"
-
-          if [ "$beta_only" -eq 0 ]; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "Master already contains beta."
-            exit 0
-          fi
-
-          if [ "$master_only" -ne 0 ]; then
-            echo "Master and beta have diverged. A fast-forward promotion is not possible." >&2
-            exit 1
-          fi
-
-          git merge --ff-only origin/beta
-          git push origin HEAD:master
-
-          echo "changed=true" >> "$GITHUB_OUTPUT"
-          echo "Promoted beta to master with a fast-forward merge."
+        run: node scripts/branch-sync.js promote-master
 
       - name: Trigger Test workflow for master
         if: steps.promote.outputs.changed == 'true'
