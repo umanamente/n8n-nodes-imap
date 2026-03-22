@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 const {
   DEFAULT_BUG_REPORT_URL,
   buildBetaReadmeSection,
@@ -16,8 +16,8 @@ const betaReleaseInfoPath = path.join(rootDir, 'nodes', 'Imap', 'release', 'Beta
 
 // Read repository state directly from git so beta artifacts can be prepared in CI
 // without committing generated README content back to the beta branch.
-function runGit(command) {
-  return execSync(`git ${command}`, {
+function runGit(args) {
+  return execFileSync('git', args, {
     cwd: rootDir,
     encoding: 'utf8',
   }).trim();
@@ -28,11 +28,11 @@ function readJson(filePath) {
 }
 
 function getJsonAtGitRef(ref, relativePath) {
-  return JSON.parse(runGit(`show ${ref}:${relativePath}`));
+  return JSON.parse(runGit(['show', `${ref}:${relativePath}`]));
 }
 
 function getCommits(range) {
-  const output = runGit(`log --reverse --pretty=format:%H%x09%s ${range}`);
+  const output = runGit(['log', '--reverse', '--pretty=format:%H%x09%s', range]);
 
   if (!output) {
     return [];
@@ -57,6 +57,27 @@ function appendSummary(summary) {
   fs.appendFileSync(summaryPath, `${summary}\n`, 'utf8');
 }
 
+function getAheadBehindCounts(leftRef, rightRef) {
+  const output = runGit(['rev-list', '--left-right', '--count', `${leftRef}...${rightRef}`]);
+  const match = output.match(/^(\d+)\s+(\d+)$/);
+
+  if (!match) {
+    throw new Error(`Unexpected ahead/behind output: ${JSON.stringify(output)}`);
+  }
+
+  const leftCount = Number(match[1]);
+  const rightCount = Number(match[2]);
+
+  if (!Number.isInteger(leftCount) || !Number.isInteger(rightCount)) {
+    throw new Error(`Unexpected ahead/behind output: ${JSON.stringify(output)}`);
+  }
+
+  return {
+    leftCount,
+    rightCount,
+  };
+}
+
 function main() {
   const pkg = readJson(packageJsonPath);
   const repositoryUrl = normalizeRepositoryUrl(pkg.repository?.url || '');
@@ -66,12 +87,7 @@ function main() {
   const betaVersion = pkg.version;
   const stablePackageJson = getJsonAtGitRef(stableBaseRef, 'package.json');
   const stableVersion = stablePackageJson.version || '';
-
-  const [masterOnlyCountValue, betaOnlyCountValue] = runGit(`rev-list --left-right --count ${stableBaseRef}...${betaHeadRef}`)
-    .split(/\s+/);
-
-  const masterOnlyCount = Number(masterOnlyCountValue || 0);
-  const betaOnlyCount = Number(betaOnlyCountValue || 0);
+  const { leftCount: masterOnlyCount, rightCount: betaOnlyCount } = getAheadBehindCounts(stableBaseRef, betaHeadRef);
 
   const betaOnlyCommits = getCommits(`${stableBaseRef}..${betaHeadRef}`);
   const masterOnlyCommits = getCommits(`${betaHeadRef}..${stableBaseRef}`);
@@ -126,6 +142,7 @@ if (require.main === module) {
 module.exports = {
   appendSummary,
   getCommits,
+  getAheadBehindCounts,
   getJsonAtGitRef,
   main,
   readJson,

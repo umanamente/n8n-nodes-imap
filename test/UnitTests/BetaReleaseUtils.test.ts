@@ -72,6 +72,42 @@ describe('beta-release-utils', () => {
     expect(stripBetaSection(secondPass)).toBe(readme.trimEnd());
   });
 
+  it('should strip duplicate beta sections before injecting a fresh one', () => {
+    const readmeWithDuplicates = [
+      '# Example',
+      '',
+      BETA_SECTION_START,
+      '## Beta Channel Notice',
+      '',
+      'First stale block',
+      BETA_SECTION_END,
+      '',
+      'Intro',
+      '',
+      BETA_SECTION_START,
+      '## Beta Channel Notice',
+      '',
+      'Second stale block',
+      BETA_SECTION_END,
+      '',
+      '## Installation',
+      '',
+      'Install steps',
+      '',
+    ].join('\n');
+
+    const stripped = stripBetaSection(readmeWithDuplicates);
+    const reinjected = injectBetaSection(readmeWithDuplicates, '## Beta Channel Notice\n\nFresh block');
+
+    expect(stripped).not.toContain(BETA_SECTION_START);
+    expect(stripped).not.toContain('First stale block');
+    expect(stripped).not.toContain('Second stale block');
+    expect(reinjected.match(new RegExp(BETA_SECTION_START, 'g'))).toHaveLength(1);
+    expect(reinjected).toContain('Fresh block');
+    expect(reinjected).not.toContain('First stale block');
+    expect(reinjected).not.toContain('Second stale block');
+  });
+
   it('should generate TypeScript beta release metadata source', () => {
     const source = buildBetaReleaseInfoSource({
       channel: 'beta',

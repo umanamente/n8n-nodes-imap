@@ -17,10 +17,11 @@ interface LoadModuleOptions {
 interface PrepareBetaReleaseModule {
   appendSummary: (summary: string) => void;
   getCommits: (range: string) => Array<{ hash: string; subject: string }>;
+  getAheadBehindCounts: (leftRef: string, rightRef: string) => { leftCount: number; rightCount: number };
   getJsonAtGitRef: (ref: string, relativePath: string) => Record<string, unknown>;
   main: () => void;
   readJson: (filePath: string) => Record<string, unknown>;
-  runGit: (command: string) => string;
+  runGit: (args: string[]) => string;
 }
 
 describe('prepare-beta-release', () => {
@@ -65,11 +66,12 @@ describe('prepare-beta-release', () => {
       throw new Error(`Unexpected file read: ${filePath}`);
     });
     const writeFileSync = jest.fn();
-    const execSync = jest.fn((command: string) => {
-      const output = gitOutputs[command];
+    const execFileSync = jest.fn((command: string, args: string[]) => {
+      const key = `${command} ${args.join(' ')}`;
+      const output = gitOutputs[key];
 
       if (output === undefined) {
-        throw new Error(`Unexpected git command: ${command}`);
+        throw new Error(`Unexpected git command: ${key}`);
       }
 
       return output;
@@ -82,7 +84,7 @@ describe('prepare-beta-release', () => {
     const injectBetaSection = jest.fn((_content: string, section: string) => `INJECTED:${section}`);
 
     jest.doMock('child_process', () => ({
-      execSync,
+      execFileSync,
     }));
     jest.doMock('fs', () => ({
       appendFileSync,
@@ -109,7 +111,7 @@ describe('prepare-beta-release', () => {
       buildBetaReadmeSection,
       buildBetaReleaseInfoSource,
       consoleLogSpy,
-      execSync,
+      execFileSync,
       injectBetaSection,
       normalizeRepositoryUrl,
       pkg,
@@ -198,7 +200,7 @@ describe('prepare-beta-release', () => {
     } = loadModule({
       gitOutputs: {
         'git show origin/master:package.json': '{}\n',
-        'git rev-list --left-right --count origin/master...HEAD': '',
+        'git rev-list --left-right --count origin/master...HEAD': '0 0\n',
         'git log --reverse --pretty=format:%H%x09%s origin/master..HEAD': '',
         'git log --reverse --pretty=format:%H%x09%s HEAD..origin/master': '',
       },
@@ -266,25 +268,30 @@ describe('prepare-beta-release', () => {
 
     const {
       appendFileSync,
-      execSync,
+      execFileSync,
       pkg,
       prepareBetaRelease,
     } = loadModule({
       gitOutputs: {
         'git rev-parse --short HEAD': 'abc1234\n',
         'git show origin/master:package.json': '{"version":"2.16.0"}\n',
+        'git rev-list --left-right --count origin/master...HEAD': '4 5\n',
         'git log --reverse --pretty=format:%H%x09%s origin/master..HEAD': '1111111111111111\tfeat: one\n2222222222222222\tfix: two',
       },
     });
 
-    expect(prepareBetaRelease.runGit('rev-parse --short HEAD')).toBe('abc1234');
-    expect(execSync).toHaveBeenCalledWith('git rev-parse --short HEAD', {
+    expect(prepareBetaRelease.runGit(['rev-parse', '--short', 'HEAD'])).toBe('abc1234');
+    expect(execFileSync).toHaveBeenCalledWith('git', ['rev-parse', '--short', 'HEAD'], {
       cwd: rootDir,
       encoding: 'utf8',
     });
     expect(prepareBetaRelease.readJson(packageJsonPath)).toEqual(pkg);
     expect(prepareBetaRelease.getJsonAtGitRef('origin/master', 'package.json')).toEqual({
       version: '2.16.0',
+    });
+    expect(prepareBetaRelease.getAheadBehindCounts('origin/master', 'HEAD')).toEqual({
+      leftCount: 4,
+      rightCount: 5,
     });
     expect(prepareBetaRelease.getCommits('origin/master..HEAD')).toEqual([
       { hash: '1111111111111111', subject: 'feat: one' },
@@ -294,5 +301,26 @@ describe('prepare-beta-release', () => {
     prepareBetaRelease.appendSummary('summary line');
 
     expect(appendFileSync).toHaveBeenCalledWith(summaryPath, 'summary line\n', 'utf8');
+  });
+
+  it('should fail fast when git returns malformed ahead/behind counts', () => {
+    process.env = { ...originalEnv };
+
+    const {
+      buildBetaReadmeSection,
+      buildBetaReleaseInfoSource,
+      prepareBetaRelease,
+      writeFileSync,
+    } = loadModule({
+      gitOutputs: {
+        'git show origin/master:package.json': '{"version":"2.17.0"}\n',
+        'git rev-list --left-right --count origin/master...HEAD': 'foo 1\n',
+      },
+    });
+
+    expect(() => prepareBetaRelease.main()).toThrow('Unexpected ahead/behind output: "foo 1"');
+    expect(buildBetaReadmeSection).not.toHaveBeenCalled();
+    expect(buildBetaReleaseInfoSource).not.toHaveBeenCalled();
+    expect(writeFileSync).not.toHaveBeenCalled();
   });
 });

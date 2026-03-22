@@ -22,7 +22,7 @@ function normalizeRepositoryUrl(url) {
 function stripBetaSection(content) {
   const betaSectionPattern = new RegExp(
     `${BETA_SECTION_START}[\\s\\S]*?${BETA_SECTION_END}\\s*`,
-    'm',
+    'gm',
   );
 
   return content.replace(betaSectionPattern, '').trimEnd();
