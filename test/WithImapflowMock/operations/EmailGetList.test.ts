@@ -11,6 +11,12 @@ jest.mock('mailparser', () => ({
 
 describe('EmailGetList', () => {
   const ITEM_INDEX = 0;
+  const defaultSearchParameters = {
+    emailDateRange: {},
+    emailFlags: {},
+    emailSearchFilters: {},
+    emailSearchHeaders: {},
+  };
   let globalImapMock: MockImapServer;
   let mockImapflow: any;
 
@@ -38,7 +44,7 @@ describe('EmailGetList', () => {
     it('should get emails list with basic envelope data', async () => {
       // Arrange
       const paramValues = {
-        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        mailboxPath: { value: 'INBOX' }, ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit: 50,
         includeParts: [],
@@ -103,10 +109,67 @@ describe('EmailGetList', () => {
       }, { uid: true });
     });
 
+    it('should pass header search filters to fetch', async () => {
+      // Arrange
+      const paramValues = {
+        mailboxPath: { value: 'INBOX' },
+        ...defaultSearchParameters,
+        emailSearchHeaders: {
+          headers: [
+            {
+              headerName: 'List-ID',
+              contains: 'alerts.example.com',
+            },
+            {
+              headerName: 'X-Tenant',
+              contains: 'acme',
+            },
+          ],
+        },
+        searchCriteria: 'ALL',
+        limit: 50,
+        includeParts: [],
+      };
+      const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
+
+      const mockFetchAsyncIterator = {
+        [Symbol.asyncIterator]: jest.fn().mockReturnValue({
+          next: jest.fn().mockResolvedValueOnce({ done: true }),
+        }),
+      };
+
+      mockImapflow.fetch = jest.fn().mockReturnValue(mockFetchAsyncIterator);
+
+      // Act
+      const result = await getEmailsListOperation.executeImapAction(
+        context as IExecuteFunctions,
+        context.logger!,
+        ITEM_INDEX,
+        mockImapflow
+      );
+
+      // Assert
+      expect(result).toEqual([]);
+      expect(mockImapflow.search).toHaveBeenCalledWith({
+        header: {
+          'List-ID': 'alerts.example.com',
+          'X-Tenant': 'acme',
+        },
+      }, {
+        uid: true,
+      });
+      expect(mockImapflow.fetch).toHaveBeenCalledWith([123], {
+        uid: true,
+        envelope: true,
+      }, {
+        uid: true,
+      });
+    });
+
     it('should get emails with flags when includeParts includes flags', async () => {
       // Arrange
       const paramValues = {
-        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        mailboxPath: { value: 'INBOX' }, ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit: 50,
         includeParts: [EmailParts.Flags],
@@ -156,7 +219,7 @@ describe('EmailGetList', () => {
     it('should get emails with size when includeParts includes size', async () => {
       // Arrange
       const paramValues = {
-        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        mailboxPath: { value: 'INBOX' }, ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit: 50,
         includeParts: [EmailParts.Size],
@@ -206,7 +269,7 @@ describe('EmailGetList', () => {
     it('should get emails with body structure when includeParts includes bodyStructure', async () => {
       // Arrange
       const paramValues = {
-        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        mailboxPath: { value: 'INBOX' }, ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit: 50,
         includeParts: [EmailParts.BodyStructure],
@@ -271,7 +334,7 @@ describe('EmailGetList', () => {
       });
       
       const paramValues = {
-        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        mailboxPath: { value: 'INBOX' }, ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit: 50,
         includeParts: [EmailParts.Headers],
@@ -336,7 +399,7 @@ describe('EmailGetList', () => {
       });
       
       const paramValues = {
-        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        mailboxPath: { value: 'INBOX' }, ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit: 50,
         includeParts: [EmailParts.Headers],
@@ -399,7 +462,7 @@ describe('EmailGetList', () => {
       });
       
       const paramValues = {
-        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        mailboxPath: { value: 'INBOX' }, ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit: 50,
         includeParts: [EmailParts.Headers],
@@ -452,7 +515,7 @@ describe('EmailGetList', () => {
     it('should get emails with text content when includeParts includes textContent', async () => {
       // Arrange
       const paramValues = {
-        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        mailboxPath: { value: 'INBOX' }, ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit: 50,
         includeParts: [EmailParts.TextContent],
@@ -523,7 +586,7 @@ describe('EmailGetList', () => {
     it('should get emails with html content when includeParts includes htmlContent', async () => {
       // Arrange
       const paramValues = {
-        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        mailboxPath: { value: 'INBOX' }, ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit: 50,
         includeParts: [EmailParts.HtmlContent],
@@ -594,7 +657,7 @@ describe('EmailGetList', () => {
     it('should set textContent and htmlContent to null when no matching parts are found', async () => {
       // Arrange
       const paramValues = {
-        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        mailboxPath: { value: 'INBOX' }, ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit: 50,
         includeParts: [EmailParts.TextContent, EmailParts.HtmlContent],
@@ -646,7 +709,7 @@ describe('EmailGetList', () => {
     it('should handle emails with null bodyStructure when includeParts includes textContent and htmlContent', async () => {
       // Arrange
       const paramValues = {
-        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        mailboxPath: { value: 'INBOX' }, ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit: 50,
         includeParts: [EmailParts.TextContent, EmailParts.HtmlContent],
@@ -700,7 +763,7 @@ describe('EmailGetList', () => {
     it('should handle emails with null bodyStructure when includeParts includes attachmentsInfo', async () => {
       // Arrange
       const paramValues = {
-        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        mailboxPath: { value: 'INBOX' }, ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit: 50,
         includeParts: [EmailParts.AttachmentsInfo],
@@ -753,7 +816,7 @@ describe('EmailGetList', () => {
     it('should handle empty email list', async () => {
       // Arrange
       const paramValues = {
-        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        mailboxPath: { value: 'INBOX' }, ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit: 50,
         includeParts: [],
@@ -790,7 +853,7 @@ describe('EmailGetList', () => {
     it('should get emails with multiple parts included', async () => {
       // Arrange
       const paramValues = {
-        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        mailboxPath: { value: 'INBOX' }, ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit: 50,
         includeParts: [EmailParts.Flags, EmailParts.Size, EmailParts.BodyStructure],
@@ -852,7 +915,7 @@ describe('EmailGetList', () => {
     it('should get emails with attachments when includeParts includes attachmentsInfo', async () => {
       // Arrange
       const paramValues = {
-        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        mailboxPath: { value: 'INBOX' }, ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit: 50,
         includeParts: [EmailParts.AttachmentsInfo],
@@ -951,7 +1014,7 @@ describe('EmailGetList', () => {
     it('should handle emails where textContent download returns null content', async () => {
       // Arrange
       const paramValues = {
-        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        mailboxPath: { value: 'INBOX' }, ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit: 50,
         includeParts: [EmailParts.TextContent],
@@ -1007,7 +1070,7 @@ describe('EmailGetList', () => {
     it('should handle emails where htmlContent download returns null content', async () => {
       // Arrange
       const paramValues = {
-        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        mailboxPath: { value: 'INBOX' }, ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit: 50,
         includeParts: [EmailParts.HtmlContent],
@@ -1071,7 +1134,7 @@ describe('EmailGetList', () => {
       (simpleParser as jest.Mock).mockRejectedValueOnce(new Error('Malformed header data'));
       
       const paramValues = {
-        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        mailboxPath: { value: 'INBOX' }, ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit: 50,
         includeParts: [EmailParts.Headers],
@@ -1129,7 +1192,7 @@ describe('EmailGetList', () => {
     it('should handle emails with null headers when includeParts includes headers', async () => {
       // Arrange
       const paramValues = {
-        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        mailboxPath: { value: 'INBOX' }, ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit: 50,
         includeParts: [EmailParts.Headers],
@@ -1187,7 +1250,7 @@ describe('EmailGetList', () => {
     it('should use "TEXT" as fallback when partInfo has no partId for text content', async () => {
       // Arrange
       const paramValues = {
-        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        mailboxPath: { value: 'INBOX' }, ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit: 50,
         includeParts: [EmailParts.TextContent],
@@ -1256,7 +1319,7 @@ describe('EmailGetList', () => {
     it('should use "TEXT" as fallback when partInfo has no partId for html content', async () => {
       // Arrange
       const paramValues = {
-        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        mailboxPath: { value: 'INBOX' }, ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit: 50,
         includeParts: [EmailParts.HtmlContent],
@@ -1325,7 +1388,7 @@ describe('EmailGetList', () => {
     it('should use "TEXT" as fallback for both text and html content when partInfo has no partId', async () => {
       // Arrange
       const paramValues = {
-        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        mailboxPath: { value: 'INBOX' }, ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit: 50,
         includeParts: [EmailParts.TextContent, EmailParts.HtmlContent],
@@ -1423,9 +1486,7 @@ describe('EmailGetList', () => {
       // Arrange
       const paramValues = {
         mailboxPath: { value: 'INBOX' },
-        emailDateRange: {},
-        emailFlags: {},
-        emailSearchFilters: {},
+        ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit: 50,
         includeParts: [],
@@ -1454,9 +1515,7 @@ describe('EmailGetList', () => {
       // Arrange
       const paramValues = {
         mailboxPath: { value: 'INBOX' },
-        emailDateRange: {},
-        emailFlags: {},
-        emailSearchFilters: {},
+        ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit: 50,
         includeParts: [],
@@ -1485,10 +1544,8 @@ describe('EmailGetList', () => {
       // Arrange
       const limit = 3;
       const paramValues = {
-        mailboxPath: { value: 'INBOX' }, 
-        emailDateRange: {}, 
-        emailFlags: {}, 
-        emailSearchFilters: {},
+        mailboxPath: { value: 'INBOX' },
+        ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit,
         includeParts: [],
@@ -1543,10 +1600,8 @@ describe('EmailGetList', () => {
       // Arrange
       const limit = 100;
       const paramValues = {
-        mailboxPath: { value: 'INBOX' }, 
-        emailDateRange: {}, 
-        emailFlags: {}, 
-        emailSearchFilters: {},
+        mailboxPath: { value: 'INBOX' },
+        ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit,
         includeParts: [],
@@ -1599,9 +1654,7 @@ describe('EmailGetList', () => {
       const limit = 0;
       const paramValues = {
         mailboxPath: { value: 'INBOX' },
-        emailDateRange: {},
-        emailFlags: {},
-        emailSearchFilters: {},
+        ...defaultSearchParameters,
         searchCriteria: 'ALL',
         limit,
         includeParts: [],

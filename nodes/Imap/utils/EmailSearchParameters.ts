@@ -22,6 +22,11 @@ enum EmailSearchFilters {
   UID = 'uid',
 }
 
+enum EmailSearchHeaderFields {
+  HeaderName = 'headerName',
+  Contains = 'contains',
+}
+
 export const emailSearchParameters : INodeProperties[] = [
   {
     displayName: "Date Range",
@@ -178,6 +183,41 @@ export const emailSearchParameters : INodeProperties[] = [
       },
     ],
   },
+  {
+    displayName: "Headers",
+    name: "emailSearchHeaders",
+    type: "fixedCollection",
+    placeholder: "Add Header",
+    typeOptions: {
+      multipleValues: true,
+    },
+    default: {},
+    options: [
+      {
+        displayName: "Headers",
+        name: "headers",
+        values: [
+          {
+            displayName: "Header Name",
+            name: EmailSearchHeaderFields.HeaderName,
+            type: "string",
+            default: "",
+            required: true,
+            description: "Header name to search in",
+            placeholder: "X-Original-To",
+          },
+          {
+            displayName: "Contains",
+            name: EmailSearchHeaderFields.Contains,
+            type: "string",
+            default: "",
+            required: true,
+            description: "Substring to search for in the header value",
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 export function getEmailSearchParametersFromNode(context: IExecuteFunctions, itemIndex: number): SearchObject {
@@ -257,6 +297,28 @@ export function getEmailSearchParametersFromNode(context: IExecuteFunctions, ite
   }
   if (EmailSearchFilters.UID in emailSearchFiltersObj) {
     searchObject.uid = emailSearchFiltersObj[EmailSearchFilters.UID] as string;
+  }
+
+  // header search
+  const emailSearchHeadersObj = context.getNodeParameter('emailSearchHeaders', itemIndex) as IDataObject;
+  const emailSearchHeaders = emailSearchHeadersObj.headers as IDataObject[] | undefined;
+  if (Array.isArray(emailSearchHeaders)) {
+    const headerSearchObject: { [key: string]: string } = {};
+
+    for (const emailSearchHeader of emailSearchHeaders) {
+      const headerName = (emailSearchHeader[EmailSearchHeaderFields.HeaderName] as string | undefined)?.trim();
+      const contains = emailSearchHeader[EmailSearchHeaderFields.Contains] as string | undefined;
+
+      if (!headerName || !contains) {
+        continue;
+      }
+
+      headerSearchObject[headerName] = contains;
+    }
+
+    if (Object.keys(headerSearchObject).length > 0) {
+      searchObject.header = headerSearchObject;
+    }
   }
 
   return searchObject;
