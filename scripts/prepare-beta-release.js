@@ -119,4 +119,15 @@ function main() {
   ].join('\n'));
 }
 
-main();
+if (require.main === module) {
+  main();
+}
+
+module.exports = {
+  appendSummary,
+  getCommits,
+  getJsonAtGitRef,
+  main,
+  readJson,
+  runGit,
+};
