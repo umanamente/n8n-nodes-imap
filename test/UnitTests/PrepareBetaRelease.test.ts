@@ -32,11 +32,22 @@ describe('prepare-beta-release', () => {
   const summaryPath = path.join(rootDir, 'tmp', 'beta-summary.md');
   const defaultBugReportUrl = 'https://default.example/issues/new/choose';
   const originalEnv = process.env;
+  const getBaseEnv = () => {
+    const {
+      BETA_BASE_REF: _betaBaseRef,
+      BETA_BUG_REPORT_URL: _betaBugReportUrl,
+      BETA_HEAD_REF: _betaHeadRef,
+      GITHUB_STEP_SUMMARY: _githubStepSummary,
+      ...rest
+    } = originalEnv;
+
+    return { ...rest };
+  };
 
   afterEach(() => {
     jest.resetModules();
     jest.restoreAllMocks();
-    process.env = { ...originalEnv };
+    process.env = getBaseEnv();
   });
 
   afterAll(() => {
@@ -123,7 +134,7 @@ describe('prepare-beta-release', () => {
 
   it('should prepare README and runtime beta metadata with explicit CI refs', () => {
     process.env = {
-      ...originalEnv,
+      ...getBaseEnv(),
       BETA_BASE_REF: 'origin/release',
       BETA_BUG_REPORT_URL: 'https://bugs.example.com/beta',
       BETA_HEAD_REF: 'origin/beta',
@@ -190,7 +201,7 @@ describe('prepare-beta-release', () => {
   });
 
   it('should fall back to default repository and bug-report handling when metadata is missing', () => {
-    process.env = { ...originalEnv };
+    process.env = getBaseEnv();
 
     const {
       appendFileSync,
@@ -234,7 +245,7 @@ describe('prepare-beta-release', () => {
   });
 
   it('should derive the bug report URL from the repository when no override is provided', () => {
-    process.env = { ...originalEnv };
+    process.env = getBaseEnv();
 
     const {
       buildBetaReadmeSection,
@@ -262,7 +273,7 @@ describe('prepare-beta-release', () => {
 
   it('should expose helper functions for git parsing, json loading, and summary writing', () => {
     process.env = {
-      ...originalEnv,
+      ...getBaseEnv(),
       GITHUB_STEP_SUMMARY: summaryPath,
     };
 
@@ -304,7 +315,7 @@ describe('prepare-beta-release', () => {
   });
 
   it('should fail fast when git returns malformed ahead/behind counts', () => {
-    process.env = { ...originalEnv };
+    process.env = getBaseEnv();
 
     const {
       buildBetaReadmeSection,
