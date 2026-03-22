@@ -5,10 +5,12 @@ const { getPromotePlan, getSyncBetaPlan } = require('./branch-sync-utils');
 // Wrapper around git commands used by the release workflows.
 // Keeping this logic in a script makes the YAML shorter and easier to review.
 function runGit(args, options = {}) {
-  return execFileSync('git', args, {
+  const output = execFileSync('git', args, {
     encoding: 'utf8',
     ...options,
-  }).trim();
+  });
+
+  return typeof output === 'string' ? output.trim() : '';
 }
 
 // GitHub Actions exposes a file path for step outputs through GITHUB_OUTPUT.
@@ -156,4 +158,11 @@ function main() {
   throw new Error(`Unsupported mode "${mode}". Expected "sync-beta" or "promote-master".`);
 }
 
-main();
+if (require.main === module) {
+  main();
+}
+
+module.exports = {
+  runGit,
+  main,
+};
