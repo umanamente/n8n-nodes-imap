@@ -299,7 +299,7 @@ Update the main README.md to include your new operation in the operations list.
 - Updates to `CHANGELOG.md`
 - Manual version tags
 
-> **Note:** Version and changelog updates are handled automatically by [semantic-release](https://semantic-release.gitbook.io/semantic-release/) based on your commit messages.
+> **Note:** Do not update versions or `CHANGELOG.md` manually. Stable releases from `master` are handled by [semantic-release](https://semantic-release.gitbook.io/semantic-release/) based on conventional commits, while `beta` publishes a new beta package on every successful `beta` commit regardless of commit type.
 
 ### PR Checklist
 
@@ -363,9 +363,9 @@ Use scopes to indicate which part of the codebase is affected:
 
 ## 🔄 Version Management
 
-### Semantic Release
+### Stable Releases From `master`
 
-This project uses **semantic-release** for automated version management:
+The `master` branch uses **semantic-release** for automated stable version management:
 
 - **`feat:`** commits trigger a **minor** version bump (e.g., 1.2.0 → 1.3.0)
 - **`fix:`** commits trigger a **patch** version bump (e.g., 1.2.0 → 1.2.1)
@@ -375,8 +375,16 @@ This project uses **semantic-release** for automated version management:
 
 - **Never manually update** version numbers in `package.json`
 - **Never manually edit** `CHANGELOG.md`
-- Ensure your commit message type (`feat`, `fix`) accurately reflects the change
+- Ensure your commit message type (`feat`, `fix`) accurately reflects the change for stable releases from `master`
 - Breaking changes must include `BREAKING CHANGE:` in the commit footer
+
+### Beta Releases From `beta`
+
+The `beta` branch does **not** use semantic version analysis to decide whether to publish.
+
+- Every successful `beta` commit triggers a new npm publish under the `beta` dist-tag
+- Beta version numbers are derived from git metadata, not from `feat` / `fix` / `BREAKING CHANGE` detection
+- Commit messages should still follow the Angular convention for repository consistency, but they do not gate beta publishing
 
 ## Release Channels
 
@@ -399,13 +407,15 @@ This repository publishes two npm channels:
 When the `beta` branch is published:
 
 1. CI checks out the tested `beta` commit.
-2. The version is set to a beta-specific value for that publish.
+2. The version is set to a beta-specific value for that publish using `git describe` output (for example `2.17.0-1-gabc1234-beta`).
 3. `scripts/prepare-beta-release.js` updates `README.md` in the CI workspace with:
    - a beta notice
    - a summary of differences from stable
    - a list of beta-only commits
 4. The same script generates `nodes/Imap/release/BetaReleaseInfo.ts`.
 5. The package is published with the npm `beta` dist-tag.
+
+This publish happens for every new `beta` commit after `Test` succeeds, even if the commit is `docs:`, `chore:`, or any other non-release type.
 
 If beta does not currently contain commits beyond stable, the README explicitly says so and the in-app node notice stays hidden.
 
