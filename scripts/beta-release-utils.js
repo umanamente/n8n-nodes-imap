@@ -2,6 +2,9 @@ const BETA_SECTION_START = '<!-- beta-release-info:start -->';
 const BETA_SECTION_END = '<!-- beta-release-info:end -->';
 const DEFAULT_BUG_REPORT_URL = 'https://github.com/umanamente/n8n-nodes-imap/issues/new/choose';
 
+// Shared helpers for beta package preparation.
+// These functions build the temporary README block published to npm and
+// the generated TypeScript module consumed by the node UI notice.
 function normalizeRepositoryUrl(url) {
   if (!url || typeof url !== 'string') {
     return '';
@@ -31,6 +34,7 @@ function injectBetaSection(content, section) {
   const installationHeading = '\n## Installation';
   const installationHeadingIndex = cleanContent.indexOf(installationHeading);
 
+  // Keep the generated block near the top of README, before installation instructions.
   if (installationHeadingIndex === -1) {
     return `${betaSection}\n\n${cleanContent.trimStart()}`.trimEnd() + '\n';
   }

@@ -72,6 +72,44 @@ npx jest --selectProjects WithImapflowMock
 | `npm run lint` | Check code style |
 | `npm run format` | Format code with Prettier |
 
+## Release Automation
+
+This repository publishes two npm channels:
+
+- `master` publishes the stable package
+- `beta` publishes the package under the npm `beta` dist-tag
+
+### Release Files
+
+- `.github/workflows/release.yml` - Publishes stable and beta packages after the `Test` workflow succeeds
+- `.github/workflows/beta-ff-to-master.yml` - Automatically syncs `beta` from `master`
+- `.github/workflows/promote-beta-to-master.yml` - Manually promotes a tested beta to `master`
+- `scripts/prepare-beta-release.js` - Prepares beta README content and generated node metadata before beta publish
+- `scripts/beta-release-utils.js` - Shared helpers used by beta release preparation
+- `scripts/branch-sync.js` - Executes the git actions used by sync and promotion workflows
+- `scripts/branch-sync-utils.js` - Pure branch policy helpers covered by unit tests
+- `nodes/Imap/release/BetaReleaseInfo.ts` - Generated metadata consumed by the optional in-app beta notice
+
+### Beta Publish Flow
+
+1. Tests run on pushes to `beta`.
+2. The release workflow checks out the exact tested commit from `beta`.
+3. CI sets a beta-specific package version for that publish.
+4. `npm run publish:beta:ci` runs `scripts/prepare-beta-release.js`.
+5. That script updates `README.md` in the CI workspace with a beta notice and a commit diff against `master`.
+6. The same script generates `nodes/Imap/release/BetaReleaseInfo.ts` for the node UI.
+7. The package is published to npm with the `beta` dist-tag.
+
+If beta currently has no commits beyond stable, the README still includes the beta section but the node UI notice remains hidden.
+
+### Branch Sync Rules
+
+- `master -> beta` runs automatically on pushes to `master`
+- CI fast-forwards `beta` when possible
+- CI rebases `beta` onto `master` when both branches moved forward
+- CI stops without pushing if the rebase conflicts
+- `beta -> master` is manual and only allowed as a fast-forward
+
 ## Contribution Workflow
 
 1. **Fork** the repository

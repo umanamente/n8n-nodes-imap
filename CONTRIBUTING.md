@@ -11,6 +11,7 @@ Thank you for your interest in contributing to the n8n-nodes-imap project! This 
 - [Pull Request Guidelines](#pull-request-guidelines)
 - [Commit Convention](#commit-convention)
 - [Version Management](#version-management)
+- [Release Channels](#release-channels)
 - [Git Workflow](#git-workflow)
 
 ## 🚀 Workspace Setup
@@ -376,6 +377,45 @@ This project uses **semantic-release** for automated version management:
 - **Never manually edit** `CHANGELOG.md`
 - Ensure your commit message type (`feat`, `fix`) accurately reflects the change
 - Breaking changes must include `BREAKING CHANGE:` in the commit footer
+
+## Release Channels
+
+This repository publishes two npm channels:
+
+- `master` -> stable npm releases
+- `beta` -> npm releases with the `beta` dist-tag
+
+### Automation Files
+
+- `.github/workflows/release.yml` publishes stable and beta packages after the `Test` workflow succeeds
+- `.github/workflows/beta-ff-to-master.yml` syncs `beta` with `master`
+- `.github/workflows/promote-beta-to-master.yml` manually promotes a tested beta to `master`
+- `scripts/prepare-beta-release.js` prepares beta README content and generated node metadata before beta publish
+- `scripts/branch-sync.js` contains the git automation used by the sync/promote workflows
+- `scripts/branch-sync-utils.js` contains the decision logic used by `scripts/branch-sync.js`
+
+### Beta Publishing Behavior
+
+When the `beta` branch is published:
+
+1. CI checks out the tested `beta` commit.
+2. The version is set to a beta-specific value for that publish.
+3. `scripts/prepare-beta-release.js` updates `README.md` in the CI workspace with:
+   - a beta notice
+   - a summary of differences from stable
+   - a list of beta-only commits
+4. The same script generates `nodes/Imap/release/BetaReleaseInfo.ts`.
+5. The package is published with the npm `beta` dist-tag.
+
+If beta does not currently contain commits beyond stable, the README explicitly says so and the in-app node notice stays hidden.
+
+### Promotion Rules
+
+- `master -> beta` is automatic
+- If possible, CI fast-forwards `beta` to `master`
+- If both branches moved forward, CI attempts to rebase `beta` onto `master`
+- If the rebase conflicts, CI stops and requires manual intervention
+- `beta -> master` is manual and only allowed as a fast-forward
 
 ## 🌳 Git Workflow
 

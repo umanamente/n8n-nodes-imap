@@ -14,6 +14,8 @@ const readmePath = path.join(rootDir, 'README.md');
 const packageJsonPath = path.join(rootDir, 'package.json');
 const betaReleaseInfoPath = path.join(rootDir, 'nodes', 'Imap', 'release', 'BetaReleaseInfo.ts');
 
+// Read repository state directly from git so beta artifacts can be prepared in CI
+// without committing generated README content back to the beta branch.
 function runGit(command) {
   return execSync(`git ${command}`, {
     cwd: rootDir,
@@ -74,6 +76,7 @@ function main() {
   const betaOnlyCommits = getCommits(`${stableBaseRef}..${betaHeadRef}`);
   const masterOnlyCommits = getCommits(`${betaHeadRef}..${stableBaseRef}`);
 
+  // Update the npm-facing README in the CI workspace before publishing the beta package.
   const readmeContent = fs.readFileSync(readmePath, 'utf8');
   const betaSection = buildBetaReadmeSection({
     betaVersion,
@@ -86,6 +89,7 @@ function main() {
 
   fs.writeFileSync(readmePath, injectBetaSection(readmeContent, betaSection), 'utf8');
 
+  // Generate runtime metadata consumed by the optional beta notice in the node UI.
   const betaReleaseInfoSource = buildBetaReleaseInfoSource({
     channel: 'beta',
     version: betaVersion,

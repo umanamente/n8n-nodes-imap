@@ -1,3 +1,6 @@
+// Pure decision helpers for branch synchronization workflows.
+// Keep branch policy here so it can be tested without touching a real git repository.
+
 function assertNonNegativeInteger(value, name) {
   if (!Number.isInteger(value) || value < 0) {
     throw new Error(`${name} must be a non-negative integer`);
@@ -8,6 +11,7 @@ function getSyncBetaPlan(masterOnly, betaOnly) {
   assertNonNegativeInteger(masterOnly, 'masterOnly');
   assertNonNegativeInteger(betaOnly, 'betaOnly');
 
+  // Beta is already up to date when there are no commits missing from master.
   if (masterOnly === 0) {
     return {
       changed: false,
@@ -16,6 +20,7 @@ function getSyncBetaPlan(masterOnly, betaOnly) {
     };
   }
 
+  // A fast-forward is enough when beta has no unique commits of its own.
   if (betaOnly === 0) {
     return {
       changed: true,
@@ -24,6 +29,7 @@ function getSyncBetaPlan(masterOnly, betaOnly) {
     };
   }
 
+  // If both branches moved forward, the workflow will try to rebase beta onto master.
   return {
     changed: true,
     mode: 'rebase',
@@ -35,6 +41,7 @@ function getPromotePlan(masterOnly, betaOnly) {
   assertNonNegativeInteger(masterOnly, 'masterOnly');
   assertNonNegativeInteger(betaOnly, 'betaOnly');
 
+  // Promotion is a no-op when master already includes everything from beta.
   if (betaOnly === 0) {
     return {
       changed: false,
@@ -43,6 +50,7 @@ function getPromotePlan(masterOnly, betaOnly) {
     };
   }
 
+  // Promotion is intentionally strict: master may only move by fast-forwarding to beta.
   if (masterOnly !== 0) {
     return {
       changed: false,

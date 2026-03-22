@@ -2,6 +2,8 @@ const fs = require('fs');
 const { execFileSync } = require('child_process');
 const { getPromotePlan, getSyncBetaPlan } = require('./branch-sync-utils');
 
+// Wrapper around git commands used by the release workflows.
+// Keeping this logic in a script makes the YAML shorter and easier to review.
 function runGit(args, options = {}) {
   return execFileSync('git', args, {
     encoding: 'utf8',
@@ -9,6 +11,7 @@ function runGit(args, options = {}) {
   }).trim();
 }
 
+// GitHub Actions exposes a file path for step outputs through GITHUB_OUTPUT.
 function writeOutputs(outputs) {
   const outputPath = process.env.GITHUB_OUTPUT;
 
@@ -68,6 +71,10 @@ function abortRebaseQuietly() {
   }
 }
 
+// Sync beta from master:
+// - no-op if beta already contains master
+// - fast-forward if beta has no unique commits
+// - otherwise rebase beta onto master and force-push
 function syncBetaFromMaster() {
   checkoutTrackingBranch('beta', 'origin/beta');
 
@@ -104,6 +111,8 @@ function syncBetaFromMaster() {
   console.log(plan.message);
 }
 
+// Promote a tested beta to master.
+// This path only allows a fast-forward to keep master history predictable.
 function promoteBetaToMaster() {
   checkoutTrackingBranch('master', 'origin/master');
 
