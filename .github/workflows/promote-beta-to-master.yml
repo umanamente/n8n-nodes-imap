@@ -1,9 +1,6 @@
-name: Sync beta from master
+name: Promote beta to master
 
 on:
-  push:
-    branches:
-      - master
   workflow_dispatch:
 
 permissions:
@@ -11,7 +8,7 @@ permissions:
   actions: write
 
 jobs:
-  sync-beta:
+  promote:
     runs-on: ubuntu-latest
 
     steps:
@@ -29,12 +26,12 @@ jobs:
       - name: Fetch beta branch
         run: git fetch origin master beta --tags
 
-      - name: Sync beta with master
-        id: sync
-        run: node scripts/branch-sync.js sync-beta
+      - name: Promote beta to master
+        id: promote
+        run: node scripts/branch-sync.js promote-master
 
-      - name: Trigger Test workflow for beta
-        if: steps.sync.outputs.changed == 'true'
+      - name: Trigger Test workflow for master
+        if: steps.promote.outputs.changed == 'true'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -43,5 +40,5 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: 'test.yml',
-              ref: 'beta',
+              ref: 'master',
             });

@@ -4,6 +4,7 @@ on:
     branches:
       - master
       - beta
+  workflow_dispatch:
   pull_request:
 
 permissions:
@@ -47,4 +48,3 @@ jobs:
           name: pr-number
           path: pr_number.txt
           retention-days: 1
- 

@@ -22,6 +22,7 @@ module.exports = {
   collectCoverageFrom: [
     'credentials/**/*.ts',
     'nodes/**/*.ts',
+    'scripts/prepare-beta-release.js',
   ],
   coveragePathIgnorePatterns: [
     '/node_modules/',
