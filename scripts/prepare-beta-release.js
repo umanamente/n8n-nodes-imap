@@ -42,7 +42,15 @@ function getCommits(range) {
     .split(/\r?\n/)
     .filter(Boolean)
     .map((line) => {
-      const [hash, subject] = line.split('\t');
+      const tabIndex = line.indexOf('\t');
+
+      if (tabIndex === -1) {
+        return { hash: line, subject: '' };
+      }
+
+      const hash = line.slice(0, tabIndex);
+      const subject = line.slice(tabIndex + 1);
+
       return { hash, subject };
     });
 }

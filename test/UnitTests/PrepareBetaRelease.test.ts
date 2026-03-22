@@ -314,6 +314,34 @@ describe('prepare-beta-release', () => {
     expect(appendFileSync).toHaveBeenCalledWith(summaryPath, 'summary line\n', 'utf8');
   });
 
+  it('should preserve tabs inside commit subjects when parsing git log output', () => {
+    process.env = getBaseEnv();
+
+    const { prepareBetaRelease } = loadModule({
+      gitOutputs: {
+        'git log --reverse --pretty=format:%H%x09%s origin/master..HEAD': '1111111111111111\tfeat:\tbeta note\twith tabs',
+      },
+    });
+
+    expect(prepareBetaRelease.getCommits('origin/master..HEAD')).toEqual([
+      { hash: '1111111111111111', subject: 'feat:\tbeta note\twith tabs' },
+    ]);
+  });
+
+  it('should fall back to an empty subject when a git log line has no tab separator', () => {
+    process.env = getBaseEnv();
+
+    const { prepareBetaRelease } = loadModule({
+      gitOutputs: {
+        'git log --reverse --pretty=format:%H%x09%s origin/master..HEAD': '2222222222222222',
+      },
+    });
+
+    expect(prepareBetaRelease.getCommits('origin/master..HEAD')).toEqual([
+      { hash: '2222222222222222', subject: '' },
+    ]);
+  });
+
   it('should fail fast when git returns malformed ahead/behind counts', () => {
     process.env = getBaseEnv();
 
