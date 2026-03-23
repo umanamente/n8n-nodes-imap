@@ -12,8 +12,8 @@ describe('EmailSearchParameters', () => {
       expect(Array.isArray(emailSearchParameters)).toBe(true);
     });
 
-    it('should have 3 main parameter groups', () => {
-      expect(emailSearchParameters).toHaveLength(3);
+    it('should have 4 main parameter groups', () => {
+      expect(emailSearchParameters).toHaveLength(4);
     });
 
     it('should have emailDateRange parameter', () => {
@@ -35,6 +35,22 @@ describe('EmailSearchParameters', () => {
       expect(filtersParam).toBeDefined();
       expect(filtersParam?.type).toBe('collection');
       expect(filtersParam?.options).toHaveLength(7);
+    });
+
+    it('should have emailSearchHeaders parameter', () => {
+      const headersParam = emailSearchParameters.find(p => p.name === 'emailSearchHeaders');
+      expect(headersParam).toBeDefined();
+      expect(headersParam?.type).toBe('fixedCollection');
+      expect(headersParam?.typeOptions?.multipleValues).toBe(true);
+      expect(headersParam?.options).toHaveLength(1);
+
+      const headersOption = headersParam?.options?.[0] as any;
+      expect(headersOption?.name).toBe('headers');
+      expect(headersOption?.values).toHaveLength(2);
+      expect(headersOption?.values[0].name).toBe('headerName');
+      expect(headersOption?.values[1].name).toBe('contains');
+      expect(headersOption?.values[0].required).toBe(true);
+      expect(headersOption?.values[1].required).toBe(true);
     });
   });
 
@@ -76,10 +92,11 @@ describe('EmailSearchParameters', () => {
         getEmailSearchParametersFromNode(mockContext, ITEM_INDEX);
 
         // Assert
-        expect(mockContext.getNodeParameter).toHaveBeenCalledTimes(3);
+        expect(mockContext.getNodeParameter).toHaveBeenCalledTimes(4);
         expect(mockContext.getNodeParameter).toHaveBeenCalledWith('emailDateRange', ITEM_INDEX);
         expect(mockContext.getNodeParameter).toHaveBeenCalledWith('emailFlags', ITEM_INDEX);
         expect(mockContext.getNodeParameter).toHaveBeenCalledWith('emailSearchFilters', ITEM_INDEX);
+        expect(mockContext.getNodeParameter).toHaveBeenCalledWith('emailSearchHeaders', ITEM_INDEX);
       });
     });
 
@@ -566,6 +583,197 @@ describe('EmailSearchParameters', () => {
       });
     });
 
+    describe('header search parameters', () => {
+      it('should not set header search when no headers are provided', () => {
+        // Arrange
+        mockContext.getNodeParameter.mockImplementation((paramName: string) => {
+          if (paramName === 'emailSearchHeaders') {
+            return {};
+          }
+          return {};
+        });
+
+        // Act
+        const result = getEmailSearchParametersFromNode(mockContext, ITEM_INDEX);
+
+        // Assert
+        expect(result.header).toBeUndefined();
+      });
+
+      it('should map a single header search entry', () => {
+        // Arrange
+        mockContext.getNodeParameter.mockImplementation((paramName: string) => {
+          if (paramName === 'emailSearchHeaders') {
+            return {
+              headers: [
+                {
+                  headerName: 'X-Trace-ID',
+                  contains: 'abc123',
+                },
+              ],
+            };
+          }
+          return {};
+        });
+
+        // Act
+        const result = getEmailSearchParametersFromNode(mockContext, ITEM_INDEX);
+
+        // Assert
+        expect(result.header).toEqual({
+          'X-Trace-ID': 'abc123',
+        });
+      });
+
+      it('should map multiple header search entries', () => {
+        // Arrange
+        mockContext.getNodeParameter.mockImplementation((paramName: string) => {
+          if (paramName === 'emailSearchHeaders') {
+            return {
+              headers: [
+                {
+                  headerName: 'List-ID',
+                  contains: 'alerts.example.com',
+                },
+                {
+                  headerName: 'X-Tenant',
+                  contains: 'acme',
+                },
+              ],
+            };
+          }
+          return {};
+        });
+
+        // Act
+        const result = getEmailSearchParametersFromNode(mockContext, ITEM_INDEX);
+
+        // Assert
+        expect(result.header).toEqual({
+          'List-ID': 'alerts.example.com',
+          'X-Tenant': 'acme',
+        });
+      });
+
+      it('should trim only the header name', () => {
+        // Arrange
+        mockContext.getNodeParameter.mockImplementation((paramName: string) => {
+          if (paramName === 'emailSearchHeaders') {
+            return {
+              headers: [
+                {
+                  headerName: '  X-Custom-Header  ',
+                  contains: '  preserve spaces  ',
+                },
+              ],
+            };
+          }
+          return {};
+        });
+
+        // Act
+        const result = getEmailSearchParametersFromNode(mockContext, ITEM_INDEX);
+
+        // Assert
+        expect(result.header).toEqual({
+          'X-Custom-Header': '  preserve spaces  ',
+        });
+      });
+
+      it('should keep the last valid value for duplicate headers', () => {
+        // Arrange
+        mockContext.getNodeParameter.mockImplementation((paramName: string) => {
+          if (paramName === 'emailSearchHeaders') {
+            return {
+              headers: [
+                {
+                  headerName: 'X-Customer-ID',
+                  contains: 'first-value',
+                },
+                {
+                  headerName: ' X-Customer-ID ',
+                  contains: 'second-value',
+                },
+              ],
+            };
+          }
+          return {};
+        });
+
+        // Act
+        const result = getEmailSearchParametersFromNode(mockContext, ITEM_INDEX);
+
+        // Assert
+        expect(result.header).toEqual({
+          'X-Customer-ID': 'second-value',
+        });
+      });
+
+      it('should ignore incomplete or invalid header search rows', () => {
+        // Arrange
+        mockContext.getNodeParameter.mockImplementation((paramName: string) => {
+          if (paramName === 'emailSearchHeaders') {
+            return {
+              headers: [
+                {
+                  headerName: '',
+                  contains: 'missing-name',
+                },
+                {
+                  headerName: 'X-Missing-Contains',
+                  contains: '',
+                },
+                {
+                  headerName: '   ',
+                  contains: 'blank-name',
+                },
+                {
+                  headerName: 'X-Valid',
+                  contains: 'value',
+                },
+              ],
+            };
+          }
+          return {};
+        });
+
+        // Act
+        const result = getEmailSearchParametersFromNode(mockContext, ITEM_INDEX);
+
+        // Assert
+        expect(result.header).toEqual({
+          'X-Valid': 'value',
+        });
+      });
+
+      it('should return no header object when all header rows are invalid', () => {
+        // Arrange
+        mockContext.getNodeParameter.mockImplementation((paramName: string) => {
+          if (paramName === 'emailSearchHeaders') {
+            return {
+              headers: [
+                {
+                  headerName: '',
+                  contains: 'missing-name',
+                },
+                {
+                  headerName: 'X-Missing-Contains',
+                  contains: '',
+                },
+              ],
+            };
+          }
+          return {};
+        });
+
+        // Act
+        const result = getEmailSearchParametersFromNode(mockContext, ITEM_INDEX);
+
+        // Assert
+        expect(result.header).toBeUndefined();
+      });
+    });
+
     describe('combined parameters', () => {
       it('should handle all parameter types combined', () => {
         // Arrange
@@ -590,6 +798,16 @@ describe('EmailSearchParameters', () => {
               text: 'urgent',
             };
           }
+          if (paramName === 'emailSearchHeaders') {
+            return {
+              headers: [
+                {
+                  headerName: 'X-Priority',
+                  contains: 'high',
+                },
+              ],
+            };
+          }
           return {};
         });
 
@@ -610,6 +828,9 @@ describe('EmailSearchParameters', () => {
         expect(result.from).toBe('sender@example.com');
         expect(result.subject).toBe('Important');
         expect(result.body).toBe('urgent');
+        expect(result.header).toEqual({
+          'X-Priority': 'high',
+        });
       });
 
       it('should return minimal search object when no parameters are provided', () => {
@@ -637,6 +858,7 @@ describe('EmailSearchParameters', () => {
         expect(mockContext.getNodeParameter).toHaveBeenCalledWith('emailDateRange', customIndex);
         expect(mockContext.getNodeParameter).toHaveBeenCalledWith('emailFlags', customIndex);
         expect(mockContext.getNodeParameter).toHaveBeenCalledWith('emailSearchFilters', customIndex);
+        expect(mockContext.getNodeParameter).toHaveBeenCalledWith('emailSearchHeaders', customIndex);
       });
     });
 
@@ -675,6 +897,50 @@ describe('EmailSearchParameters', () => {
         expect(result.from).toBe('test@example.com');
         expect(result.to).toBeUndefined();
         expect(result.subject).toBeUndefined();
+      });
+
+      it('should handle partial header search objects', () => {
+        // Arrange
+        mockContext.getNodeParameter.mockImplementation((paramName: string) => {
+          if (paramName === 'emailSearchHeaders') {
+            return {
+              headers: [
+                {
+                  headerName: 'X-Test',
+                },
+              ],
+            };
+          }
+          return {};
+        });
+
+        // Act
+        const result = getEmailSearchParametersFromNode(mockContext, ITEM_INDEX);
+
+        // Assert
+        expect(result.header).toBeUndefined();
+      });
+
+      it('should ignore header rows with an undefined header name', () => {
+        // Arrange
+        mockContext.getNodeParameter.mockImplementation((paramName: string) => {
+          if (paramName === 'emailSearchHeaders') {
+            return {
+              headers: [
+                {
+                  contains: 'value-without-name',
+                },
+              ],
+            };
+          }
+          return {};
+        });
+
+        // Act
+        const result = getEmailSearchParametersFromNode(mockContext, ITEM_INDEX);
+
+        // Assert
+        expect(result.header).toBeUndefined();
       });
 
       it('should handle empty string values in filters', () => {
