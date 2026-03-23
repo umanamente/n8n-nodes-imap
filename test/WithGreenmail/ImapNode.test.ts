@@ -72,11 +72,37 @@ AABJRU5ErkJggg==
 --===============4897150722551987195==--
 `.trim().replace(/\r\n/g, '\n');
 
+const EML_WITH_MATCHING_HEADERS = `
+From: test@example.com
+To: recipient@example.com
+Subject: Header Search Match
+X-Customer-ID: customer-123
+List-ID: alerts.example.com
+
+This email should match header search.
+`.trim().replace(/\r\n/g, '\n');
+
+const EML_WITH_NON_MATCHING_HEADERS = `
+From: test@example.com
+To: recipient@example.com
+Subject: Header Search Miss
+X-Customer-ID: customer-999
+List-ID: alerts.other.example.com
+
+This email should not match header search.
+`.trim().replace(/\r\n/g, '\n');
+
 
 describeWithGreenMail('Imap Node - with GreenMail', () => {
   let imap: Imap;
   let greenmailApi: GreenmailApi;
   let credentials: ImapCredentialsData;
+  const defaultEmailSearchParameters = {
+    emailDateRange: {},
+    emailFlags: {},
+    emailSearchFilters: {},
+    emailSearchHeaders: {},
+  };
 
   beforeAll(async () => {
     // Reset Greenmail before all tests to ensure clean state
@@ -543,9 +569,7 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
         resource: 'email',
         operation: 'getEmailsList',
         mailboxPath: {"value": 'INBOX'},
-        emailDateRange: {},
-        emailFlags: {},
-        emailSearchFilters: {},
+        ...defaultEmailSearchParameters,
         limit: 50,
         includeParts: ["textContent"]
       };
@@ -570,9 +594,7 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
         resource: 'email',
         operation: 'getEmailsList',
         mailboxPath: {"value": 'TopLevelMailbox'},
-        emailDateRange: {},
-        emailFlags: {},
-        emailSearchFilters: {},
+        ...defaultEmailSearchParameters,
         limit: 50,
         includeParts: ["textContent"]
       };
@@ -700,9 +722,7 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
         resource: 'email',
         operation: 'getEmailsList',
         mailboxPath: {"value": 'TopLevelMailbox.ChildMailbox'},
-        emailDateRange: {},
-        emailFlags: {},
-        emailSearchFilters: {},
+        ...defaultEmailSearchParameters,
         limit: 50,
         includeParts: [
           EmailParts.BodyStructure,
@@ -859,6 +879,63 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
       expect(emailItem.binary?.attachment_0?.data).toBeDefined();      
     });
 
+    it('should search emails by multiple headers in ChildMailbox', async () => {
+      const matchingEmailContext = createNodeParametersCheckerMock(imap.description.properties, {
+        authentication: 'imapThisNode',
+        resource: 'email',
+        operation: 'createDraft',
+        destinationMailbox: {"value": 'TopLevelMailbox.ChildMailbox'},
+        inputFormat: 'rfc822',
+        rfc822: EML_WITH_MATCHING_HEADERS,
+      });
+      matchingEmailContext.getCredentials = jest.fn().mockResolvedValue(credentials);
+      matchingEmailContext.getInputData = jest.fn().mockReturnValue([1]);
+
+      const nonMatchingEmailContext = createNodeParametersCheckerMock(imap.description.properties, {
+        authentication: 'imapThisNode',
+        resource: 'email',
+        operation: 'createDraft',
+        destinationMailbox: {"value": 'TopLevelMailbox.ChildMailbox'},
+        inputFormat: 'rfc822',
+        rfc822: EML_WITH_NON_MATCHING_HEADERS,
+      });
+      nonMatchingEmailContext.getCredentials = jest.fn().mockResolvedValue(credentials);
+      nonMatchingEmailContext.getInputData = jest.fn().mockReturnValue([1]);
+
+      await imap.execute.call(matchingEmailContext as IExecuteFunctions);
+      await imap.execute.call(nonMatchingEmailContext as IExecuteFunctions);
+
+      const searchContext = createNodeParametersCheckerMock(imap.description.properties, {
+        authentication: 'imapThisNode',
+        resource: 'email',
+        operation: 'getEmailsList',
+        mailboxPath: {"value": 'TopLevelMailbox.ChildMailbox'},
+        ...defaultEmailSearchParameters,
+        limit: 50,
+        emailSearchHeaders: {
+          headers: [
+            {
+              headerName: 'X-Customer-ID',
+              contains: 'customer-123',
+            },
+            {
+              headerName: 'List-ID',
+              contains: 'alerts.example.com',
+            },
+          ],
+        },
+        includeParts: [],
+      });
+      searchContext.getCredentials = jest.fn().mockResolvedValue(credentials);
+      searchContext.getInputData = jest.fn().mockReturnValue([1]);
+
+      const resultData = await imap.execute.call(searchContext as IExecuteFunctions);
+
+      expect(resultData).toHaveLength(1);
+      expect(resultData[0]).toHaveLength(1);
+      expect(resultData[0][0].json).toHaveProperty('envelope.subject', 'Header Search Match');
+    });
+
   }); // describe sequence test (read and write operations)
 
   describe('email limit functionality', () => {
@@ -911,9 +988,7 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
         resource: 'email',
         operation: 'getEmailsList',
         mailboxPath: {"value": TEST_MAILBOX},
-        emailDateRange: {},
-        emailFlags: {},
-        emailSearchFilters: {},
+        ...defaultEmailSearchParameters,
         limit,
         includeParts: [],
       };
@@ -939,9 +1014,7 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
         resource: 'email',
         operation: 'getEmailsList',
         mailboxPath: {"value": TEST_MAILBOX},
-        emailDateRange: {},
-        emailFlags: {},
-        emailSearchFilters: {},
+        ...defaultEmailSearchParameters,
         limit: 50,  // Default value
         includeParts: [],
       };
@@ -969,9 +1042,7 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
         resource: 'email',
         operation: 'getEmailsList',
         mailboxPath: {"value": TEST_MAILBOX},
-        emailDateRange: {},
-        emailFlags: {},
-        emailSearchFilters: {},
+        ...defaultEmailSearchParameters,
         limit,
         includeParts: [],
       };
@@ -995,9 +1066,7 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
         resource: 'email',
         operation: 'getEmailsList',
         mailboxPath: {"value": TEST_MAILBOX},
-        emailDateRange: {},
-        emailFlags: {},
-        emailSearchFilters: {},
+        ...defaultEmailSearchParameters,
         limit,
         includeParts: [],
       };
@@ -1020,9 +1089,7 @@ describeWithGreenMail('Imap Node - with GreenMail', () => {
         resource: 'email',
         operation: 'getEmailsList',
         mailboxPath: {"value": TEST_MAILBOX},
-        emailDateRange: {},
-        emailFlags: {},
-        emailSearchFilters: {},
+        ...defaultEmailSearchParameters,
         limit,
         includeParts: [],
       };
