@@ -52,8 +52,6 @@ Thank you for your interest in contributing to the n8n-nodes-imap project! This 
 For testing your node in a local n8n instance, follow these steps to set up a complete development environment.
 
 For more detailed information about testing nodes locally, see the [official n8n documentation](https://docs.n8n.io/integrations/creating-nodes/test/run-node-locally/).
-
-
 ### Install n8n Globally
 
 First, install n8n globally using npm:
@@ -77,7 +75,6 @@ When you're ready to test your node:
 
 2. **Install the node into your local n8n instance:**
 
-   
    Navigate to the nodes directory within your n8n installation.
 
    ```bash
@@ -113,8 +110,6 @@ For efficient development, use this workflow:
 2. Build the project: `npm run build`
 3. Restart n8n to see the changes
 4. Test your changes in the n8n UI
-
-
 ## 🧪 Running Tests
 
 The project uses Jest with multiple test configurations for different testing scenarios.
@@ -395,7 +390,7 @@ This repository publishes two npm channels:
 
 ### Automation Files
 
-- `.github/workflows/release.yml` publishes stable and beta packages after the `Test` workflow succeeds
+- `.github/workflows/release.yml` publishes stable packages after the `Test` workflow succeeds and publishes beta packages directly from `beta`
 - `.github/workflows/beta-ff-to-master.yml` syncs `beta` with `master`
 - `.github/workflows/promote-beta-to-master.yml` manually promotes a tested beta to `master`
 - `scripts/prepare-beta-release.js` prepares beta README content and generated node metadata before beta publish
@@ -406,7 +401,7 @@ This repository publishes two npm channels:
 
 When the `beta` branch is published:
 
-1. CI checks out the tested `beta` commit.
+1. CI checks out the exact `beta` commit being published.
 2. The version is set to a beta-specific value for that publish using `git describe` output (for example `2.17.0-1-gabc1234-beta`).
 3. `scripts/prepare-beta-release.js` updates `README.md` in the CI workspace with:
    - a beta notice
@@ -415,7 +410,7 @@ When the `beta` branch is published:
 4. The same script generates `nodes/Imap/release/BetaReleaseInfo.ts`.
 5. The package is published with the npm `beta` dist-tag.
 
-This publish happens for every new `beta` commit after `Test` succeeds, even if the commit is `docs:`, `chore:`, or any other non-release type.
+This publish happens for every new `beta` commit after the beta checks in `release.yml` succeed, even if the commit is `docs:`, `chore:`, or any other non-release type.
 
 If beta does not currently contain commits beyond stable, the README explicitly says so and the in-app node notice stays hidden.
 
@@ -425,6 +420,7 @@ If beta does not currently contain commits beyond stable, the README explicitly 
 - If possible, CI fast-forwards `beta` to `master`
 - If both branches moved forward, CI attempts to rebase `beta` onto `master`
 - If the rebase conflicts, CI stops and requires manual intervention
+- After a successful sync that changes `beta`, CI dispatches `release.yml` on `beta` to run beta checks and publish
 - `beta -> master` is manual and only allowed as a fast-forward
 
 ## 🌳 Git Workflow

@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - master
-      - beta
   workflow_dispatch:
   pull_request:
 
@@ -22,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "lts/*"
+          node-version: 'lts/*'
       - name: Install dependencies
         run: npm clean-install
       - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies

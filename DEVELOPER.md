@@ -81,7 +81,7 @@ This repository publishes two npm channels:
 
 ### Release Files
 
-- `.github/workflows/release.yml` - Publishes stable and beta packages after the `Test` workflow succeeds
+- `.github/workflows/release.yml` - Publishes stable packages after the `Test` workflow succeeds and publishes beta packages directly from `beta`
 - `.github/workflows/beta-ff-to-master.yml` - Automatically syncs `beta` from `master`
 - `.github/workflows/promote-beta-to-master.yml` - Manually promotes a tested beta to `master`
 - `scripts/prepare-beta-release.js` - Prepares beta README content and generated node metadata before beta publish
@@ -92,15 +92,16 @@ This repository publishes two npm channels:
 
 ### Beta Publish Flow
 
-1. Tests run on pushes to `beta`.
-2. The release workflow checks out the exact tested commit from `beta`.
+1. The release workflow runs directly on pushes to `beta` or when the sync workflow dispatches it for `beta`.
+2. The release workflow checks out the exact `beta` commit being published.
 3. CI sets a beta-specific package version from `git describe` output.
-4. `npm run publish:beta:ci` runs `scripts/prepare-beta-release.js`.
-5. That script updates `README.md` in the CI workspace with a beta notice and a commit diff against `master`.
-6. The same script generates `nodes/Imap/release/BetaReleaseInfo.ts` for the node UI.
-7. The package is published to npm with the `beta` dist-tag.
+4. The workflow runs `npm run prepublishOnly` and `npx jest --coverage` before publishing.
+5. `npm run publish:beta:ci` runs `scripts/prepare-beta-release.js`.
+6. That script updates `README.md` in the CI workspace with a beta notice and a commit diff against `master`.
+7. The same script generates `nodes/Imap/release/BetaReleaseInfo.ts` for the node UI.
+8. The package is published to npm with the `beta` dist-tag.
 
-This flow does not depend on `feat`, `fix`, or breaking-change commit detection. Any new `beta` commit publishes a new beta package after tests pass.
+This flow does not depend on `feat`, `fix`, or breaking-change commit detection. Any new `beta` commit publishes a new beta package after the beta checks in `release.yml` pass.
 
 If beta currently has no commits beyond stable, the README still includes the beta section but the node UI notice remains hidden.
 
@@ -110,6 +111,7 @@ If beta currently has no commits beyond stable, the README still includes the be
 - CI fast-forwards `beta` when possible
 - CI rebases `beta` onto `master` when both branches moved forward
 - CI stops without pushing if the rebase conflicts
+- When sync changes `beta`, CI dispatches `release.yml` on `beta` to run the beta checks and publish flow
 - `beta -> master` is manual and only allowed as a fast-forward
 
 ## Contribution Workflow
