@@ -120,7 +120,7 @@ describe('EmailGetList', () => {
             subject: 'Test Email 1',
             from: [{ name: 'John Doe', address: 'john@example.com' }],
           },
-          flags: ['\\Seen', '\\Flagged'],
+          flags: new Set(['\\Seen', '\\Flagged']),
         },
       ];
       
