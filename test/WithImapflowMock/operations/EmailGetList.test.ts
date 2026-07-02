@@ -153,6 +153,176 @@ describe('EmailGetList', () => {
       }, { uid: true });
     });
 
+    it('should serialize non-JSON ImapFlow fetch values in Get Many output', async () => {
+      // Arrange
+      const paramValues = {
+        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        searchCriteria: 'ALL',
+        limit: 50,
+        includeParts: [EmailParts.Flags],
+      };
+      const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
+
+      const mockEmailData = [
+        {
+          uid: 123,
+          envelope: {
+            subject: 'Test Email 1',
+            from: [{ name: 'John Doe', address: 'john@example.com' }],
+          },
+          flags: new Set(['\\Seen', '\\Flagged']),
+          labels: new Map<string, unknown>([
+            ['category', 'primary'],
+            ['important', true],
+          ]),
+          modseq: BigInt('9007199254740993'),
+        },
+      ];
+
+      const mockFetchAsyncIterator = {
+        [Symbol.asyncIterator]: jest.fn().mockReturnValue({
+          next: jest.fn()
+            .mockResolvedValueOnce({ value: mockEmailData[0], done: false })
+            .mockResolvedValueOnce({ done: true }),
+        }),
+      };
+
+      mockImapflow.fetch = jest.fn().mockReturnValue(mockFetchAsyncIterator);
+
+      const originalBigIntToJson = Object.getOwnPropertyDescriptor(BigInt.prototype, 'toJSON');
+      delete (BigInt.prototype as { toJSON?: unknown }).toJSON;
+
+      try {
+        // Act
+        const result = await getEmailsListOperation.executeImapAction(
+          context as IExecuteFunctions,
+          context.logger!,
+          ITEM_INDEX,
+          mockImapflow
+        );
+
+        // Assert
+        expect(result).toBeDefined();
+        expect(result?.length).toBe(1);
+        expect(result![0].json.flags).toEqual(['\\Seen', '\\Flagged']);
+        expect(result![0].json.labels).toEqual({
+          category: 'primary',
+          important: true,
+        });
+        expect(result![0].json.modseq).toBe('9007199254740993');
+      } finally {
+        if (originalBigIntToJson) {
+          Object.defineProperty(BigInt.prototype, 'toJSON', originalBigIntToJson);
+        } else {
+          delete (BigInt.prototype as { toJSON?: unknown }).toJSON;
+        }
+      }
+    });
+
+    it('should serialize nested ImapFlow fetch values in Get Many output', async () => {
+      // Arrange
+      const paramValues = {
+        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        searchCriteria: 'ALL',
+        limit: 50,
+        includeParts: [],
+      };
+      const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
+
+      const mockEmailData = [
+        {
+          uid: 123,
+          envelope: {
+            subject: 'Test Email 1',
+            from: [{ name: 'John Doe', address: 'john@example.com' }],
+          },
+          metadata: {
+            keywords: new Set(['inbox', 'work']),
+            counters: new Map<string, unknown>([
+              ['highestModseq', BigInt('42')],
+              ['seenUids', new Set([123, 124])],
+            ]),
+          },
+        },
+      ];
+
+      const mockFetchAsyncIterator = {
+        [Symbol.asyncIterator]: jest.fn().mockReturnValue({
+          next: jest.fn()
+            .mockResolvedValueOnce({ value: mockEmailData[0], done: false })
+            .mockResolvedValueOnce({ done: true }),
+        }),
+      };
+
+      mockImapflow.fetch = jest.fn().mockReturnValue(mockFetchAsyncIterator);
+
+      // Act
+      const result = await getEmailsListOperation.executeImapAction(
+        context as IExecuteFunctions,
+        context.logger!,
+        ITEM_INDEX,
+        mockImapflow
+      );
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result?.length).toBe(1);
+      expect(result![0].json.metadata).toEqual({
+        keywords: ['inbox', 'work'],
+        counters: {
+          highestModseq: '42',
+          seenUids: [123, 124],
+        },
+      });
+    });
+
+    it('should serialize empty Set and Map values without dropping their shape', async () => {
+      // Arrange
+      const paramValues = {
+        mailboxPath: { value: 'INBOX' }, emailDateRange: {}, emailFlags: {}, emailSearchFilters: {},
+        searchCriteria: 'ALL',
+        limit: 50,
+        includeParts: [EmailParts.Flags],
+      };
+      const context = createNodeParametersCheckerMock(getEmailsListOperation.parameters, paramValues);
+
+      const mockEmailData = [
+        {
+          uid: 123,
+          envelope: {
+            subject: 'Test Email 1',
+            from: [{ name: 'John Doe', address: 'john@example.com' }],
+          },
+          flags: new Set(),
+          labels: new Map(),
+        },
+      ];
+
+      const mockFetchAsyncIterator = {
+        [Symbol.asyncIterator]: jest.fn().mockReturnValue({
+          next: jest.fn()
+            .mockResolvedValueOnce({ value: mockEmailData[0], done: false })
+            .mockResolvedValueOnce({ done: true }),
+        }),
+      };
+
+      mockImapflow.fetch = jest.fn().mockReturnValue(mockFetchAsyncIterator);
+
+      // Act
+      const result = await getEmailsListOperation.executeImapAction(
+        context as IExecuteFunctions,
+        context.logger!,
+        ITEM_INDEX,
+        mockImapflow
+      );
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result?.length).toBe(1);
+      expect(result![0].json.flags).toEqual([]);
+      expect(result![0].json.labels).toEqual({});
+    });
+
     it('should get emails with size when includeParts includes size', async () => {
       // Arrange
       const paramValues = {
