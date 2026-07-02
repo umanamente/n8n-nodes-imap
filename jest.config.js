@@ -22,11 +22,13 @@ module.exports = {
   collectCoverageFrom: [
     'credentials/**/*.ts',
     'nodes/**/*.ts',
-    'scripts/prepare-beta-release.js',
+    '!nodes/Imap/utils/BetaReleaseNotice.ts',
   ],
   coveragePathIgnorePatterns: [
     '/node_modules/',
     '/dist/',
+    '[\\\\/]scripts[\\\\/]',
+    '[\\\\/]nodes[\\\\/]Imap[\\\\/]utils[\\\\/]BetaReleaseNotice\\.ts$',
     '\\.d\\.ts$',
     //'\\.credentials\\.ts$',
     //'\\.node\\.ts$'
