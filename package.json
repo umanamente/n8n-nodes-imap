@@ -26,9 +26,9 @@
     "format": "prettier nodes credentials --write",
     "lint": "eslint nodes credentials package.json",
     "lintfix": "eslint nodes credentials package.json --fix",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
+    "test": "jest --runInBand",
+    "test:watch": "jest --watchAll",
+    "test:coverage": "jest --coverage --runInBand",
     "verify:package": "npm run build && node scripts/verify-package.js",
     "prepublishOnly": "npm run verify:package && npm run lint -c .eslintrc.prepublish.js nodes credentials package.json",
     "semantic-release": "npx semantic-release"
