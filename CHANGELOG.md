@@ -1,3 +1,9 @@
+## [2.17.1](https://github.com/umanamente/n8n-nodes-imap/compare/v2.17.0...v2.17.1) (2026-07-02)
+
+### Bug Fixes
+
+* **email:** preserve ImapFlow Set flags in Get Many output ([fc3d3d3](https://github.com/umanamente/n8n-nodes-imap/commit/fc3d3d31a55128e8c05707b6bdbe741ea45c6e38))
+
 ## [2.17.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.16.2...v2.17.0) (2026-03-10)
 
 ### Features
