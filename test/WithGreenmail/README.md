@@ -40,11 +40,12 @@ The global setup is configured in `jest.config.js` using Jest's project feature:
 - `SKIP_GREENMAIL_TESTS=true` - Skip all tests that require GreenMail
 - `GREENMAIL_STARTUP_TIMEOUT` - Timeout in milliseconds for GreenMail startup (default: 60000)
 - `DEBUG_GREENMAIL=true` - Enable debug logs from GreenMail container
+- `GREENMAIL_IMAP_PORT`, `GREENMAIL_IMAPS_PORT`, `GREENMAIL_SMTP_PORT`, `GREENMAIL_SMTPS_PORT`, `GREENMAIL_POP3_PORT`, `GREENMAIL_POP3S_PORT`, `GREENMAIL_API_PORT` - Override Docker host ports when defaults are unavailable
 
 ## Requirements
 
 - Docker must be installed and running
-- Ports 3143, 3993, 3025, 3465, 3110, 3995 must be available
+- Default host ports 3143 and 8080 must be available for the shared IMAP/API setup, or overridden with `GREENMAIL_IMAP_PORT` and `GREENMAIL_API_PORT`
 
 ## Adding New Tests
 

@@ -45,6 +45,22 @@ export interface GreenMailConfig {
   waitContainerStop?: boolean;
 }
 
+const getEnvPort = (envName: string, defaultPort: number): number => {
+  const envValue = process.env[envName];
+
+  if (!envValue) {
+    return defaultPort;
+  }
+
+  const port = Number.parseInt(envValue, 10);
+
+  if (!Number.isInteger(port) || port < 1 || port > 65535 || port.toString() !== envValue) {
+    throw new Error(`${envName} must be a valid TCP port number between 1 and 65535`);
+  }
+
+  return port;
+};
+
 /**
  * Get default GreenMail configuration with all required values
  * 
@@ -54,13 +70,13 @@ export interface GreenMailConfig {
 export function getDefaultGreenMailConfig(overrides: GreenMailConfig = {}): Required<GreenMailConfig> {
   return {
     host: overrides.host || 'localhost',
-    imapPort: overrides.imapPort || 3143,
-    imapsPort: overrides.imapsPort || 3993,
-    smtpPort: overrides.smtpPort || 3025,
-    smtpsPort: overrides.smtpsPort || 3465,
-    pop3Port: overrides.pop3Port || 3110,
-    pop3sPort: overrides.pop3sPort || 3995,
-    apiPort: overrides.apiPort || 8080,
+    imapPort: overrides.imapPort ?? getEnvPort('GREENMAIL_IMAP_PORT', 3143),
+    imapsPort: overrides.imapsPort ?? getEnvPort('GREENMAIL_IMAPS_PORT', 3993),
+    smtpPort: overrides.smtpPort ?? getEnvPort('GREENMAIL_SMTP_PORT', 3025),
+    smtpsPort: overrides.smtpsPort ?? getEnvPort('GREENMAIL_SMTPS_PORT', 3465),
+    pop3Port: overrides.pop3Port ?? getEnvPort('GREENMAIL_POP3_PORT', 3110),
+    pop3sPort: overrides.pop3sPort ?? getEnvPort('GREENMAIL_POP3S_PORT', 3995),
+    apiPort: overrides.apiPort ?? getEnvPort('GREENMAIL_API_PORT', 8080),
     containerName: overrides.containerName || 'greenmail-test',
     dockerImage: overrides.dockerImage || 'greenmail/standalone:2.1.7',
     startupTimeout: overrides.startupTimeout || (process.env.GREENMAIL_STARTUP_TIMEOUT ? parseInt(process.env.GREENMAIL_STARTUP_TIMEOUT, 10) : 60000),
@@ -159,11 +175,6 @@ export class GreenMailServer {
       '--rm',
       '--name', this.config.containerName,
       '-p', `${this.config.imapPort}:3143`,
-      '-p', `${this.config.imapsPort}:3993`,
-      '-p', `${this.config.smtpPort}:3025`,
-      '-p', `${this.config.smtpsPort}:3465`,
-      '-p', `${this.config.pop3Port}:3110`,
-      '-p', `${this.config.pop3sPort}:3995`,
       '-p', `${this.config.apiPort}:8080`,
       '-e', `GREENMAIL_OPTS=${greenmailOpts.join(' ')}`,
       this.config.dockerImage,

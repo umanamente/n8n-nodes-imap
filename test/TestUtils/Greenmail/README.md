@@ -111,7 +111,14 @@ const greenmail = new GreenMailServer({
   DEBUG_GREENMAIL=true npm test
   ```
 
+- **GreenMail host port overrides**: Set `GREENMAIL_IMAP_PORT`, `GREENMAIL_IMAPS_PORT`, `GREENMAIL_SMTP_PORT`, `GREENMAIL_SMTPS_PORT`, `GREENMAIL_POP3_PORT`, `GREENMAIL_POP3S_PORT`, or `GREENMAIL_API_PORT` if a default host port is unavailable.
+  ```powershell
+  $env:GREENMAIL_IMAP_PORT="4143"; npm run test:coverage
+  ```
+
 ### Default Ports
+
+The shared Jest setup starts and publishes only IMAP and API because its `GREENMAIL_OPTS` enable those services.
 
 - IMAP (non-TLS): 3143
 - IMAPS (TLS): 3993
@@ -189,14 +196,19 @@ If you see an error about Docker not being available:
 
 #### Port conflicts
 
-If you encounter port conflicts, you can change the ports:
+If you encounter port conflicts or Windows reports that a socket is forbidden because a port is reserved, you can change the host ports:
 
 ```typescript
 const greenmail = new GreenMailServer({
   imapPort: 4143,
-  imapsPort: 4993,
-  // ... other ports
+  apiPort: 18080,
 });
+```
+
+For test runs that use the shared Jest GreenMail setup, use environment variables instead:
+
+```powershell
+$env:GREENMAIL_IMAP_PORT="4143"; $env:GREENMAIL_API_PORT="18080"; npm run test:coverage
 ```
 
 #### Container already exists
