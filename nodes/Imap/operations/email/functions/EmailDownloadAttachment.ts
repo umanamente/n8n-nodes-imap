@@ -4,6 +4,7 @@ import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from "../../../utils/SearchFieldParameters";
 import { ImapFlowErrorCatcher, NodeImapError } from "../../../utils/ImapUtils";
 import { getEmailPartsInfoRecursive } from "../../../utils/EmailParts";
+import { downloadContentToBuffer } from "../../../utils/StreamUtils";
 
 export const downloadAttachmentOperation: IResourceOperationDef = {
   operation: {
@@ -144,8 +145,12 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
         );
       }
 
-      const binaryData = await context.helpers.prepareBinaryData(resp.content, resp.meta.filename, resp.meta.contentType);
-      logger.info(`Attachment downloaded: ${binaryData.data.length} bytes`);
+      // Fully consume the download stream before starting the next IMAP download.
+      // ImapFlow streams attachment data asynchronously; if the stream is not drained,
+      // subsequent fetch/download commands on the same connection can return incomplete data.
+      const attachmentContent = await downloadContentToBuffer(resp.content);
+      const binaryData = await context.helpers.prepareBinaryData(attachmentContent, resp.meta.filename, resp.meta.contentType);
+      logger.info(`Attachment downloaded: ${attachmentContent.length} bytes`);
 
       const fieldName = `attachment_${attachmentCounter}`;
       attachmentCounter++;
@@ -154,10 +159,13 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
         partId: partId,
         binaryFieldName: fieldName,
         ...resp.meta,
+        size: attachmentContent.length,
       };
       jsonAttachments.push(jsonAttachmentInfo);
 
       returnItem.binary![fieldName] = binaryData;
+
+      ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
     }
 
     // add attachments info to the return item

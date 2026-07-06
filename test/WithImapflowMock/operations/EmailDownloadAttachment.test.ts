@@ -1,8 +1,18 @@
 import { IExecuteFunctions } from 'n8n-workflow';
+import { PassThrough, Readable } from 'stream';
 import { getGlobalImapMock } from '../setup';
 import { createImapflowMock, MockImapServer } from '../../TestUtils/ImapflowMock';
 import { createNodeParametersCheckerMock } from '../../TestUtils/N8nMocks';
 import { downloadAttachmentOperation } from '../../../nodes/Imap/operations/email/functions/EmailDownloadAttachment';
+
+function createImapflowLikeDownloadStream(content: Buffer): Readable {
+  const stream = new PassThrough();
+  setImmediate(() => {
+    stream.write(content);
+    stream.end();
+  });
+  return stream;
+}
 
 describe('EmailDownloadAttachment', () => {
   const ITEM_INDEX = 0;
@@ -635,5 +645,181 @@ describe('EmailDownloadAttachment', () => {
     });
 
   }); // end executeImapAction - basic functionality
+
+  describe('executeImapAction - multiple input items', () => {
+    const createAttachmentBodyStructure = (partId: string, filename: string) => ({
+      part: '1',
+      type: 'multipart',
+      childNodes: [
+        {
+          part: partId,
+          type: 'application',
+          disposition: 'attachment',
+          dispositionParameters: { filename },
+        },
+      ],
+    });
+
+    it('should download attachments independently for each input item', async () => {
+      const paramValues = {
+        mailboxPath: { value: 'INBOX' },
+        emailUid: (itemIndex: number) => (itemIndex === 0 ? '100' : '200'),
+        allAttachments: true,
+        includeInlineAttachments: false,
+      };
+      const context = createNodeParametersCheckerMock(downloadAttachmentOperation.parameters, paramValues);
+
+      mockImapflow.fetchOne = jest.fn().mockImplementation(async (uid: string) => {
+        if (uid === '100') {
+          return {
+            uid: '100',
+            bodyStructure: createAttachmentBodyStructure('1.2', 'first-email.pdf'),
+          };
+        }
+        if (uid === '200') {
+          return {
+            uid: '200',
+            bodyStructure: createAttachmentBodyStructure('2.1', 'second-email.pdf'),
+          };
+        }
+        return null;
+      });
+
+      const firstEmailContent = Buffer.from('first email attachment');
+      const secondEmailContent = Buffer.from('second email attachment with different length');
+
+      mockImapflow.download = jest.fn().mockImplementation(async (uid: string, partId: string) => {
+        if (uid === '100' && partId === '1.2') {
+          return {
+            content: createImapflowLikeDownloadStream(firstEmailContent),
+            meta: {
+              filename: 'first-email.pdf',
+              contentType: 'application/pdf',
+              expectedSize: 999999,
+            },
+          };
+        }
+        if (uid === '200' && partId === '2.1') {
+          return {
+            content: createImapflowLikeDownloadStream(secondEmailContent),
+            meta: {
+              filename: 'second-email.pdf',
+              contentType: 'application/pdf',
+              expectedSize: 888888,
+            },
+          };
+        }
+        return { content: null, meta: null };
+      });
+
+      context.helpers!.prepareBinaryData = jest.fn().mockImplementation(async (data: Buffer) => ({
+        data,
+        mimeType: 'application/octet-stream',
+      }));
+
+      const firstItemResult = await downloadAttachmentOperation.executeImapAction(
+        context as IExecuteFunctions,
+        context.logger!,
+        0,
+        mockImapflow,
+      );
+      const secondItemResult = await downloadAttachmentOperation.executeImapAction(
+        context as IExecuteFunctions,
+        context.logger!,
+        1,
+        mockImapflow,
+      );
+
+      expect(firstItemResult?.[0].json.attachments).toEqual([
+        expect.objectContaining({
+          partId: '1.2',
+          binaryFieldName: 'attachment_0',
+          filename: 'first-email.pdf',
+          size: firstEmailContent.length,
+        }),
+      ]);
+      expect(secondItemResult?.[0].json.attachments).toEqual([
+        expect.objectContaining({
+          partId: '2.1',
+          binaryFieldName: 'attachment_0',
+          filename: 'second-email.pdf',
+          size: secondEmailContent.length,
+        }),
+      ]);
+      expect(mockImapflow.fetchOne).toHaveBeenCalledWith('200', { uid: true, bodyStructure: true }, { uid: true });
+      expect(mockImapflow.download).toHaveBeenCalledWith('200', '2.1', { uid: true });
+    });
+
+    it('should report independent attachment sizes for multiple attachments on one item', async () => {
+      const paramValues = {
+        mailboxPath: { value: 'INBOX' },
+        emailUid: '300',
+        allAttachments: true,
+        includeInlineAttachments: false,
+      };
+      const context = createNodeParametersCheckerMock(downloadAttachmentOperation.parameters, paramValues);
+
+      mockImapflow.fetchOne = jest.fn().mockResolvedValue({
+        uid: '300',
+        bodyStructure: {
+          part: '1',
+          type: 'multipart',
+          childNodes: [
+            {
+              part: '1.2',
+              type: 'image',
+              disposition: 'attachment',
+              dispositionParameters: { filename: 'small.jpg' },
+            },
+            {
+              part: '1.3',
+              type: 'application',
+              disposition: 'attachment',
+              dispositionParameters: { filename: 'large.pdf' },
+            },
+          ],
+        },
+      });
+
+      const smallAttachment = Buffer.from('small');
+      const largeAttachment = Buffer.from('much larger attachment content');
+
+      mockImapflow.download = jest.fn()
+        .mockResolvedValueOnce({
+          content: createImapflowLikeDownloadStream(smallAttachment),
+          meta: {
+            filename: 'small.jpg',
+            contentType: 'image/jpeg',
+            expectedSize: 4046509,
+          },
+        })
+        .mockResolvedValueOnce({
+          content: createImapflowLikeDownloadStream(largeAttachment),
+          meta: {
+            filename: 'large.pdf',
+            contentType: 'application/pdf',
+            expectedSize: 4046509,
+          },
+        });
+
+      context.helpers!.prepareBinaryData = jest.fn().mockImplementation(async (data: Buffer) => ({
+        data,
+        mimeType: 'application/octet-stream',
+      }));
+
+      const result = await downloadAttachmentOperation.executeImapAction(
+        context as IExecuteFunctions,
+        context.logger!,
+        ITEM_INDEX,
+        mockImapflow,
+      );
+
+      const attachments = result?.[0].json.attachments as Array<{ size: number; filename: string }>;
+      expect(attachments).toHaveLength(2);
+      expect(attachments[0].size).toBe(smallAttachment.length);
+      expect(attachments[1].size).toBe(largeAttachment.length);
+      expect(attachments[0].size).not.toBe(attachments[1].size);
+    });
+  });
 
 }); // end EmailDownloadAttachment
