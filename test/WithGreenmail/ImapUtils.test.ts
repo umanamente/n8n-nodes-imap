@@ -266,8 +266,10 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
     it('should log errors when connection fails', async () => {
       // Arrange
       const credentials: ImapCredentialsData = {
-        host: 'invalid-host.local',
-        port: 9999,
+        // Use a local refused port. DNS failures can take longer than Jest's
+        // timeout and do not test ImapFlow's error logging.
+        host: '127.0.0.1',
+        port: 1,
         user: 'test@example.com',
         password: 'password',
         tls: false,
@@ -278,14 +280,15 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
 
       // Act
       try {
-        await client.connect();
-      } catch (error) {
-        // Expected to fail
-      }
+        await expect(client.connect()).rejects.toThrow();
 
-      // Assert - Error logger might be called
-      // Note: This depends on ImapFlow's internal error handling
-      expect(mockLoggerSilent.error.mock.calls.length).toBeGreaterThanOrEqual(0);
+        // ImapFlow logs connection errors through its logger.
+        expect(mockLoggerSilent.error.mock.calls.length).toBeGreaterThan(0);
+      } finally {
+        // Failed connections schedule asynchronous cleanup; close explicitly so
+        // this test does not leave a socket or timer for Jest to report.
+        client.close();
+      }
     });
   });
 
