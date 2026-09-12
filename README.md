@@ -2,12 +2,24 @@
 
 This is an n8n community node that adds support for [IMAP](https://en.wikipedia.org/wiki/Internet_Message_Access_Protocol) email servers.
 
+* [n8n Cloud compatibility](#n8n-cloud-compatibility)
 * [Installation](#installation)  
 * [Operations](#operations)  
 * [Credentials](#credentials)
 * [Troubleshooting & Debug](#troubleshooting--debug)
 * [Version history](CHANGELOG.md)
 * **For Developers**: [Contributing Guide](CONTRIBUTING.md) | [Developer Quick Start](DEVELOPER.md)
+
+## n8n Cloud compatibility
+
+> [!IMPORTANT]
+> Under n8n's current [community node verification guidelines](https://docs.n8n.io/connect/create-nodes/build-your-node/reference/verification-guidelines/), `n8n-nodes-imap` cannot currently be accepted as a verified community node for n8n Cloud because verified packages may not include external dependencies. This node requires these direct runtime dependencies:
+>
+> * `imapflow`
+> * `mailparser`
+> * `nodemailer`
+>
+> The node remains available and intended for self-hosted n8n installations. Cloud eligibility could change if n8n changes this policy or explicitly permits the required libraries. No such policy change or approval by n8n is implied or promised.
 
 ## Installation
 
