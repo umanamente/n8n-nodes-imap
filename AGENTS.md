@@ -6,6 +6,8 @@ This file provides quick guidance for AI agents and GitHub Copilot working on th
 
 **Before making any changes, always check `CONTRIBUTING.md` for complete setup instructions, project structure, and development guidelines.**
 
+For GitHub issue triage, agents **must** also read [`docs/ai/issue-triage.md`](docs/ai/issue-triage.md).
+
 ## 🎯 Quick Reference for AI Agents
 
 ### Project Structure
