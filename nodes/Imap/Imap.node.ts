@@ -112,7 +112,7 @@ export class Imap implements INodeType {
         options: allResourceDefinitions.map((resourceDef) => resourceDef.resource),
         default: allResourceDefinitions[0].resource.value,
       },
-
+      usableAsTool: true, 
       // combine all parameters from all operations
       ...allResourceDefinitions.map((resourceDef) => getAllResourceNodeParameters(resourceDef)).flat(),
 
