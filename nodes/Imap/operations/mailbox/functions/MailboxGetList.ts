@@ -29,7 +29,6 @@ export const getMailboxListOperation: IResourceOperationDef = {
       name: 'includeStatusFields',
       type: 'multiOptions',
       default: [],
-      // eslint-disable-next-line n8n-nodes-base/node-param-multi-options-type-unsorted-items
       options: [
         {
           name: 'Message Count',

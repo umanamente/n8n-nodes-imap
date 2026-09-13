@@ -3,6 +3,7 @@ import { getGlobalImapMock } from '../setup';
 import { createImapflowMock, MockImapServer } from '../../TestUtils/ImapflowMock';
 import { createNodeParametersCheckerMock } from '../../TestUtils/N8nMocks';
 import { downloadAttachmentOperation } from '../../../nodes/Imap/operations/email/functions/EmailDownloadAttachment';
+import { PassThrough } from 'stream';
 
 describe('EmailDownloadAttachment', () => {
   const ITEM_INDEX = 0;
@@ -24,9 +25,123 @@ describe('EmailDownloadAttachment', () => {
     mockImapflow.download = jest.fn();
   });
 
-  describe('executeImapAction - basic functionality', () => {
-   
-    it('should download specific attachment by part ID', async () => {
+	describe('executeImapAction - basic functionality', () => {
+		it('waits for each download stream to finish before requesting the next attachment', async () => {
+			const context = createNodeParametersCheckerMock(downloadAttachmentOperation.parameters, {
+				mailboxPath: { value: 'INBOX' },
+				emailUid: '123',
+				allAttachments: false,
+				partId: '2, 3',
+			});
+			const firstStream = new PassThrough();
+			const secondStream = new PassThrough();
+
+			mockImapflow.download = jest
+				.fn()
+				.mockResolvedValueOnce({
+					content: firstStream,
+					meta: { filename: 'first.txt', contentType: 'text/plain' },
+				})
+				.mockResolvedValueOnce({
+					content: secondStream,
+					meta: { filename: 'second.txt', contentType: 'text/plain' },
+				});
+			context.helpers!.prepareBinaryData = jest.fn().mockImplementation(async (content) => {
+				content.resume();
+				return { data: 'binary-data', mimeType: 'text/plain' };
+			});
+
+			const execution = downloadAttachmentOperation.executeImapAction(
+				context as IExecuteFunctions,
+				context.logger!,
+				ITEM_INDEX,
+				mockImapflow,
+			);
+			await new Promise((resolve) => setImmediate(resolve));
+
+			expect(mockImapflow.download).toHaveBeenCalledTimes(1);
+			firstStream.end('first');
+			await new Promise((resolve) => setImmediate(resolve));
+			expect(mockImapflow.download).toHaveBeenCalledTimes(2);
+
+			secondStream.end('second');
+			await expect(execution).resolves.toBeDefined();
+		});
+
+		it('rejects a failed download without emitting its stream error again', async () => {
+			const context = createNodeParametersCheckerMock(downloadAttachmentOperation.parameters, {
+				mailboxPath: { value: 'INBOX' },
+				emailUid: '123',
+				allAttachments: false,
+				partId: '2, 3',
+			});
+			const content = new PassThrough();
+			const downloadError = new Error('FETCH failed');
+			const emittedErrors: Error[] = [];
+			// Observe repeated errors without allowing an unhandled stream error to terminate Jest.
+			content.on('error', (error) => emittedErrors.push(error));
+			mockImapflow.download.mockResolvedValue({
+				content,
+				meta: { filename: 'first.txt', contentType: 'text/plain' },
+			});
+			context.helpers!.prepareBinaryData = jest.fn().mockImplementation(async (stream) => {
+				stream.resume();
+				return { data: 'binary-data', mimeType: 'text/plain' };
+			});
+
+			const execution = downloadAttachmentOperation.executeImapAction(
+				context as IExecuteFunctions,
+				context.logger!,
+				ITEM_INDEX,
+				mockImapflow,
+			);
+			const rejection = expect(execution).rejects.toBe(downloadError);
+			await new Promise((resolve) => setImmediate(resolve));
+
+			// ImapFlow forwards background FETCH failures by emitting on the download stream.
+			content.emit('error', downloadError);
+			await rejection;
+			await new Promise((resolve) => setImmediate(resolve));
+
+			expect(content.destroyed).toBe(true);
+			expect(emittedErrors).toEqual([downloadError]);
+			expect(mockImapflow.download).toHaveBeenCalledTimes(1);
+		});
+
+		it('preserves binary preparation errors without stream cleanup for buffered content', async () => {
+			const context = createNodeParametersCheckerMock(downloadAttachmentOperation.parameters, {
+				mailboxPath: { value: 'INBOX' },
+				emailUid: '123',
+				allAttachments: false,
+				partId: '2',
+			});
+			const content = Object.assign(Buffer.from('attachment content'), {
+				destroy: jest.fn(),
+			});
+			const preparationError = new Error('Binary data storage failed');
+			mockImapflow.download.mockResolvedValue({
+				content,
+				meta: { filename: 'attachment.txt', contentType: 'text/plain' },
+			});
+			context.helpers!.prepareBinaryData = jest.fn().mockRejectedValue(preparationError);
+
+			await expect(
+				downloadAttachmentOperation.executeImapAction(
+					context as IExecuteFunctions,
+					context.logger!,
+					ITEM_INDEX,
+					mockImapflow,
+				),
+			).rejects.toBe(preparationError);
+			expect(context.helpers!.prepareBinaryData).toHaveBeenCalledWith(
+				content,
+				'attachment.txt',
+				'text/plain',
+			);
+			expect(content.destroy).not.toHaveBeenCalled();
+		});
+
+		it('should download specific attachment by part ID', async () => {
       // Arrange
       const paramValues = {
         mailboxPath: { value: 'INBOX' },

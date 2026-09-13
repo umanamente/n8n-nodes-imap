@@ -1,3 +1,4 @@
+import { Readable } from 'stream';
 import { Logger as N8nLogger, IExecuteFunctions, INodeProperties } from 'n8n-workflow';
 import { ImapNodeDebugParameters, ImapNodeDebugUtils } from '../../nodes/Imap/utils/debug/ImapNodeDebugUtils';
 
@@ -98,9 +99,19 @@ export const createNodeParametersCheckerMock = (
     getNode: getNodeMock,
     continueOnFail: jest.fn(() => continueOnFail),
     helpers: {
-        prepareBinaryData: jest.fn().mockImplementation((data: Buffer, filename: string) => {
+        prepareBinaryData: jest.fn().mockImplementation(async (data: Buffer | Readable, filename: string) => {
+          const chunks: Buffer[] = [];
+
+          if (data instanceof Readable) {
+            for await (const chunk of data) {
+              chunks.push(Buffer.from(chunk));
+            }
+          }
+
+          const binaryData = data instanceof Readable ? Buffer.concat(chunks) : data;
+
           return {
-            data,
+            data: binaryData,
             fileName: filename,
             mimeType: 'application/octet-stream',
           };
@@ -108,6 +119,4 @@ export const createNodeParametersCheckerMock = (
     } as any,
   };
 };
-
-
 

@@ -97,6 +97,7 @@ describe('Imap Node - exceptions handling', () => {
 
       // Act & Assert
       await expect(imap.execute.call(context as IExecuteFunctions)).rejects.toThrow('Connection failed');
+      expect(mockImapClient.close).toHaveBeenCalledTimes(1);
     });
 
     it('should handle operation failure without IMAP errors gracefully', async () => {
@@ -269,6 +270,74 @@ describe('Imap Node - exceptions handling', () => {
 
     });
 
+    it('should wait for logout before resolving an execution', async () => {
+      const context = createNodeParametersCheckerMock(imap.description.properties, {});
+      context.getInputData = jest.fn().mockReturnValue([{}]);
+      let resolveLogout!: () => void;
+      mockImapClient.logout.mockImplementation(() => new Promise<void>((resolve) => {
+        resolveLogout = resolve;
+      }));
+      const mockHandler: IResourceOperationDef = {
+        executeImapAction: async () => null,
+        operation: { name: 'Test', value: 'test' },
+        parameters: [],
+      };
+
+      let settled = false;
+      const execution = executeWithHandler(
+        context as IExecuteFunctions,
+        mockImapClient,
+        mockHandler,
+      ).then((result) => {
+        settled = true;
+        return result;
+      });
+      await new Promise((resolve) => setImmediate(resolve));
+
+      expect(mockImapClient.logout).toHaveBeenCalledTimes(1);
+      expect(settled).toBe(false);
+
+      resolveLogout();
+      await expect(execution).resolves.toEqual([[]]);
+    });
+
+    it('should close the connection and preserve a final logout error', async () => {
+      const context = createNodeParametersCheckerMock(imap.description.properties, {});
+      context.getInputData = jest.fn().mockReturnValue([{}]);
+      const logoutError = new Error('Logout failed');
+      mockImapClient.logout.mockRejectedValue(logoutError);
+      const mockHandler: IResourceOperationDef = {
+        executeImapAction: jest.fn().mockResolvedValue(null),
+        operation: { name: 'Test', value: 'test' },
+        parameters: [],
+      };
+
+      await expect(
+        executeWithHandler(context as IExecuteFunctions, mockImapClient, mockHandler),
+      ).rejects.toBe(logoutError);
+      expect(mockHandler.executeImapAction).toHaveBeenCalledTimes(1);
+      expect(mockImapClient.logout).toHaveBeenCalledTimes(1);
+      expect(mockImapClient.close).toHaveBeenCalledTimes(1);
+    });
+
+    it('should preserve an operation error when logout cleanup also fails', async () => {
+      const context = createNodeParametersCheckerMock(imap.description.properties, {});
+      context.getInputData = jest.fn().mockReturnValue([{}]);
+      mockImapClient.logout.mockRejectedValue(new Error('Logout failed'));
+      const mockHandler: IResourceOperationDef = {
+        executeImapAction: async () => {
+          throw new Error('Operation failed');
+        },
+        operation: { name: 'Test', value: 'test' },
+        parameters: [],
+      };
+
+      await expect(
+        executeWithHandler(context as IExecuteFunctions, mockImapClient, mockHandler),
+      ).rejects.toThrow('Operation failed');
+      expect(mockImapClient.close).toHaveBeenCalledTimes(1);
+    });
+
     it('should handle operation throwing unknown error gracefully', async () => {
       // Create a mock parameters checker for testing
       const paramValues = {
@@ -432,9 +501,37 @@ describe('Imap Node - exceptions handling', () => {
           status: 'OK',
           message: 'Success',
         });
-        expect(ImapUtils.createImapClient).toHaveBeenCalledWith(credentials.data);
-        expect(mockImapClient.connect).toHaveBeenCalled();
-        expect(mockImapClient.logout).toHaveBeenCalled();
+      expect(ImapUtils.createImapClient).toHaveBeenCalledWith(credentials.data);
+      expect(mockImapClient.connect).toHaveBeenCalled();
+      expect(mockImapClient.logout).toHaveBeenCalled();
+    });
+
+      it('should wait for credential-test logout to complete', async () => {
+        const credentials: ICredentialsDecrypted = {
+          id: 'test-cred-id',
+          name: 'Test IMAP Credentials',
+          type: 'imapApi',
+          data: defaultCredentials as any,
+        };
+        let resolveLogout!: () => void;
+        mockImapClient.logout.mockImplementation(() => new Promise<void>((resolve) => {
+          resolveLogout = resolve;
+        }));
+
+        let settled = false;
+        const credentialTest = imap.methods.credentialTest.testImapCredentials
+          .call({} as ICredentialTestFunctions, credentials)
+          .then((result) => {
+            settled = true;
+            return result;
+          });
+        await Promise.resolve();
+
+        expect(mockImapClient.logout).toHaveBeenCalledTimes(1);
+        expect(settled).toBe(false);
+
+        resolveLogout();
+        await expect(credentialTest).resolves.toEqual({ status: 'OK', message: 'Success' });
       });
 
       it('should return Error status for invalid credentials with authentication failure', async () => {
@@ -475,10 +572,10 @@ describe('Imap Node - exceptions handling', () => {
         expect(ImapUtils.createImapClient).toHaveBeenCalledWith(credentials.data);
         expect(mockImapClient.connect).toHaveBeenCalled();
         expect(mockImapClient.logout).not.toHaveBeenCalled();
+        expect(mockImapClient.close).toHaveBeenCalled();
       });
     });
 
   }); // end credential testing
 
 }); // end Imap Node - exceptions handling
-

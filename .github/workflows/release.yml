@@ -18,7 +18,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'master'
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'master' && github.event.workflow_run.head_repository.full_name == github.repository
     permissions:
       contents: write # to be able to publish a GitHub release
       issues: write # to be able to comment on released issues
@@ -26,23 +26,29 @@ jobs:
       id-token: write # to enable use of OIDC for trusted publishing and npm provenance
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 'lts/*'
+          node-version: '22.22.0'
           registry-url: https://registry.npmjs.org/
+      - name: Verify toolchain
+        run: |
+          test "$(node --version)" = "v22.22.0"
+          test "$(npm --version)" = "10.9.4"
       - name: Install dependencies
-        run: npm clean-install
+        run: npm ci
       - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
         run: npm audit signatures
+      - name: Audit the complete dependency tree
+        run: npm audit --audit-level=low
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
+        run: npm run semantic-release
   release-beta:
     name: Publish Beta
     runs-on: ubuntu-latest
@@ -54,23 +60,29 @@ jobs:
       id-token: write # to enable use of OIDC for trusted publishing and npm provenance
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 'lts/*'
+          node-version: '22.22.0'
           registry-url: https://registry.npmjs.org/
+      - name: Verify toolchain
+        run: |
+          test "$(node --version)" = "v22.22.0"
+          test "$(npm --version)" = "10.9.4"
       - name: Install dependencies
-        run: npm clean-install
+        run: npm ci
       - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
         run: npm audit signatures
+      - name: Audit the complete dependency tree
+        run: npm audit --audit-level=low
       - name: Build and test
         run: npm run prepublishOnly
       - name: Run Jest tests with coverage
-        run: npx jest --coverage
+        run: npm run test:coverage
       - name: Fetch master branch for beta diff
         run: git fetch origin master beta --tags
       - name: Set version env

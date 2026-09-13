@@ -151,7 +151,7 @@ export const createDraftOperation: IResourceOperationDef = {
       let transporter = nodemailer.createTransport({
           streamTransport: true,
           buffer: true,
-          newline: 'unix',
+          newline: 'windows',
       });
 
 

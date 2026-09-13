@@ -1,23 +1,22 @@
-
 // uncomment if Greenmail tests are failing due to Greenmail container instability
 // process.env.SKIP_GREENMAIL_TESTS = 'true';
 
 // uncomment to enable Greenmail debug logs
 // process.env.DEBUG_GREENMAIL = 'true';
 
-
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  maxWorkers: 1,
   roots: ['<rootDir>/test', '<rootDir>/credentials', '<rootDir>/nodes'],
-  testMatch: [
-    '**/tests/**/*.ts', 
-    '**/?(*.)+(spec|test).ts'
-  ],
+  testMatch: ['**/tests/**/*.ts', '**/?(*.)+(spec|test).ts'],
   transform: {
-    '^.+\\.ts$': ['ts-jest', {
-      tsconfig: 'tsconfig.test.json',
-    }],
+    '^.+\\.ts$': [
+      'ts-jest',
+      {
+        tsconfig: 'tsconfig.test.json',
+      },
+    ],
   },
   collectCoverageFrom: [
     'credentials/**/*.ts',
@@ -33,16 +32,9 @@ module.exports = {
     //'\\.credentials\\.ts$',
     //'\\.node\\.ts$'
   ],
-  modulePathIgnorePatterns: [
-    '<rootDir>/dist/'
-  ],
+  modulePathIgnorePatterns: ['<rootDir>/dist/'],
   coverageDirectory: 'coverage',
-  coverageReporters: [
-    'json-summary', 
-    'lcov', 
-    'html',
-    ['text', { file: 'coverage.txt' }],
-  ],
+  coverageReporters: ['json-summary', 'lcov', 'html', ['text', { file: 'coverage.txt' }]],
   verbose: true,
   setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
   projects: [
@@ -50,64 +42,79 @@ module.exports = {
       displayName: 'WithGreenmail',
       preset: 'ts-jest',
       testEnvironment: 'node',
-      testMatch: ['<rootDir>/test/WithGreenmail/**/*.test.ts'],
+      roots: ['<rootDir>/test', '<rootDir>/credentials', '<rootDir>/nodes'],
+      testMatch: ['**/test/WithGreenmail/**/*.test.ts'],
+      modulePathIgnorePatterns: ['<rootDir>/dist/'],
       globalSetup: '<rootDir>/test/WithGreenmail/globalSetup.ts',
       globalTeardown: '<rootDir>/test/WithGreenmail/globalTeardown.ts',
       setupFilesAfterEnv: ['<rootDir>/test/WithGreenmail/setup.withGreenmail.ts'],
       transform: {
-        '^.+\\.ts$': ['ts-jest', {
-          tsconfig: 'tsconfig.test.json',
-        }],
+        '^.+\\.ts$': [
+          'ts-jest',
+          {
+            tsconfig: 'tsconfig.test.json',
+          },
+        ],
       },
-      maxWorkers: 1, // Greenmail does not work well with parallel tests
     },
     {
       displayName: 'WithImapflowMock',
       preset: 'ts-jest',
       testEnvironment: 'node',
-      testMatch: ['<rootDir>/test/WithImapflowMock/**/*.test.ts'],
+      roots: ['<rootDir>/test', '<rootDir>/credentials', '<rootDir>/nodes'],
+      testMatch: ['**/test/WithImapflowMock/**/*.test.ts'],
+      modulePathIgnorePatterns: ['<rootDir>/dist/'],
       setupFilesAfterEnv: ['<rootDir>/test/WithImapflowMock/setup.ts'],
       transform: {
-        '^.+\\.ts$': ['ts-jest', {
-          tsconfig: 'tsconfig.test.json',
-        }],
+        '^.+\\.ts$': [
+          'ts-jest',
+          {
+            tsconfig: 'tsconfig.test.json',
+          },
+        ],
       },
     },
     {
       displayName: 'UnitTests',
       preset: 'ts-jest',
       testEnvironment: 'node',
-      testMatch: ['<rootDir>/test/UnitTests/**/*.test.ts'],
-      testPathIgnorePatterns: [
-      ],
+      roots: ['<rootDir>/test', '<rootDir>/credentials', '<rootDir>/nodes'],
+      testMatch: ['**/test/UnitTests/**/*.test.ts'],
+      modulePathIgnorePatterns: ['<rootDir>/dist/'],
+      testPathIgnorePatterns: [],
       setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
       transform: {
-        '^.+\\.ts$': ['ts-jest', {
-          tsconfig: 'tsconfig.test.json',
-        }],
+        '^.+\\.ts$': [
+          'ts-jest',
+          {
+            tsconfig: 'tsconfig.test.json',
+          },
+        ],
       },
     },
     {
       displayName: 'DebugMode',
       preset: 'ts-jest',
       testEnvironment: 'node',
-      testMatch: [
-        '<rootDir>/test/UnitTests/**/*.test.ts',
-        '<rootDir>/test/WithImapflowMock/**/*.test.ts',
-      ],
+      roots: ['<rootDir>/test', '<rootDir>/credentials', '<rootDir>/nodes'],
+      testMatch: ['**/test/UnitTests/**/*.test.ts', '**/test/WithImapflowMock/**/*.test.ts'],
       testPathIgnorePatterns: [
         // debug mode suppresses errors, so ignore tests that expect errors
-        '<rootDir>/test/UnitTests/ImapNodeExceptions.test.ts',
-      ],      
+        '[\\\\/]test[\\\\/]UnitTests[\\\\/]ImapNodeExceptions\\.test\\.ts$',
+      ],
+      modulePathIgnorePatterns: ['<rootDir>/dist/'],
       setupFilesAfterEnv: [
         '<rootDir>/test/setup.withDebug.ts',
         '<rootDir>/test/WithImapflowMock/setup.ts',
       ],
       transform: {
-        '^.+\\.ts$': ['ts-jest', {
-          tsconfig: 'tsconfig.test.json',
-        }],
+        '^.+\\.ts$': [
+          'ts-jest',
+          {
+            tsconfig: 'tsconfig.test.json',
+          },
+        ],
       },
-    }
+    },
   ],
 };

@@ -24,7 +24,6 @@ export class Imap implements INodeType {
       name: 'IMAP',
     },
     inputs: ["main"],
-    // eslint-disable-next-line n8n-nodes-base/node-class-description-outputs-wrong
     outputs: [
       "main",
       // add debug output if enabled
@@ -75,17 +74,14 @@ export class Imap implements INodeType {
         displayName: 'Credential Type',
         name: 'authentication',
         type: 'options',
-        // eslint-disable-next-line n8n-nodes-base/node-param-default-wrong-for-options
         default: CREDENTIALS_TYPE_THIS_NODE,
         options: [
           {
-            // eslint-disable-next-line n8n-nodes-base/node-param-display-name-miscased
             name: 'IMAP',
             value: CREDENTIALS_TYPE_THIS_NODE,
             description: 'Use credentials from this node',
           },
           {
-            // eslint-disable-next-line n8n-nodes-base/node-param-display-name-miscased
             name: 'N8N IMAP Trigger Node',
             value: CREDENTIALS_TYPE_CORE_IMAP_ACCOUNT,
             description: 'Use existing credentials from N8N IMAP Trigger node',
@@ -161,11 +157,12 @@ export class Imap implements INodeType {
         const credentials = credential.data as unknown as ImapCredentialsData;
 
         // create imap client and connect
+        const client = createImapClient(credentials);
         try {
-          const client = createImapClient(credentials);
           await client.connect();
-          client.logout();
+          await client.logout();
         } catch (error) {
+          client.close();
           return {
             status: 'Error',
             message: error.message,
@@ -210,9 +207,12 @@ export async function executeWithHandler(
     try {
       await client.connect();
     } catch (error) {
+      client.close();
       nodeLogger.error(`Connection failed: ${error.message}`);
       throw new NodeOperationError(context.getNode(), error);
     }
+
+    let logoutAttempted = false;
 
     // try/catch to close connection in any case
     try {
@@ -228,6 +228,7 @@ export async function executeWithHandler(
             ImapFlowErrorCatcher.getInstance().startErrorCatching();
 
             const result = await handler.executeImapAction(context, nodeLogger, itemIndex, client);
+            ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
             if (result?.length) {
               for (const outputItem of result) {
                 // add pairedItem 
@@ -283,13 +284,25 @@ export async function executeWithHandler(
       } 
 
       // close connection
-      client.logout();
+      logoutAttempted = true;
+      await client.logout();
       nodeLogger.info('IMAP connection closed');
 
     } catch (error) {
       // close connection and rethrow error
-      client.logout();
-      nodeLogger.error(`IMAP connection closed. Error: ${error.message}`);
+      if (!logoutAttempted) {
+        try {
+          logoutAttempted = true;
+          await client.logout();
+          nodeLogger.info('IMAP connection closed after operation failure');
+        } catch (logoutError) {
+          client.close();
+          nodeLogger.error(`Failed to log out after operation failure: ${logoutError.message}`);
+        }
+      } else {
+        client.close();
+      }
+      nodeLogger.error(`Operation failed and the IMAP connection was closed. Error: ${error.message}`);
       throw error;
     }
 
@@ -309,6 +322,4 @@ export async function executeWithHandler(
 
   return resultBranches;
 }
-
-
 

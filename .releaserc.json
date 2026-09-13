@@ -1,59 +1,16 @@
 {
-  "branches": [
-    "master"
-  ],
+  "branches": ["master"],
   "plugins": [
-    [
-      "@semantic-release/commit-analyzer",
-      { "preset": "conventionalcommits" }
-    ],
-    [
-      "@semantic-release/release-notes-generator",
-      { "preset": "conventionalcommits" }
-    ],
-    [
-      "@semantic-release/changelog",
-      { "changelogFile": "CHANGELOG.md" }
-    ],
-		[
-			"@google/semantic-release-replace-plugin",
-			{
-				"replacements": [
-					{
-						"files": ["package.json"],
-						"from": "\"version\": \".*\"",
-						"to": "\"version\": \"${nextRelease.version}\""
-					}
-				]
-			}
-		],
+    ["@semantic-release/commit-analyzer", { "preset": "conventionalcommits" }],
+    ["@semantic-release/release-notes-generator", { "preset": "conventionalcommits" }],
+    ["@semantic-release/changelog", { "changelogFile": "CHANGELOG.md" }],
+    "@semantic-release/npm",
     [
       "@semantic-release/git",
       {
-				"assets": [
-					"CHANGELOG.md",
-					"package.json"
-				]
-			}
-    ],
-    [
-      "@semantic-release/github",
-      {
-        "path": "semantic-release",
-        "name": "${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}"
+        "assets": ["CHANGELOG.md", "package.json", "package-lock.json"]
       }
     ],
-		[
-      "@semantic-release/npm",
-      {
-        "npmPublish": false
-      }
-    ],
-    [
-      "@semantic-release/exec",
-      {
-        "publishCmd": "npm publish --provenance"
-      }
-    ]
+    "@semantic-release/github"
   ]
 }

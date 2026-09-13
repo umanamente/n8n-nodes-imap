@@ -4,191 +4,114 @@ on:
   workflow_dispatch:
     inputs:
       package_version:
-        description: 'Package version to test (leave empty for latest)'
+        description: 'Published package version; leave empty to pack this workflow ref'
         required: false
         default: ''
         type: string
       node_version:
-        description: 'Node.js version to test with'
-        required: false
-        default: '18'
+        description: 'Node.js compatibility target'
+        required: true
+        default: '24.0.0'
         type: choice
         options:
-          - '16'
-          - '18'
-          - '20'
-          - '21'
+          - '20.19.0'
+          - '22.16.0'
+          - '24.0.0'
+
+permissions:
+  contents: read
 
 jobs:
-  test-package-installation:
-    name: Test Package Installation
+  pack:
+    name: Prepare exact package tarball
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        node-version: 
-          - ${{ inputs.node_version || '18' }}
-          - '20'  # Always test with Node 20 as well
-    
     steps:
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: ${{ matrix.node-version }}
-          registry-url: 'https://registry.npmjs.org'
-      
-      - name: Create test directory
-        run: mkdir test-installation && cd test-installation
-      
-      - name: Initialize test project
+          persist-credentials: false
+      - name: Setup build toolchain
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22.22.0'
+          cache: npm
+      - name: Verify build toolchain
         run: |
-          cd test-installation
-          npm init -y
-        
-      - name: Install n8n-nodes-imap package
+          test "$(node --version)" = "v22.22.0"
+          test "$(npm --version)" = "10.9.4"
+      - name: Pack source ref
+        if: inputs.package_version == ''
         run: |
-          cd test-installation
-          if [ -n "${{ inputs.package_version }}" ]; then
-            echo "Installing specific version: n8n-nodes-imap@${{ inputs.package_version }}"
-            npm install n8n-nodes-imap@${{ inputs.package_version }}
-          else
-            echo "Installing latest version of n8n-nodes-imap"
-            npm install n8n-nodes-imap
-          fi
-      
-      - name: Verify package installation
+          npm ci
+          npm run prepublishOnly
+          mkdir package-artifact
+          npm pack --pack-destination package-artifact
+      - name: Fetch published package tarball
+        if: inputs.package_version != ''
+        env:
+          PACKAGE_VERSION: ${{ inputs.package_version }}
         run: |
-          cd test-installation
-          echo "Checking if package is installed..."
-          npm list n8n-nodes-imap
-          
-          echo "Checking package.json..."
-          cat package.json
-          
-          echo "Checking node_modules structure..."
-          ls -la node_modules/ | grep n8n-nodes-imap || echo "Package directory not found"
-          
-          if [ -d "node_modules/n8n-nodes-imap" ]; then
-            echo "Package installed successfully!"
-            echo "Package contents:"
-            ls -la node_modules/n8n-nodes-imap/
-            
-            echo "Checking dist folder..."
-            if [ -d "node_modules/n8n-nodes-imap/dist" ]; then
-              echo "Dist folder contents:"
-              find node_modules/n8n-nodes-imap/dist -type f | head -10
-            else
-              echo "Warning: dist folder not found"
-            fi
-            
-            echo "Checking package.json of installed package..."
-            cat node_modules/n8n-nodes-imap/package.json | jq '.version, .main, .n8n'
-          else
-            echo "ERROR: Package not installed correctly"
-            exit 1
-          fi
+          mkdir package-artifact
+          npm pack "n8n-nodes-imap@${PACKAGE_VERSION}" --pack-destination package-artifact
+      - name: Upload package tarball
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: package-under-test
+          path: package-artifact/*.tgz
+          if-no-files-found: error
+          retention-days: 1
 
-      - name: Test package import (basic)
-        run: |
-          cd test-installation
-          node -e "
-            try {
-              const pkg = require('n8n-nodes-imap');
-              console.log('Package imported successfully');
-              console.log('Package info:', Object.keys(pkg || {}));
-            } catch (error) {
-              console.log('Package import test (expected to fail in this context):', error.message);
-            }
-          "
-
-      - name: Verify n8n integration files
-        run: |
-          cd test-installation
-          echo "Checking n8n integration..."
-          
-          # Check if the main files exist as specified in package.json
-          if [ -f "node_modules/n8n-nodes-imap/dist/nodes/Imap/Imap.node.js" ]; then
-            echo "✓ Main node file exists"
-          else
-            echo "✗ Main node file missing"
-            exit 1
-          fi
-          
-          if [ -f "node_modules/n8n-nodes-imap/dist/credentials/ImapCredentials.credentials.js" ]; then
-            echo "✓ Credentials file exists"
-          else
-            echo "✗ Credentials file missing"
-            exit 1
-          fi
-
-      - name: Check dependencies
-        run: |
-          cd test-installation
-          echo "Checking dependencies..."
-          npm list --depth=1
-          
-          echo "Checking for required dependencies..."
-          node -e "
-            const pkg = require('./node_modules/n8n-nodes-imap/package.json');
-            console.log('Dependencies:', Object.keys(pkg.dependencies || {}));
-            console.log('Peer Dependencies:', Object.keys(pkg.peerDependencies || {}));
-          "
-
-  test-with-n8n:
-    name: Test with n8n Installation
+  install:
+    name: Install on Node.js ${{ inputs.node_version }}
+    needs: pack
     runs-on: ubuntu-latest
-    needs: test-package-installation
-    
     steps:
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Checkout verification script
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: '18'
-          registry-url: 'https://registry.npmjs.org'
-      
-      - name: Create n8n test project
+          persist-credentials: false
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ inputs.node_version }}
+      - name: Select compatible n8n-workflow
+        id: compatibility
+        env:
+          NODE_VERSION: ${{ inputs.node_version }}
         run: |
-          mkdir n8n-test && cd n8n-test
-          npm init -y
-      
-      - name: Install n8n and the package
+          case "$NODE_VERSION" in
+            20.19.0) echo "workflow=1.95.0" >> "$GITHUB_OUTPUT" ;;
+            22.16.0) echo "workflow=2.16.0" >> "$GITHUB_OUTPUT" ;;
+            24.0.0) echo "workflow=2.38.1" >> "$GITHUB_OUTPUT" ;;
+            *) exit 1 ;;
+          esac
+      - name: Download exact package
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: package-under-test
+          path: package-artifact
+      - name: Install package and peer dependency
+        env:
+          N8N_WORKFLOW_VERSION: ${{ steps.compatibility.outputs.workflow }}
         run: |
-          cd n8n-test
-          echo "Installing n8n..."
-          npm install n8n
-          
-          echo "Installing n8n-nodes-imap..."
-          if [ -n "${{ inputs.package_version }}" ]; then
-            npm install n8n-nodes-imap@${{ inputs.package_version }}
+          mkdir consumer
+          cd consumer
+          npm init --yes
+          npm install --no-save "n8n-workflow@${N8N_WORKFLOW_VERSION}" ../package-artifact/*.tgz
+          npm ls n8n-nodes-imap n8n-workflow
+      - name: Verify module loading
+        env:
+          PACKAGE_VERSION: ${{ inputs.package_version }}
+        run: |
+          if [ -z "$PACKAGE_VERSION" ]; then
+            node scripts/verify-consumer-package.js consumer/node_modules/n8n-nodes-imap --expect-current-contract
           else
-            npm install n8n-nodes-imap
+            node scripts/verify-consumer-package.js consumer/node_modules/n8n-nodes-imap
           fi
-      
-      - name: Verify n8n can discover the nodes
+      - name: Audit package-owned runtime dependencies
         run: |
-          cd n8n-test
-          echo "Testing n8n node discovery..."
-          
-          # Create a simple test to check if n8n can load the node
-          node -e "
-            process.env.N8N_NODES_EXCLUDE = '';
-            process.env.N8N_NODES_INCLUDE = '';
-            
-            try {
-              const n8n = require('n8n');
-              console.log('n8n loaded successfully');
-              console.log('Testing completed - n8n can load with the package installed');
-            } catch (error) {
-              console.log('Note: Full n8n test requires more setup, but package installation verified');
-              console.log('Error details:', error.message);
-            }
-          "
-
-      - name: Summary
-        run: |
-          echo "=== Installation Test Summary ==="
-          echo "✓ Package installs successfully from npmjs"
-          echo "✓ Required files are present in dist folder"
-          echo "✓ Dependencies are correctly resolved"
-          echo "✓ Package structure matches n8n requirements"
-          echo "=== Test completed successfully ==="
+          mkdir runtime-audit
+          cd runtime-audit
+          npm init --yes
+          npm install --omit=peer ../package-artifact/*.tgz
+          npm audit --omit=dev --audit-level=low

@@ -18,8 +18,10 @@ Thank you for your interest in contributing to the n8n-nodes-imap project! This 
 
 ### Prerequisites
 
-- **Node.js** (version 18 or higher)
-- **npm** or **yarn**
+- **Node.js 22.22.0** for the development and release toolchain (see `.nvmrc`)
+- **npm 10.9.4** (declared in `package.json`)
+- Published runtime support starts at Node.js 20; the newer development floor comes from the release tooling
+- **npm** (the lockfile and CI use npm exclusively)
 - **Docker** (required for Greenmail integration tests)
 - **Git**
 

@@ -6,6 +6,27 @@ import { Logger as N8nLogger } from 'n8n-workflow';
 import { ImapFlow } from 'imapflow';
 import { getGlobalGreenmailApi } from './setup.withGreenmail';
 import { globalGreenmailConfig } from './globalSetup';
+import { createServer } from 'net';
+
+async function createRejectingTcpServer(): Promise<{ port: number; close: () => Promise<void> }> {
+	const server = createServer((socket) => socket.destroy());
+	await new Promise<void>((resolve, reject) => {
+		server.once('error', reject);
+		server.listen(0, '127.0.0.1', resolve);
+	});
+	const address = server.address();
+	if (!address || typeof address === 'string') {
+		throw new Error('Failed to allocate a local TCP port');
+	}
+
+	return {
+		port: address.port,
+		close: () =>
+			new Promise<void>((resolve, reject) => {
+				server.close((error) => (error ? reject(error) : resolve()));
+			}),
+	};
+}
 
 
 describeWithGreenMail('ImapUtils - createImapClient', () => {
@@ -107,11 +128,12 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
       client.close();
     });
 
-    it('should handle connection to non-existent server gracefully', async () => {
-      // Arrange
-      const credentials: ImapCredentialsData = {
-        host: 'non-existent-host-12345.com',
-        port: 9999,
+		it('should handle connection to non-existent server gracefully', async () => {
+			// Arrange
+			const rejectingServer = await createRejectingTcpServer();
+			const credentials: ImapCredentialsData = {
+				host: '127.0.0.1',
+				port: rejectingServer.port,
         user: 'test@example.com',
         password: 'password',
         tls: false,
@@ -120,8 +142,13 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
       };
       const client = createImapClient(credentials, mockLoggerSilent, false);
 
-      // Act & Assert
-      await expect(client.connect()).rejects.toThrow();
+			// Act & Assert
+			try {
+				await expect(client.connect()).rejects.toThrow();
+			} finally {
+				client.close();
+				await rejectingServer.close();
+			}
     });
   });
 
@@ -263,11 +290,12 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
 
   describe('error handling', () => {
 
-    it('should log errors when connection fails', async () => {
-      // Arrange
-      const credentials: ImapCredentialsData = {
-        host: 'invalid-host.local',
-        port: 9999,
+		it('should log errors when connection fails', async () => {
+			// Arrange
+			const rejectingServer = await createRejectingTcpServer();
+			const credentials: ImapCredentialsData = {
+				host: '127.0.0.1',
+				port: rejectingServer.port,
         user: 'test@example.com',
         password: 'password',
         tls: false,
@@ -279,9 +307,12 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
       // Act
       try {
         await client.connect();
-      } catch (error) {
-        // Expected to fail
-      }
+			} catch (error) {
+				// Expected to fail
+			} finally {
+				client.close();
+				await rejectingServer.close();
+			}
 
       // Assert - Error logger might be called
       // Note: This depends on ImapFlow's internal error handling
