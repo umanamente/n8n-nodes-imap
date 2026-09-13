@@ -1,5 +1,5 @@
 import { DownloadObject, FetchQueryObject, ImapFlow } from "imapflow";
-import { Readable } from "stream";
+import { Readable, Transform } from "stream";
 import { finished } from "stream/promises";
 import { IExecuteFunctions, INodeExecutionData, Logger as N8nLogger } from "n8n-workflow";
 import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
@@ -146,24 +146,39 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
         );
       }
 
-      const streamCompletion = resp.content instanceof Readable
-        ? finished(resp.content, { cleanup: true })
-        : Promise.resolve();
+      let downloadedBytes = Buffer.isBuffer(resp.content) ? resp.content.length : 0;
+      let contentForPreparation: Buffer | Readable = resp.content;
+      let streamCompletion = Promise.resolve();
+      let byteCounter: Transform | undefined;
+
+      if (resp.content instanceof Readable) {
+        byteCounter = new Transform({
+          transform(chunk, _encoding, callback) {
+            downloadedBytes += chunk.length;
+            callback(null, chunk);
+          },
+        });
+        contentForPreparation = byteCounter;
+        resp.content.pipe(byteCounter);
+        streamCompletion = finished(resp.content, { cleanup: true });
+      }
+
       let binaryData;
       try {
         [binaryData] = await Promise.all([
-          context.helpers.prepareBinaryData(resp.content, resp.meta.filename, resp.meta.contentType),
+          context.helpers.prepareBinaryData(contentForPreparation, resp.meta.filename, resp.meta.contentType),
           streamCompletion,
         ]);
       } catch (error) {
         if (resp.content instanceof Readable) {
-          // The original error is rethrown below; do not emit it again after finished() removes its listeners.
+          // The original error is rethrown below; destroy both sides of the counting pipeline.
           resp.content.destroy();
+          byteCounter!.destroy();
         }
         await streamCompletion.catch(() => undefined);
         throw error;
       }
-      logger.info(`Attachment downloaded: ${binaryData.data.length} bytes`);
+      logger.info(`Attachment downloaded: ${downloadedBytes} bytes`);
 
       const fieldName = `attachment_${attachmentCounter}`;
       attachmentCounter++;
@@ -172,10 +187,13 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
         partId: partId,
         binaryFieldName: fieldName,
         ...resp.meta,
+        size: downloadedBytes,
       };
       jsonAttachments.push(jsonAttachmentInfo);
 
       returnItem.binary![fieldName] = binaryData;
+
+      ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
     }
 
     // add attachments info to the return item
