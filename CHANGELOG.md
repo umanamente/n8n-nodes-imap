@@ -1,3 +1,13 @@
+## [3.0.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.17.1...v3.0.0) (2026-09-13)
+
+### ⚠ BREAKING CHANGES
+
+* **imap:** Node.js 20 or newer and n8n-workflow >=1.95.0 <3 are now required. Upgrade unsupported Node.js or n8n installations before updating the node.
+
+### Bug Fixes
+
+* **imap:** upgrade mail libraries and improve email reliability ([f8ccd59](https://github.com/umanamente/n8n-nodes-imap/commit/f8ccd599dbf80125b09f48ee9709bb72fcddfc9b))
+
 ## [2.17.1](https://github.com/umanamente/n8n-nodes-imap/compare/v2.17.0...v2.17.1) (2026-07-02)
 
 ### Bug Fixes
