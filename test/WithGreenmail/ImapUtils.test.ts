@@ -128,7 +128,7 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
       client.close();
     });
 
-		it('should handle connection to non-existent server gracefully', async () => {
+		it('should reject when the server closes before sending an IMAP greeting', async () => {
 			// Arrange
 			const rejectingServer = await createRejectingTcpServer();
 			const credentials: ImapCredentialsData = {
@@ -285,38 +285,6 @@ describeWithGreenMail('ImapUtils - createImapClient', () => {
       
       // Cleanup
       client.close();
-    });
-  });
-
-  describe('error handling', () => {
-
-		it('should log errors when connection fails', async () => {
-			// Arrange
-			const rejectingServer = await createRejectingTcpServer();
-			const credentials: ImapCredentialsData = {
-				host: '127.0.0.1',
-				port: rejectingServer.port,
-        user: 'test@example.com',
-        password: 'password',
-        tls: false,
-        allowUnauthorizedCerts: false,
-        startTLSUsage: DEFAULT_STARTTLS_USAGE,
-      };
-      const client = createImapClient(credentials, mockLoggerSilent, false);
-
-      // Act
-      try {
-        await client.connect();
-			} catch (error) {
-				// Expected to fail
-			} finally {
-				client.close();
-				await rejectingServer.close();
-			}
-
-      // Assert - Error logger might be called
-      // Note: This depends on ImapFlow's internal error handling
-      expect(mockLoggerSilent.error.mock.calls.length).toBeGreaterThanOrEqual(0);
     });
   });
 
