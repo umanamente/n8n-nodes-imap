@@ -1,3 +1,9 @@
+## [3.0.1](https://github.com/umanamente/n8n-nodes-imap/compare/v3.0.0...v3.0.1) (2026-09-13)
+
+### Bug Fixes
+
+* **email:** report actual streamed attachment byte size ([79f6e3a](https://github.com/umanamente/n8n-nodes-imap/commit/79f6e3a7dc7730751bbab7394c44e280622b852d))
+
 ## [3.0.0](https://github.com/umanamente/n8n-nodes-imap/compare/v2.17.1...v3.0.0) (2026-09-13)
 
 ### ⚠ BREAKING CHANGES
