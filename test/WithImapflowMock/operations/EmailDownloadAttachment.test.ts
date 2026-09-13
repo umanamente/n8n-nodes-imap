@@ -4,6 +4,7 @@ import { createImapflowMock, MockImapServer } from '../../TestUtils/ImapflowMock
 import { createNodeParametersCheckerMock } from '../../TestUtils/N8nMocks';
 import { downloadAttachmentOperation } from '../../../nodes/Imap/operations/email/functions/EmailDownloadAttachment';
 import { PassThrough } from 'stream';
+import { ImapFlowErrorCatcher } from '../../../nodes/Imap/utils/ImapUtils';
 
 describe('EmailDownloadAttachment', () => {
   const ITEM_INDEX = 0;
@@ -26,7 +27,7 @@ describe('EmailDownloadAttachment', () => {
   });
 
 	describe('executeImapAction - basic functionality', () => {
-		it('waits for each download stream to finish before requesting the next attachment', async () => {
+		it('streams each attachment completely and reports its actual byte size', async () => {
 			const context = createNodeParametersCheckerMock(downloadAttachmentOperation.parameters, {
 				mailboxPath: { value: 'INBOX' },
 				emailUid: '123',
@@ -40,16 +41,23 @@ describe('EmailDownloadAttachment', () => {
 				.fn()
 				.mockResolvedValueOnce({
 					content: firstStream,
-					meta: { filename: 'first.txt', contentType: 'text/plain' },
+					meta: { filename: 'first.txt', contentType: 'text/plain', expectedSize: 999 },
 				})
 				.mockResolvedValueOnce({
 					content: secondStream,
-					meta: { filename: 'second.txt', contentType: 'text/plain' },
+					meta: { filename: 'second.txt', contentType: 'text/plain', expectedSize: 999 },
 				});
+			const preparedPayloads: Buffer[] = [];
 			context.helpers!.prepareBinaryData = jest.fn().mockImplementation(async (content) => {
-				content.resume();
-				return { data: 'binary-data', mimeType: 'text/plain' };
+				const chunks: Buffer[] = [];
+				for await (const chunk of content) {
+					chunks.push(Buffer.from(chunk));
+				}
+				preparedPayloads.push(Buffer.concat(chunks));
+				return { data: 'filesystem-v2', mimeType: 'text/plain' };
 			});
+			const firstContent = Buffer.from('first');
+			const secondContent = Buffer.from('second attachment');
 
 			const execution = downloadAttachmentOperation.executeImapAction(
 				context as IExecuteFunctions,
@@ -60,12 +68,27 @@ describe('EmailDownloadAttachment', () => {
 			await new Promise((resolve) => setImmediate(resolve));
 
 			expect(mockImapflow.download).toHaveBeenCalledTimes(1);
-			firstStream.end('first');
+			firstStream.end(firstContent);
 			await new Promise((resolve) => setImmediate(resolve));
 			expect(mockImapflow.download).toHaveBeenCalledTimes(2);
 
-			secondStream.end('second');
-			await expect(execution).resolves.toBeDefined();
+			secondStream.end(secondContent);
+			const result = await execution;
+
+			expect(preparedPayloads).toEqual([firstContent, secondContent]);
+			expect(result?.[0].json.attachments).toEqual([
+				expect.objectContaining({ expectedSize: 999, size: firstContent.length }),
+				expect.objectContaining({ expectedSize: 999, size: secondContent.length }),
+			]);
+			expect(context.logger!.info).toHaveBeenCalledWith(
+				`Attachment downloaded: ${firstContent.length} bytes`,
+			);
+			expect(context.logger!.info).toHaveBeenCalledWith(
+				`Attachment downloaded: ${secondContent.length} bytes`,
+			);
+
+			ImapFlowErrorCatcher.getInstance().onImapWarning({ message: 'late warning' });
+			expect(ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList().caughtEntries).toEqual([]);
 		});
 
 		it('rejects a failed download without emitting its stream error again', async () => {
