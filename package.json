@@ -16,8 +16,16 @@
     "url": "https://github.com/umanamente/n8n-nodes-imap.git"
   },
   "main": "dist/nodes/Imap/Imap.node.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "npm@10.9.4",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "scripts": {
-    "build": "tsc && gulp build:icons",
+    "build": "node scripts/clean-dist.js && tsc && node scripts/copy-icons.js",
     "dev": "tsc --watch",
     "run-dev": "npm run build && cross-env N8N_NODES_DEBUG_ENABLED=true N8N_LOG_LEVEL=debug n8n start",
     "run-dev-tunnel": "npm run build && cross-env N8N_NODES_DEBUG_ENABLED=true N8N_LOG_LEVEL=debug n8n start --tunnel",
@@ -30,8 +38,8 @@
     "test:watch": "jest --watchAll",
     "test:coverage": "jest --coverage --runInBand",
     "verify:package": "npm run build && node scripts/verify-package.js",
-    "prepublishOnly": "npm run verify:package && npm run lint -c .eslintrc.prepublish.js nodes credentials package.json",
-    "semantic-release": "npx semantic-release"
+    "prepublishOnly": "npm run verify:package && eslint --config eslint.prepublish.config.js nodes credentials package.json",
+    "semantic-release": "semantic-release"
   },
   "files": [
     "dist"
@@ -46,32 +54,34 @@
     ]
   },
   "devDependencies": {
-    "@google/semantic-release-replace-plugin": "^1.2.7",
     "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/exec": "^7.1.0",
+    "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^12.0.9",
     "@semantic-release/npm": "^13.1.5",
-    "@semantic-release/release-notes-generator": "^14.0.3",
+    "@semantic-release/release-notes-generator": "^14.1.1",
     "@types/jest": "^30.0.0",
     "@types/mailparser": "^3.4.6",
-    "@types/nodemailer": "^7.0.11",
-    "@typescript-eslint/parser": "~8.57.0",
-    "conventional-changelog-conventionalcommits": "^9.3.0",
+    "@types/node": "^22.20.2",
+    "@typescript-eslint/parser": "^8.70.0",
+    "conventional-changelog-conventionalcommits": "^9.3.1",
     "cross-env": "^10.1.0",
-    "eslint-plugin-n8n-nodes-base": "^1.16.6",
-    "gulp": "^5.0.1",
-    "jest": "^30.3.0",
-    "n8n-workflow": "*",
-    "prettier": "^3.8.1",
-    "ts-jest": "^29.4.6",
+    "eslint": "^10.10.0",
+    "eslint-plugin-n8n-nodes-base": "^2.0.0",
+    "globals": "^17.12.0",
+    "jest": "^30.5.1",
+    "n8n-workflow": "2.28.0",
+    "prettier": "^3.9.6",
+    "semantic-release": "^25.0.9",
+    "ts-jest": "^29.4.12",
     "typescript": "~5.9.3"
   },
   "peerDependencies": {
-    "n8n-workflow": "*"
+    "n8n-workflow": ">=1.95.0 <3"
   },
   "dependencies": {
-    "imapflow": "^1.2.13",
-    "mailparser": "^3.9.4",
-    "nodemailer": "^8.0.2"
+    "imapflow": "^2.0.2",
+    "mailparser": "^3.9.26",
+    "nodemailer": "^10.0.9"
   }
 }

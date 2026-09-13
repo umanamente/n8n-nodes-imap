@@ -1,4 +1,6 @@
 import { DownloadObject, FetchQueryObject, ImapFlow } from "imapflow";
+import { Readable } from "stream";
+import { finished } from "stream/promises";
 import { IExecuteFunctions, INodeExecutionData, Logger as N8nLogger } from "n8n-workflow";
 import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from "../../../utils/SearchFieldParameters";
@@ -144,7 +146,23 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
         );
       }
 
-      const binaryData = await context.helpers.prepareBinaryData(resp.content, resp.meta.filename, resp.meta.contentType);
+      const streamCompletion = resp.content instanceof Readable
+        ? finished(resp.content, { cleanup: true })
+        : Promise.resolve();
+      let binaryData;
+      try {
+        [binaryData] = await Promise.all([
+          context.helpers.prepareBinaryData(resp.content, resp.meta.filename, resp.meta.contentType),
+          streamCompletion,
+        ]);
+      } catch (error) {
+        if (resp.content instanceof Readable) {
+          // The original error is rethrown below; do not emit it again after finished() removes its listeners.
+          resp.content.destroy();
+        }
+        await streamCompletion.catch(() => undefined);
+        throw error;
+      }
       logger.info(`Attachment downloaded: ${binaryData.data.length} bytes`);
 
       const fieldName = `attachment_${attachmentCounter}`;

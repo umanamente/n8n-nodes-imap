@@ -15,22 +15,11 @@
     "preserveConstEnums": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "incremental": true,
     "declaration": true,
     "sourceMap": true,
     "skipLibCheck": true,
-    "outDir": "./dist/",
+    "outDir": "./dist/"
   },
-  "include": [
-    "credentials/**/*",
-    "nodes/**/*",
-    "nodes/**/*.json",
-    "package.json", 
-    "test/**/*"
-  ],
-  "exclude": [
-    "test/**/*",
-    "dist/**/*",
-    "node_modules/**/*"
-  ]
+  "include": ["credentials/**/*", "nodes/**/*", "nodes/**/*.json", "test/**/*"],
+  "exclude": ["test/**/*", "dist/**/*", "node_modules/**/*"]
 }

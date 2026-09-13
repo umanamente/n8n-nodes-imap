@@ -4,6 +4,8 @@
 
 ## Quick Start for Developers
 
+Use Node.js 22.22.0 and npm 10.9.4 for reproducible development and release checks. The published node has a lower runtime floor of Node.js 20.
+
 ```bash
 # Clone and install
 git clone https://github.com/umanamente/n8n-nodes-imap.git
@@ -95,7 +97,7 @@ This repository publishes two npm channels:
 1. The release workflow runs directly on pushes to `beta` or when the sync workflow dispatches it for `beta`.
 2. The release workflow checks out the exact `beta` commit being published.
 3. CI sets a beta-specific package version from `git describe` output.
-4. The workflow runs `npm run prepublishOnly` and `npx jest --coverage` before publishing.
+4. The workflow runs `npm run prepublishOnly` and `npm run test:coverage` before publishing.
 5. `npm run publish:beta:ci` runs `scripts/prepare-beta-release.js`.
 6. That script updates `README.md` in the CI workspace with a beta notice and a commit diff against `master`.
 7. The same script generates `nodes/Imap/release/BetaReleaseInfo.ts` for the node UI.
