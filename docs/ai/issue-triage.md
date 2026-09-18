@@ -1,14 +1,15 @@
 # GitHub Issue Triage
 
-Use this guide when reviewing or responding to GitHub issues. Keep other workflow-specific guidance in separate focused files under `docs/ai/` and add only a short pointer to `AGENTS.md`.
+Start here, then read only the matching guide. Keep recurring issue classes in focused files under `issue-triage/`; `AGENTS.md` links to this index.
 
-## n8n Cloud availability and verification
+| Issue class | Guide |
+| --- | --- |
+| Install/update fails; class not found, dependency `ENOENT`, or unrecognized node | [Community package installation and loading](issue-triage/community-package-loading.md) |
+| Request for n8n Cloud availability or verification | [n8n Cloud eligibility](issue-triage/n8n-cloud.md) |
 
-For requests to make `n8n-nodes-imap` available or verified on n8n Cloud:
+## Common rules
 
-1. Recheck the current [n8n community node verification guidelines](https://docs.n8n.io/connect/create-nodes/build-your-node/reference/verification-guidelines/) and the direct runtime dependencies in `package.json`. Do not rely on an earlier policy or dependency list.
-2. If the restriction still applies, explain that verified community packages cannot include external dependencies and identify the dependencies that make this package ineligible.
-3. State that the node remains available and supported for self-hosted n8n installations. Link to the README's [n8n Cloud compatibility](../../README.md#n8n-cloud-compatibility) section.
-4. Describe Cloud eligibility as dependent on either a future n8n policy change or n8n explicitly permitting the required libraries. Do not imply affiliation with n8n or promise future Cloud support.
-5. When authorized, close clear duplicates or requests that remain ineligible under the current rules. Use the close reason that best matches the issue, normally `not planned` for a request that is not currently actionable.
-6. After posting a comment or changing issue state, read back the comment, issue state, and close reason to confirm the mutation and avoid duplicate actions.
+1. Read the issue and comments; acknowledge recovery already reported. Check the affected release and current upstream guidance before assigning a cause or calling something fixed.
+2. Reply in concise English: thank the reporter, explain the evidence, link the matching instructions/issue, and request only missing diagnostics. Redact credentials, tokens, and private email data.
+3. Keep installation failures separate from errors executing an installed node. Match duplicates by evidence, not title or error text alone.
+4. Post comments, apply labels, close issues, or file upstream reports only within the task's authorization. Read back every mutation, including the close reason, to avoid duplicate actions.
