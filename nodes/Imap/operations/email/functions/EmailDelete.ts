@@ -40,13 +40,13 @@ export const deleteEmailOperation: IResourceOperationDef = {
 
     await client.mailboxOpen(mailboxPath, { readOnly: false });
 
-    ImapFlowErrorCatcher.getInstance().startErrorCatching();
+    ImapFlowErrorCatcher.getInstance(client).startErrorCatching();
     const isDeleted = await client.messageDelete(emailUid, {
       uid: true,
     });
 
     if (!isDeleted) {
-      const errorsList = ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
+      const errorsList = ImapFlowErrorCatcher.getInstance(client).stopAndGetErrorsList();
       throw new NodeImapError(context.getNode(), 'Unable to delete email', errorsList);
     }
 

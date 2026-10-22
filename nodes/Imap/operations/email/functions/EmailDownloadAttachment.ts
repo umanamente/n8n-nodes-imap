@@ -91,7 +91,7 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
       const emailInfo = await client.fetchOne(emailUid, query, { uid: true });
       
       if (!emailInfo) {
-        const errors = ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
+        const errors = ImapFlowErrorCatcher.getInstance(client).stopAndGetErrorsList();
         throw new NodeImapError(context.getNode(), 'Failed to fetch email', errors);
       }
       
@@ -129,7 +129,7 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
 
 
       // start catching errors
-      ImapFlowErrorCatcher.getInstance().startErrorCatching();
+      ImapFlowErrorCatcher.getInstance(client).startErrorCatching();
 
       const resp : DownloadObject = await client.download(emailUid, partId, {
         uid: true,
@@ -137,7 +137,7 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
 
       if (!resp.meta) {
         // get IMAP errors
-        const errorsList = ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
+        const errorsList = ImapFlowErrorCatcher.getInstance(client).stopAndGetErrorsList();
 
         throw new NodeImapError(
           context.getNode(),
@@ -193,7 +193,7 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
 
       returnItem.binary![fieldName] = binaryData;
 
-      ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
+      ImapFlowErrorCatcher.getInstance(client).stopAndGetErrorsList();
     }
 
     // add attachments info to the return item

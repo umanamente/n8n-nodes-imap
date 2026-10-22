@@ -37,8 +37,8 @@ describe('EmailDelete operation', () => {
   afterEach(() => {
     jest.clearAllMocks();
     // reset error catcher state between tests
-    ImapFlowErrorCatcher.getInstance().startErrorCatching();
-    ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
+    ImapFlowErrorCatcher.getInstance(mockClient).startErrorCatching();
+    ImapFlowErrorCatcher.getInstance(mockClient).stopAndGetErrorsList();
   });
 
   it('should delete email and return confirmation', async () => {

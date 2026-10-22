@@ -62,7 +62,7 @@ export const downloadOperation: IResourceOperationDef = {
     const emailInfo = await client.fetchOne(emailUid, query, { uid: true });
 
     if (!emailInfo) {
-      const errors = ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
+      const errors = ImapFlowErrorCatcher.getInstance(client).stopAndGetErrorsList();
       throw new NodeImapError(context.getNode(), 'Failed to fetch email', errors);
     }
 

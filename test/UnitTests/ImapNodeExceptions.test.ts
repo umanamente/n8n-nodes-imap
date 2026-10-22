@@ -137,10 +137,10 @@ describe('Imap Node - exceptions handling', () => {
       // mock operation failure
       mockImapClient.list.mockImplementation(() => {
         // Simulate IMAP errors being captured            
-        ImapFlowErrorCatcher.getInstance().onImapError({
+        ImapFlowErrorCatcher.getInstance(mockImapClient).onImapError({
           message: 'IMAP error 1',
         });
-        ImapFlowErrorCatcher.getInstance().onImapWarning({
+        ImapFlowErrorCatcher.getInstance(mockImapClient).onImapWarning({
           message: 'IMAP warning 1',
         });
         
@@ -148,10 +148,10 @@ describe('Imap Node - exceptions handling', () => {
       });
 
       // Add a second IMAP error after the operation failure to verify only errors during operation are captured
-      ImapFlowErrorCatcher.getInstance().onImapError({
+      ImapFlowErrorCatcher.getInstance(mockImapClient).onImapError({
         message: 'IMAP error - not captured',
       });
-      ImapFlowErrorCatcher.getInstance().onImapWarning({
+      ImapFlowErrorCatcher.getInstance(mockImapClient).onImapWarning({
         message: 'IMAP warning - not captured',
       });
 

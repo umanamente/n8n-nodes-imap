@@ -2,6 +2,7 @@ import { IExecuteFunctions, INodeExecutionData, Logger as N8nLogger } from 'n8n-
 import { ImapFlow, StatusObject } from 'imapflow';
 import { IResourceOperationDef } from '../../../utils/CommonDefinitions';
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from '../../../utils/SearchFieldParameters';
+import { cloneImapResultForJson } from '../../../utils/ImapSerialization';
 
 export const getMailboxStatusOperation: IResourceOperationDef = {
   operation: {
@@ -28,7 +29,7 @@ export const getMailboxStatusOperation: IResourceOperationDef = {
     const mailboxPath = getMailboxPathFromNodeParameter(context, itemIndex);
 
     const mailbox : StatusObject = await client.status(mailboxPath, statusQuery);
-    var item_json = JSON.parse(JSON.stringify(mailbox));
+    var item_json = cloneImapResultForJson(mailbox);
     returnData.push({
       json: item_json,
     });

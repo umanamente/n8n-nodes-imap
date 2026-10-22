@@ -4,6 +4,7 @@ import { IExecuteFunctions, INodeExecutionData, Logger as N8nLogger, NodeOperati
 import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from '../../../utils/SearchFieldParameters';
 import { ImapFlowErrorCatcher, NodeImapError } from '../../../utils/ImapUtils';
+import { cloneImapResultForJson } from '../../../utils/ImapSerialization';
 
 
 const PARAM_NAME_DESTINATION_MAILBOX = 'destinationMailbox';
@@ -221,7 +222,7 @@ export const createDraftOperation: IResourceOperationDef = {
 
     await client.mailboxOpen(destinationMailboxPath, { readOnly: false });
 
-    ImapFlowErrorCatcher.getInstance().startErrorCatching();
+    ImapFlowErrorCatcher.getInstance(client).startErrorCatching();
 
     const resp = await client.append(
       destinationMailboxPath,
@@ -231,7 +232,7 @@ export const createDraftOperation: IResourceOperationDef = {
 
 
     if (!resp) {
-      const errorsList = ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
+      const errorsList = ImapFlowErrorCatcher.getInstance(client).stopAndGetErrorsList();
       throw new NodeImapError(
         context.getNode(),
         "Unable to create draft",
@@ -239,7 +240,7 @@ export const createDraftOperation: IResourceOperationDef = {
       );
     }
 
-    var item_json = JSON.parse(JSON.stringify(resp));
+    var item_json = cloneImapResultForJson(resp);
 
     returnData.push({
       json: item_json,

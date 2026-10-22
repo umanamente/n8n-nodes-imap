@@ -42,8 +42,8 @@ describe('EmailSetFlags operation', () => {
   afterEach(() => {
     jest.clearAllMocks();
     // Reset error catcher state between tests
-    ImapFlowErrorCatcher.getInstance().startErrorCatching();
-    ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
+    ImapFlowErrorCatcher.getInstance(mockClient).startErrorCatching();
+    ImapFlowErrorCatcher.getInstance(mockClient).stopAndGetErrorsList();
   });
 
   describe('Basic functionality', () => {

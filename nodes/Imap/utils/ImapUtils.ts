@@ -1,6 +1,7 @@
 import { ImapFlow, ImapFlowOptions } from "imapflow";
 import { ImapCredentialsData, STARTTLS_USAGE } from "../../../credentials/ImapCredentials.credentials";
 import { INode, JsonValue, Logger as N8nLogger, NodeOperationError } from "n8n-workflow";
+import { serializeImapValue } from "./ImapSerialization";
 
 
 // interfaces for debug/info entries that ImapFlow logger provides
@@ -28,7 +29,7 @@ export class ImapErrorsList {
   }
 
   public combineFullEntriesToString(): string {
-    return JSON.stringify(this.caughtEntries, null, 2);
+    return JSON.stringify(this.caughtEntries, serializeImapValue, 2);
   }
 
   public toString(): string {
@@ -54,8 +55,10 @@ export class NodeImapError extends NodeOperationError {
   }
 }
 
+const clientErrorCatchers = new WeakMap<ImapFlow, ImapFlowErrorCatcher>();
+
 /**
- * A singleton class that catches all errors/warning from ImapFlow and provides a list of them on demand
+ * Catches errors/warnings from one ImapFlow client and provides a list of them on demand.
  * 
  * @description This is needed because ImapFlow does not provide error details in thrown exceptions,
  * but only logs them internally while executing commands. So we need to catch them and provide them in case of an error.
@@ -64,21 +67,22 @@ export class NodeImapError extends NodeOperationError {
  * 
  */
 export class ImapFlowErrorCatcher {
-  private static instance: ImapFlowErrorCatcher;  
   private errorsList: ImapErrorsList = new ImapErrorsList();
 
   private isCatching = false;
 
-  private constructor() {
-    // private constructor
+  public get isActive(): boolean {
+    return this.isCatching;
   }
 
-  public static getInstance(): ImapFlowErrorCatcher {
-    if (!ImapFlowErrorCatcher.instance) {
-      ImapFlowErrorCatcher.instance = new ImapFlowErrorCatcher();
+  public static getInstance(client: ImapFlow): ImapFlowErrorCatcher {
+    let errorCatcher = clientErrorCatchers.get(client);
+    if (!errorCatcher) {
+      errorCatcher = new ImapFlowErrorCatcher();
+      clientErrorCatchers.set(client, errorCatcher);
     }
 
-    return ImapFlowErrorCatcher.instance;
+    return errorCatcher;
   }
 
   private clear() {    
@@ -120,9 +124,11 @@ export class ImapFlowErrorCatcher {
 export class ImapLoggerToN8nConverter {
   private n8nLogger?: N8nLogger;
   private enableDebugLogs: boolean;
-  constructor(enableDebugLogs: boolean, n8nLogger?: N8nLogger) {
+  private errorCatcher?: ImapFlowErrorCatcher;
+  constructor(enableDebugLogs: boolean, n8nLogger?: N8nLogger, errorCatcher?: ImapFlowErrorCatcher) {
     this.n8nLogger = n8nLogger;
     this.enableDebugLogs = enableDebugLogs;
+    this.errorCatcher = errorCatcher;
   }
 
   public info(obj: object) {
@@ -147,28 +153,29 @@ export class ImapLoggerToN8nConverter {
 
   public error(obj: object) {
     const entry = obj as ImapLoggerEntryError;
-    ImapFlowErrorCatcher.getInstance().onImapError(entry);
+    this.errorCatcher?.onImapError(entry);
     if (!this.n8nLogger) {
       return;
     }
     // todo: check if entry has "err" key and other useful info
-    this.n8nLogger.error(`IMAP error: ${JSON.stringify(entry)}`);
+    this.n8nLogger.error(`IMAP error: ${JSON.stringify(entry, serializeImapValue)}`);
   }
 
   public warn(obj: object) {
     const entry = obj as ImapLoggerEntryError;
-    ImapFlowErrorCatcher.getInstance().onImapWarning(entry);
+    this.errorCatcher?.onImapWarning(entry);
     if (!this.n8nLogger) {
       return;
     }
-    this.n8nLogger.warn(`IMAP warning: ${JSON.stringify(entry)}`);
+    this.n8nLogger.warn(`IMAP warning: ${JSON.stringify(entry, serializeImapValue)}`);
   }
   
 }
 
 
 export function createImapClient(credentials: ImapCredentialsData, logger?: N8nLogger, enableDebugLogs: boolean = false): ImapFlow {
-  const loggerConverter = new ImapLoggerToN8nConverter(enableDebugLogs, logger);
+  const errorCatcher = new ImapFlowErrorCatcher();
+  const loggerConverter = new ImapLoggerToN8nConverter(enableDebugLogs, logger, errorCatcher);
 
   let imapflowOptions: ImapFlowOptions = {
     host: credentials.host as string,
@@ -197,6 +204,7 @@ export function createImapClient(credentials: ImapCredentialsData, logger?: N8nL
   }
 
   const client = new ImapFlow(imapflowOptions);
+  clientErrorCatchers.set(client, errorCatcher);
   return client;
 }
 

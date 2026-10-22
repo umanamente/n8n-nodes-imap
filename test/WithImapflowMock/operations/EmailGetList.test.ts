@@ -1620,7 +1620,7 @@ describe('EmailGetList', () => {
       expect(mockImapflow.fetch).not.toHaveBeenCalled();
     });
 
-    it('should not call fetch when search returns false', async () => {
+    it('should fail without fetching when search returns false', async () => {
       // Arrange
       const paramValues = {
         mailboxPath: { value: 'INBOX' },
@@ -1636,17 +1636,14 @@ describe('EmailGetList', () => {
       mockImapflow.search = jest.fn().mockResolvedValue(false);
       mockImapflow.fetch = jest.fn();
 
-      // Act
-      const result = await getEmailsListOperation.executeImapAction(
+      // Act & Assert
+      await expect(getEmailsListOperation.executeImapAction(
         context as IExecuteFunctions,
         context.logger!,
         ITEM_INDEX,
         mockImapflow
-      );
+      )).rejects.toThrow('Unable to search emails');
 
-      // Assert
-      expect(result).toBeDefined();
-      expect(result?.length).toBe(0);
       expect(mockImapflow.search).toHaveBeenCalledWith(expect.any(Object), { uid: true });
       expect(mockImapflow.fetch).not.toHaveBeenCalled();
     });

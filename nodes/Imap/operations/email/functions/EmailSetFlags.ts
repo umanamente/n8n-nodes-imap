@@ -147,12 +147,12 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
     await client.mailboxOpen(mailboxPath, { readOnly: false });
 
     if (flagsToSet.length > 0) {
-      ImapFlowErrorCatcher.getInstance().startErrorCatching();
+      ImapFlowErrorCatcher.getInstance(client).startErrorCatching();
       const isSuccess : boolean = await client.messageFlagsAdd(emailUid, flagsToSet, {
         uid: true,
       });
       if (!isSuccess) {
-        const errorsList = ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
+        const errorsList = ImapFlowErrorCatcher.getInstance(client).stopAndGetErrorsList();
         throw new NodeImapError(
           context.getNode(),
           "Unable to set flags",
@@ -165,7 +165,7 @@ export const setEmailFlagsOperation: IResourceOperationDef = {
         uid: true,
       });
       if (!isSuccess) {
-        const errorsList = ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
+        const errorsList = ImapFlowErrorCatcher.getInstance(client).stopAndGetErrorsList();
         throw new NodeImapError(
           context.getNode(),
           "Unable to remove flags", 

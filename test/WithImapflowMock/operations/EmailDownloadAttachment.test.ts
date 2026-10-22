@@ -87,8 +87,8 @@ describe('EmailDownloadAttachment', () => {
 				`Attachment downloaded: ${secondContent.length} bytes`,
 			);
 
-			ImapFlowErrorCatcher.getInstance().onImapWarning({ message: 'late warning' });
-			expect(ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList().caughtEntries).toEqual([]);
+			ImapFlowErrorCatcher.getInstance(mockImapflow).onImapWarning({ message: 'late warning' });
+			expect(ImapFlowErrorCatcher.getInstance(mockImapflow).stopAndGetErrorsList().caughtEntries).toEqual([]);
 		});
 
 		it('rejects a failed download without emitting its stream error again', async () => {
