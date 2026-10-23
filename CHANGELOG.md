@@ -1,3 +1,9 @@
+## [3.0.2](https://github.com/umanamente/n8n-nodes-imap/compare/v3.0.1...v3.0.2) (2026-10-23)
+
+### Bug Fixes
+
+* **deps:** update security dependencies and audit production packages ([#150](https://github.com/umanamente/n8n-nodes-imap/issues/150)) ([6346cb5](https://github.com/umanamente/n8n-nodes-imap/commit/6346cb50469b8b369e562bd012f1aa7fdb220985))
+
 ## [3.0.1](https://github.com/umanamente/n8n-nodes-imap/compare/v3.0.0...v3.0.1) (2026-09-13)
 
 ### Bug Fixes
