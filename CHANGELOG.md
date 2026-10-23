@@ -1,3 +1,9 @@
+## [3.0.3](https://github.com/umanamente/n8n-nodes-imap/compare/v3.0.2...v3.0.3) (2026-10-23)
+
+### Bug Fixes
+
+* **imap:** preserve IMAP results and isolate client diagnostics ([#149](https://github.com/umanamente/n8n-nodes-imap/issues/149)) ([987ce03](https://github.com/umanamente/n8n-nodes-imap/commit/987ce0307aee92c75fe33fa8af7a0789a7d33f47)), closes [#148](https://github.com/umanamente/n8n-nodes-imap/issues/148)
+
 ## [3.0.2](https://github.com/umanamente/n8n-nodes-imap/compare/v3.0.1...v3.0.2) (2026-10-23)
 
 ### Bug Fixes
