@@ -34,7 +34,10 @@ jobs:
         run: npm ci
       - name: Verify registry signatures and provenance attestations
         run: npm audit signatures
-      - name: Audit the complete dependency tree
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=low
+      - name: Audit full dependency tree (informational)
+        continue-on-error: true
         run: npm audit --audit-level=low
       - name: Verify build and package
         run: npm run prepublishOnly

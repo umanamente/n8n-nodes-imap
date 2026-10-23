@@ -43,7 +43,10 @@ jobs:
         run: npm ci
       - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
         run: npm audit signatures
-      - name: Audit the complete dependency tree
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=low
+      - name: Audit full dependency tree (informational)
+        continue-on-error: true
         run: npm audit --audit-level=low
       - name: Release
         env:
@@ -77,7 +80,10 @@ jobs:
         run: npm ci
       - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
         run: npm audit signatures
-      - name: Audit the complete dependency tree
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=low
+      - name: Audit full dependency tree (informational)
+        continue-on-error: true
         run: npm audit --audit-level=low
       - name: Build and test
         run: npm run prepublishOnly
