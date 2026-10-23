@@ -6,6 +6,8 @@ import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from "../../.
 import { emailSearchParameters, getEmailSearchParametersFromNode } from "../../../utils/EmailSearchParameters";
 import { simpleParser } from 'mailparser';
 import { EmailPartInfo, getEmailPartsInfoRecursive } from "../../../utils/EmailParts";
+import { cloneImapResultForJson } from "../../../utils/ImapSerialization";
+import { ImapFlowErrorCatcher, NodeImapError } from "../../../utils/ImapUtils";
 
 
 export enum EmailParts {
@@ -30,24 +32,6 @@ function streamToString(stream: Readable): Promise<string> {
     stream.on('error', reject);
   });
 }
-
-function serializeImapFetchValue(_key: string, value: unknown): unknown {
-  if (value instanceof Set) {
-    return Array.from(value);
-  }
-  if (value instanceof Map) {
-    return Object.fromEntries(value);
-  }
-  if (typeof value === 'bigint') {
-    return value.toString();
-  }
-  return value;
-}
-
-function cloneImapFetchMessageForJson(email: FetchMessageObject): any {
-  return JSON.parse(JSON.stringify(email, serializeImapFetchValue));
-}
-
 
 export const getEmailsListOperation: IResourceOperationDef = {
   operation: {
@@ -202,8 +186,28 @@ export const getEmailsListOperation: IResourceOperationDef = {
     logger.debug(`Fetch query: ${JSON.stringify(fetchQuery)}`);
 
     // get UIDs first and apply limit before fetching message data
-    const foundUids = await client.search(searchObject, { uid: true });
-    const uids = Array.isArray(foundUids) ? foundUids : [];
+    const errorCatcher = ImapFlowErrorCatcher.getInstance(client);
+    const ownsErrorCapture = !errorCatcher.isActive;
+    if (ownsErrorCapture) {
+      errorCatcher.startErrorCatching();
+    }
+    let uids: number[];
+    try {
+      const foundUids = await client.search(searchObject, { uid: true });
+      if (!Array.isArray(foundUids)) {
+        throw new NodeImapError(
+          context.getNode(),
+          'Unable to search emails',
+          errorCatcher.stopAndGetErrorsList(),
+        );
+      }
+      uids = foundUids;
+    } finally {
+      // The node wrapper owns an existing capture and needs its diagnostics if SEARCH throws.
+      if (ownsErrorCapture) {
+        errorCatcher.stopAndGetErrorsList();
+      }
+    }
     const limitedUids = limit ? uids.slice(0, limit) : uids;
 
     logger.info(`Found ${uids.length} emails, fetching data for ${limitedUids.length} emails...`);
@@ -222,7 +226,7 @@ export const getEmailsListOperation: IResourceOperationDef = {
     // process the emails
     for (const email of emailsList) {
       logger.info(`  ${email.uid}`);
-      var item_json = cloneImapFetchMessageForJson(email);
+      var item_json = cloneImapResultForJson(email);
 
       // add mailbox path to the item
       item_json.mailboxPath = mailboxPath;

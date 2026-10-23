@@ -6,6 +6,7 @@ import {
   parameterSelectMailbox,
 } from '../../../utils/SearchFieldParameters';
 import { ImapFlowErrorCatcher, NodeImapError } from '../../../utils/ImapUtils';
+import { cloneImapResultForJson } from '../../../utils/ImapSerialization';
 
 const PARAM_NAME_SOURCE_MAILBOX = 'sourceMailbox';
 const PARAM_NAME_DESTINATION_MAILBOX = 'destinationMailbox';
@@ -64,18 +65,18 @@ export const copyEmailOperation: IResourceOperationDef = {
 
     await client.mailboxOpen(sourceMailboxPath, { readOnly: false });
 
-    ImapFlowErrorCatcher.getInstance().startErrorCatching();
+    ImapFlowErrorCatcher.getInstance(client).startErrorCatching();
 
     const resp = await client.messageCopy(emailUid, destinationMailboxPath, {
       uid: true,
     });
 
     if (!resp) {
-      const errors = ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
+      const errors = ImapFlowErrorCatcher.getInstance(client).stopAndGetErrorsList();
       throw new NodeImapError(context.getNode(), 'Email copy operation failed', errors);
     }
 
-    var item_json = JSON.parse(JSON.stringify(resp));
+    var item_json = cloneImapResultForJson(resp);
 
     returnData.push({
       json: item_json,

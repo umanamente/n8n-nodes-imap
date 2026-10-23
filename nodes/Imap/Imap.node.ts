@@ -9,6 +9,7 @@ import { ImapNodeDebugParameters, ImapNodeDebugUtils } from './utils/debug/ImapN
 import { DebugLoggerWatcher } from './utils/debug/DebugLoggerWatcher';
 import { getBetaNoticeProperties } from './utils/BetaReleaseNotice';
 import { ImapFlow } from 'imapflow';
+import { serializeImapValue } from './utils/ImapSerialization';
 
 
 export class Imap implements INodeType {
@@ -200,6 +201,7 @@ export async function executeWithHandler(
   resultBranches.push(resultItems);
 
   let caughtError: Error | null = null;
+  const errorCatcher = ImapFlowErrorCatcher.getInstance(client);
 
   // catch all errors
   try {
@@ -225,10 +227,9 @@ export async function executeWithHandler(
 
           try { // for each item
             // some errors are not thrown but logged by ImapFlow internally, so we try to catch them
-            ImapFlowErrorCatcher.getInstance().startErrorCatching();
+            errorCatcher.startErrorCatching();
 
             const result = await handler.executeImapAction(context, nodeLogger, itemIndex, client);
-            ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
             if (result?.length) {
               for (const outputItem of result) {
                 // add pairedItem 
@@ -241,7 +242,7 @@ export async function executeWithHandler(
               nodeLogger.warn(`Operation returned no data`);
             }
           } catch (error) {
-            const imapErrorsList = ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
+            const imapErrorsList = errorCatcher.stopAndGetErrorsList();
             const internalImapErrorsMessage = imapErrorsList.toString();
 
             if (imapErrorsList.caughtEntries.length > 0) {
@@ -255,7 +256,7 @@ export async function executeWithHandler(
 
             // seems to be unknown error, check IMAP internal errors and include them in the error message
 
-            nodeLogger.error(`Caught error: ${JSON.stringify(error)}`);
+            nodeLogger.error(`Caught error: ${JSON.stringify(error, serializeImapValue)}`);
 
             var errorMessage = error.responseText || error.message || 'Unknown error';
 
@@ -263,6 +264,8 @@ export async function executeWithHandler(
             
 
             throw new NodeImapError(context.getNode(), errorMessage, imapErrorsList);
+          } finally {
+            errorCatcher.stopAndGetErrorsList();
           }
         } catch (error) {
           // check if continueOnFail is set

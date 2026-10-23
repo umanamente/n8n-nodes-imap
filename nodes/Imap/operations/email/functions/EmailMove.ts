@@ -3,6 +3,7 @@ import { IExecuteFunctions, INodeExecutionData, Logger as N8nLogger } from "n8n-
 import { IResourceOperationDef } from "../../../utils/CommonDefinitions";
 import { getMailboxPathFromNodeParameter, parameterSelectMailbox } from '../../../utils/SearchFieldParameters';
 import { ImapFlowErrorCatcher, NodeImapError } from "../../../utils/ImapUtils";
+import { cloneImapResultForJson } from '../../../utils/ImapSerialization';
 
 
 
@@ -48,14 +49,14 @@ export const moveEmailOperation: IResourceOperationDef = {
 
     await client.mailboxOpen(sourceMailboxPath, { readOnly: false });
 
-    ImapFlowErrorCatcher.getInstance().startErrorCatching();
+    ImapFlowErrorCatcher.getInstance(client).startErrorCatching();
 
     const resp = await client.messageMove(emailUid, destinationMailboxPath, {
       uid: true,
     });
 
     if (!resp) {
-      const errorsList = ImapFlowErrorCatcher.getInstance().stopAndGetErrorsList();
+      const errorsList = ImapFlowErrorCatcher.getInstance(client).stopAndGetErrorsList();
       throw new NodeImapError(
         context.getNode(),
         "Unable to move email",
@@ -63,7 +64,7 @@ export const moveEmailOperation: IResourceOperationDef = {
       );
     }
 
-    var item_json = JSON.parse(JSON.stringify(resp));
+    var item_json = cloneImapResultForJson(resp);
 
     returnData.push({
       json: item_json,

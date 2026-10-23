@@ -1,6 +1,7 @@
 import { IExecuteFunctions, INodeExecutionData, Logger as N8nLogger } from 'n8n-workflow';
 import { ImapFlow } from 'imapflow';
 import { IResourceOperationDef } from '../../../utils/CommonDefinitions';
+import { cloneImapResultForJson } from '../../../utils/ImapSerialization';
 
 enum MailboxListStatusFields {
   includeMessageCount = 'includeMessageCount',
@@ -78,7 +79,7 @@ export const getMailboxListOperation: IResourceOperationDef = {
       var item_json = {
         path: mailbox.path,
         name: mailbox.name,
-        status: mailbox.status,
+        status: mailbox.status === undefined ? undefined : cloneImapResultForJson(mailbox.status),
       };
       logger.info(`  ${JSON.stringify(item_json)}`);
       returnData.push({
