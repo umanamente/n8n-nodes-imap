@@ -1,3 +1,9 @@
+## [3.0.4](https://github.com/umanamente/n8n-nodes-imap/compare/v3.0.3...v3.0.4) (2026-10-26)
+
+### Bug Fixes
+
+* **imap:** require ImapFlow 2.2.1 for Strato searches ([#152](https://github.com/umanamente/n8n-nodes-imap/issues/152)) ([edae921](https://github.com/umanamente/n8n-nodes-imap/commit/edae92197c3fe7dd92f4babdd9c167d43ca4bbef))
+
 ## [3.0.3](https://github.com/umanamente/n8n-nodes-imap/compare/v3.0.2...v3.0.3) (2026-10-23)
 
 ### Bug Fixes
