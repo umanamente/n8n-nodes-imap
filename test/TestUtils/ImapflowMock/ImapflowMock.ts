@@ -612,7 +612,7 @@ export function createImapflowMock(
       return {
         path: path,
         storage: {
-          used: 1024,  // Mock value: 1KB used
+          usage: 1024,  // Mock value: 1KB used
           limit: 2048, // Mock value: 2KB total
         },
       };

@@ -46,7 +46,7 @@ describe('MailboxGetQuota', () => {
           "json": {
             "path": "INBOX",
             "storage": {
-              "used": 1024,
+              "usage": 1024,
               "limit": 2048
             }
           }
