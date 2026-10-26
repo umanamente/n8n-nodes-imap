@@ -1,4 +1,4 @@
-import { DownloadObject, FetchQueryObject, ImapFlow } from "imapflow";
+import { FetchQueryObject, ImapFlow } from "imapflow";
 import { Readable, Transform } from "stream";
 import { finished } from "stream/promises";
 import { IExecuteFunctions, INodeExecutionData, Logger as N8nLogger } from "n8n-workflow";
@@ -131,7 +131,7 @@ export const downloadAttachmentOperation: IResourceOperationDef = {
       // start catching errors
       ImapFlowErrorCatcher.getInstance(client).startErrorCatching();
 
-      const resp : DownloadObject = await client.download(emailUid, partId, {
+      const resp = await client.download(emailUid, partId, {
         uid: true,
       });
 
