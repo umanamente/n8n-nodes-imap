@@ -211,7 +211,7 @@ export async function executeWithHandler(
     } catch (error) {
       client.close();
       nodeLogger.error(`Connection failed: ${error.message}`);
-      throw new NodeOperationError(context.getNode(), error);
+      throw new NodeOperationError(context.getNode(), error.responseText || error);
     }
 
     let logoutAttempted = false;
