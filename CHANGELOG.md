@@ -1,3 +1,9 @@
+## [3.0.5](https://github.com/umanamente/n8n-nodes-imap/compare/v3.0.4...v3.0.5) (2026-11-13)
+
+### Bug Fixes
+
+* **imap:** preserve server reason on connection failure ([#154](https://github.com/umanamente/n8n-nodes-imap/issues/154)) ([66d0850](https://github.com/umanamente/n8n-nodes-imap/commit/66d08506903fe9624e40002c6dda00e35ca59fc1))
+
 ## [3.0.4](https://github.com/umanamente/n8n-nodes-imap/compare/v3.0.3...v3.0.4) (2026-10-26)
 
 ### Bug Fixes
