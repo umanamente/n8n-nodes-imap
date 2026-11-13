@@ -100,6 +100,39 @@ describe('Imap Node - exceptions handling', () => {
       expect(mockImapClient.close).toHaveBeenCalledTimes(1);
     });
 
+    it.each([
+      ['Service temporarily unavailable', 'Service temporarily unavailable'],
+      ['Authentication failed', 'Authentication failed'],
+      ['', 'Command failed'],
+      [undefined, 'Command failed'],
+    ])('should report connection response %p as %p', async (responseText, expectedMessage) => {
+      const context = createNodeParametersCheckerMock(imap.description.properties, {
+        authentication: 'imapThisNode',
+        resource: 'mailbox',
+        operation: 'loadMailboxList',
+      });
+      context.getCredentials = jest.fn().mockResolvedValue(defaultCredentials);
+      context.getInputData = jest.fn().mockReturnValue([{}]);
+      context.getNode = jest.fn().mockReturnValue({ name: 'Imap Test Node' });
+      mockImapClient.connect.mockRejectedValue(Object.assign(new Error('Command failed'), {
+        responseText,
+        responseStatus: 'NO',
+        executedCommand: '3 AUTHENTICATE PLAIN private-payload',
+      }));
+
+      const execution = imap.execute.call(context as IExecuteFunctions);
+      await expect(execution).rejects.toBeInstanceOf(NodeOperationError);
+      await expect(execution).rejects.toMatchObject({ message: expectedMessage });
+      const serialized = await execution.then(
+        () => { throw new Error('Expected connection failure'); },
+        error => JSON.stringify(error),
+      );
+      expect(JSON.parse(serialized)).toMatchObject({ message: expectedMessage });
+      expect(serialized).not.toContain('private-payload');
+      expect(mockImapClient.close).toHaveBeenCalledTimes(1);
+      expect(mockImapClient.list).not.toHaveBeenCalled();
+    });
+
     it('should handle operation failure without IMAP errors gracefully', async () => {
       // Create a mock parameters checker for testing
       const paramValues = {
